@@ -1,0 +1,176 @@
+import kotlin.Boolean;
+import kotlin.Int;
+import kotlinx.datetime.Instant;
+import kotlinx.datetime.LocalDate;
+
+-- Wallet Table
+CREATE TABLE walletEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    balanceAmount INTEGER NOT NULL,
+    currency TEXT NOT NULL,
+    type TEXT NOT NULL,
+    createdAt INTEGER AS Instant NOT NULL,
+    isArchived INTEGER AS Boolean NOT NULL DEFAULT 0
+);
+
+insertWallet:
+INSERT OR REPLACE INTO walletEntity(id, name, balanceAmount, currency, type, createdAt, isArchived)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+selectAllWallets:
+SELECT * FROM walletEntity WHERE isArchived = 0;
+
+selectWalletById:
+SELECT * FROM walletEntity WHERE id = ?;
+
+updateWalletBalance:
+UPDATE walletEntity SET balanceAmount = ? WHERE id = ?;
+
+-- Category Table
+CREATE TABLE categoryEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    iconName TEXT NOT NULL,
+    colorHex TEXT NOT NULL,
+    isDefault INTEGER AS Boolean NOT NULL DEFAULT 0
+);
+
+insertCategory:
+INSERT OR REPLACE INTO categoryEntity(id, name, iconName, colorHex, isDefault)
+VALUES (?, ?, ?, ?, ?);
+
+selectAllCategories:
+SELECT * FROM categoryEntity;
+
+-- Transaction Table
+CREATE TABLE transactionEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    amount INTEGER NOT NULL,
+    currency TEXT NOT NULL,
+    type TEXT NOT NULL,
+    categoryId TEXT,
+    walletId TEXT NOT NULL,
+    targetWalletId TEXT,
+    date TEXT AS LocalDate NOT NULL,
+    note TEXT NOT NULL DEFAULT '',
+    merchant TEXT NOT NULL DEFAULT '',
+    createdAt INTEGER AS Instant NOT NULL,
+    updatedAt INTEGER AS Instant NOT NULL,
+    FOREIGN KEY (walletId) REFERENCES walletEntity(id),
+    FOREIGN KEY (categoryId) REFERENCES categoryEntity(id)
+);
+
+insertTransaction:
+INSERT OR REPLACE INTO transactionEntity(id, amount, currency, type, categoryId, walletId, targetWalletId, date, note, merchant, createdAt, updatedAt)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectTransactionsByWallet:
+SELECT * FROM transactionEntity WHERE walletId = ? ORDER BY date DESC, createdAt DESC;
+
+selectTransactionsByDateRange:
+SELECT * FROM transactionEntity WHERE date >= ? AND date <= ? ORDER BY date DESC, createdAt DESC;
+
+selectAllTransactions:
+SELECT * FROM transactionEntity ORDER BY date DESC, createdAt DESC;
+
+selectTransactionById:
+SELECT * FROM transactionEntity WHERE id = ?;
+
+deleteTransaction:
+DELETE FROM transactionEntity WHERE id = ?;
+
+-- Budget Table
+CREATE TABLE budgetEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    categoryId TEXT,
+    limitAmount INTEGER NOT NULL,
+    currency TEXT NOT NULL,
+    month INTEGER AS Int NOT NULL,
+    year INTEGER AS Int NOT NULL,
+    createdAt INTEGER AS Instant NOT NULL,
+    FOREIGN KEY (categoryId) REFERENCES categoryEntity(id)
+);
+
+insertBudget:
+INSERT OR REPLACE INTO budgetEntity(id, categoryId, limitAmount, currency, month, year, createdAt)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+selectBudgetsByPeriod:
+SELECT * FROM budgetEntity WHERE month = ? AND year = ?;
+
+deleteBudget:
+DELETE FROM budgetEntity WHERE id = ?;
+
+-- Bill Reminder Table
+CREATE TABLE billReminderEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    currency TEXT NOT NULL,
+    categoryId TEXT,
+    dueDate TEXT AS LocalDate NOT NULL,
+    recurrenceType TEXT NOT NULL,
+    isEnabled INTEGER AS Boolean NOT NULL DEFAULT 1,
+    lastPaidAt INTEGER AS Instant,
+    FOREIGN KEY (categoryId) REFERENCES categoryEntity(id)
+);
+
+insertBillReminder:
+INSERT OR REPLACE INTO billReminderEntity(id, name, amount, currency, categoryId, dueDate, recurrenceType, isEnabled, lastPaidAt)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectAllBillReminders:
+SELECT * FROM billReminderEntity;
+
+selectBillReminderById:
+SELECT * FROM billReminderEntity WHERE id = ?;
+
+updateBillReminder:
+UPDATE billReminderEntity
+SET name = ?,
+    amount = ?,
+    currency = ?,
+    categoryId = ?,
+    dueDate = ?,
+    recurrenceType = ?,
+    isEnabled = ?,
+    lastPaidAt = ?
+WHERE id = ?;
+
+deleteBillReminder:
+DELETE FROM billReminderEntity WHERE id = ?;
+
+-- Preference Table
+CREATE TABLE preferenceEntity (
+    key TEXT NOT NULL PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
+insertPreference:
+INSERT OR REPLACE INTO preferenceEntity(key, value)
+VALUES (?, ?);
+
+selectPreference:
+SELECT value FROM preferenceEntity WHERE key = ?;
+
+-- Vault Document Table
+CREATE TABLE vaultDocumentEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL,
+    filePath TEXT NOT NULL,
+    expiryDate TEXT AS LocalDate,
+    createdAt INTEGER AS Instant NOT NULL,
+    updatedAt INTEGER AS Instant NOT NULL
+);
+
+insertVaultDocument:
+INSERT OR REPLACE INTO vaultDocumentEntity(id, name, type, filePath, expiryDate, createdAt, updatedAt)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+selectAllVaultDocuments:
+SELECT * FROM vaultDocumentEntity ORDER BY createdAt DESC;
+
+deleteVaultDocument:
+DELETE FROM vaultDocumentEntity WHERE id = ?;

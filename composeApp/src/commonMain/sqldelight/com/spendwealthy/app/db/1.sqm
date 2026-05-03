@@ -1,0 +1,10 @@
+-- Migration to version 2
+CREATE TABLE vaultDocumentEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL,
+    filePath TEXT NOT NULL,
+    expiryDate TEXT,
+    createdAt INTEGER NOT NULL,
+    updatedAt INTEGER NOT NULL
+);
