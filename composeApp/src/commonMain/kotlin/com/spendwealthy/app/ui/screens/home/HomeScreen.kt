@@ -79,17 +79,17 @@ class HomeScreen : Screen {
             ) {
                 item { HomeHeader(state.userName, state.userAvatarId) }
                 item { BalanceBlock(state) }
-                item { WalletCarousel(state, onClick = { navigator.push(AddWalletScreen()) }) }
+                item { WalletCarousel(state, onClick = { navigator.parent?.push(AddWalletScreen()) }) }
                 item {
                     QuickActions(
-                        onTopUp = { navigator.push(AddTransactionScreen(TransactionType.INCOME)) },
-                        onSend = { navigator.push(AddTransactionScreen(TransactionType.TRANSFER)) },
-                        onRequest = { navigator.push(AddTransactionScreen(TransactionType.INCOME)) }
+                        onTopUp = { navigator.parent?.push(AddTransactionScreen(TransactionType.INCOME)) },
+                        onSend = { navigator.parent?.push(AddTransactionScreen(TransactionType.TRANSFER)) },
+                        onRequest = { navigator.parent?.push(AddTransactionScreen(TransactionType.INCOME)) }
                     )
                 }
-                item { ConnectCardBanner(onClick = { navigator.push(AddWalletScreen()) }) }
+                item { ConnectCardBanner(onClick = { navigator.parent?.push(AddWalletScreen()) }) }
                 item { QuickSendStrip() }
-                item { SectionHeader("Today, Dec 25", "All transactions", onClick = { navigator.push(TransactionListScreen()) }) }
+                item { SectionHeader("Today, Dec 25", "All transactions", onClick = { navigator.parent?.push(TransactionListScreen()) }) }
                 items(
                     items = state.recentTransactions,
                     key = { it.id }

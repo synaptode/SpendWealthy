@@ -74,13 +74,13 @@ class VaultScreen : Screen {
             ) {
                 item {
                     ProfileHeader(
-                        onSettings = { navigator.push(SettingsScreen()) },
-                        onAddDocument = { navigator.push(AddDocumentScreen()) }
+                        onSettings = { navigator.parent?.push(SettingsScreen()) },
+                        onAddDocument = { navigator.parent?.push(AddDocumentScreen()) }
                     )
                 }
                 item { ProfileCard(documents = state.documents.size) }
-                item { SecurityPanel(onClick = { navigator.push(SettingsScreen()) }) }
-                item { SectionTitle("Document vault", "Add", onClick = { navigator.push(AddDocumentScreen()) }) }
+                item { SecurityPanel(onClick = { navigator.parent?.push(SettingsScreen()) }) }
+                item { SectionTitle("Document vault", "Add", onClick = { navigator.parent?.push(AddDocumentScreen()) }) }
                 if (state.documents.isEmpty()) {
                     item { EmptyDocumentState() }
                 } else {
@@ -88,9 +88,9 @@ class VaultScreen : Screen {
                         DocumentRow(document)
                     }
                 }
-                item { SectionTitle("Preferences", "Open", onClick = { navigator.push(SettingsScreen()) }) }
-                item { PreferenceRow(Icons.Default.Notifications, "Transaction alerts", "Push notifications for bills and card activity", true, onClick = { navigator.push(SettingsScreen()) }) }
-                item { PreferenceRow(Icons.Default.Fingerprint, "Biometric lock", "Protect profile and documents", true, onClick = { navigator.push(SettingsScreen()) }) }
+                item { SectionTitle("Preferences", "Open", onClick = { navigator.parent?.push(SettingsScreen()) }) }
+                item { PreferenceRow(Icons.Default.Notifications, "Transaction alerts", "Push notifications for bills and card activity", true, onClick = { navigator.parent?.push(SettingsScreen()) }) }
+                item { PreferenceRow(Icons.Default.Fingerprint, "Biometric lock", "Protect profile and documents", true, onClick = { navigator.parent?.push(SettingsScreen()) }) }
             }
         }
     }

@@ -70,18 +70,18 @@ class BudgetListScreen : Screen {
                 modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.statusBars),
                 contentPadding = PaddingValues(bottom = 156.dp)
             ) {
-                item { CardsHeader(onAdd = { navigator.push(AddWalletScreen()) }) }
-                item { CardCarousel(state, viewModel, onClick = { navigator.push(AddWalletScreen()) }) }
+                item { CardsHeader(onAdd = { navigator.parent?.push(AddWalletScreen()) }) }
+                item { CardCarousel(state, viewModel, onClick = { navigator.parent?.push(AddWalletScreen()) }) }
                 item {
                     CardControls(
-                        onAddCard = { navigator.push(AddWalletScreen()) },
-                        onFreeze = { navigator.push(SettingsScreen()) },
-                        onSecurity = { navigator.push(SettingsScreen()) }
+                        onAddCard = { navigator.parent?.push(AddWalletScreen()) },
+                        onFreeze = { navigator.parent?.push(SettingsScreen()) },
+                        onSecurity = { navigator.parent?.push(SettingsScreen()) }
                     )
                 }
-                item { SectionTitle("Spending controls", "Add", onClick = { navigator.push(AddBudgetScreen()) }) }
+                item { SectionTitle("Spending controls", "Add", onClick = { navigator.parent?.push(AddBudgetScreen()) }) }
                 if (state.budgets.isEmpty()) {
-                    item { EmptyCardState(onClick = { navigator.push(AddBudgetScreen()) }) }
+                    item { EmptyCardState(onClick = { navigator.parent?.push(AddBudgetScreen()) }) }
                 } else {
                     items(state.budgets, key = { it.id }) { budget ->
                         BudgetLimitRow(
