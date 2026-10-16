@@ -38,8 +38,9 @@ class AppViewModel(
 
     private fun checkStartupState() {
         screenModelScope.launch {
-            val completed = preferenceRepository.getBoolean("onboarding_completed").firstOrNull() ?: false
-            _startupState.value = if (completed) AppStartupState.Dashboard else AppStartupState.Onboarding
+            preferenceRepository.getBoolean("onboarding_completed").collectLatest { completed ->
+                _startupState.value = if (completed) AppStartupState.Dashboard else AppStartupState.Onboarding
+            }
         }
     }
 
