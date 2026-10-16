@@ -252,6 +252,9 @@ Tercatat di `docs/adr/`:
 - [ADR-003: Dependency Injection — Koin](docs/adr/ADR-003-dependency-injection.md)
 - [ADR-004: Persistensi Data Lokal — SQLDelight](docs/adr/ADR-004-persistence-sqldelight.md)
 - [ADR-005: Strategi Error Handling — Outcome & DomainError](docs/adr/ADR-005-error-handling-and-outcomes.md)
+- [ADR-006: Keamanan Data Lokal & Platform Gateways](docs/adr/ADR-006-security-and-platform-gateways.md)
+
+Panduan operasional dan rilis selengkapnya tersedia di [docs/RUNBOOK.md](docs/RUNBOOK.md).
 
 ---
 
