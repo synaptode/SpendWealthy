@@ -50,9 +50,9 @@ class RunRateRule : InsightRule {
             val projectedSpend = dailyRunRate * daysInMonth
             if (projectedSpend.toDouble() > totalBudget * 1.2) {
                 return CatInsight(
-                    "Predictive Warning! 📉",
-                    "At your current pace, you'll overshoot your budget by ${(projectedSpend - totalBudget) / 1000}k. Time for some financial ninja moves!",
-                    CatMood.NINJA,
+                    "Peringatan Proyeksi Defisit ✦",
+                    "Dengan laju saat ini, pengeluaran diproyeksikan melebihi plafon sebesar Rp${(projectedSpend - totalBudget) / 1000}rb. Disarankan membatasi pos tersier.",
+                    CatMood.ALERT,
                     InsightImpact.NEGATIVE
                 )
             }
@@ -74,8 +74,8 @@ class CategoryConcentrationRule : InsightRule {
             val spentInTop = topCategory.value.sumOf { it.amount.amount }
             if (spentInTop > totalSpent * 0.5) {
                 return CatInsight(
-                    "Hyper-Focus Detected 🎯",
-                    "Half of your stash is going into one category. Diversify your pounces to keep the hoard balanced!",
+                    "Konsentrasi Pengeluaran Terdeteksi ✦",
+                    "Lebih dari separuh belanja terpusat pada satu kategori utama. Seimbangkan portofolio pos bulanan Anda.",
                     CatMood.CURIOUS,
                     InsightImpact.NEUTRAL
                 )
@@ -104,9 +104,22 @@ class CatInsightService {
         val totalSpent = transactions.filter { it.date.monthNumber == now.monthNumber && it.type == TransactionType.EXPENSE }.sumOf { it.amount.amount }
 
         return when {
-            totalSpent == 0L -> CatInsight("Ready to Pounce? 🐾", "Your pantry is stocked and quiet. Awaiting your first move!", CatMood.SLEEPY)
-            totalSpent < totalBudget * 0.3 -> CatInsight("Master of Stealth 🥷", "Your spending is practically invisible. Excellent discipline!", CatMood.PROUD, InsightImpact.POSITIVE)
-            else -> CatInsight("Steady Paws 🐈", "You're navigating the financial jungle with grace. Keep it up!", CatMood.HAPPY)
+            totalSpent == 0L -> CatInsight(
+                "Arus Kas Stabil & Tenang ✦",
+                "Seluruh pos keuangan dalam kondisi prima dan saldo aman terjaga.",
+                CatMood.SLEEPY
+            )
+            totalSpent < totalBudget * 0.3 -> CatInsight(
+                "Disiplin Finansial Unggul ✦",
+                "Tingkat konsumsi berada jauh di bawah plafon batas aman bulanan.",
+                CatMood.PROUD,
+                InsightImpact.POSITIVE
+            )
+            else -> CatInsight(
+                "Cashflow Optimal & Seimbang ✦",
+                "Manajemen arus kas Anda berjalan selaras dengan target keuangan.",
+                CatMood.HAPPY
+            )
         }
     }
 
@@ -119,8 +132,8 @@ class CatInsightService {
 
         if (totalFamilyBudget > 0 && totalFamilySpent > totalFamilyBudget * 0.9) {
             return CatInsight(
-                "Pack Alert! 🚨",
-                "The shared stash is running low! Time for a family huddle before the next pounce.",
+                "Batas Anggaran Bersama 90% ✦",
+                "Plafon dana kolaborasi hampir mencapai batas maksimal alokasi bulanan.",
                 CatMood.ALERT,
                 InsightImpact.NEGATIVE
             )

@@ -195,7 +195,7 @@ class AddTransactionScreen(
                         modifier = Modifier
                             .navigationBarsPadding()
                             .fillMaxWidth()
-                            .background(AppColors.BackgroundSoftBlue)
+                            .background(Color(0xFF0F172A))
                     ) {
                         Box(
                             modifier = Modifier
@@ -208,7 +208,7 @@ class AddTransactionScreen(
                                 Modifier
                                     .size(38.dp, 4.dp)
                                     .clip(CircleShape)
-                                    .background(AppColors.TextMuted.copy(alpha = 0.35f))
+                                    .background(Color.White.copy(alpha = 0.25f))
                             )
                         }
                         CatPad(

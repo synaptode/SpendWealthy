@@ -69,7 +69,8 @@ fun CatPad(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
-            .background(AppColors.BackgroundSoftBlue)
+            .background(Color(0xFF0F172A))
+            .border(1.dp, Color.White.copy(alpha = 0.12f), RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
             .padding(horizontal = 20.dp, vertical = 20.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
@@ -82,23 +83,23 @@ fun CatPad(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color.White)
-                        .border(1.dp, AppColors.Outline.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Color(0xFF1E293B))
+                        .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(14.dp))
                         .clickable {
                             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                             val current = currentValue.filter { it.isDigit() }.toLongOrNull() ?: 0L
                             val updated = current + amount
                             onValueChange(updated.toString())
                         }
-                        .padding(vertical = 8.dp),
+                        .padding(vertical = 10.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = label,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
-                        color = AppColors.Primary
+                        color = Color(0xFF10B981)
                     )
                 }
             }
@@ -159,15 +160,21 @@ private fun CatPadKey(
     )
 
     val backgroundColor = when (key) {
-        "DEL" -> AppColors.Danger.copy(alpha = 0.12f)
-        "000" -> AppColors.PrimaryContainer.copy(alpha = 0.45f)
-        else -> Color.White
+        "DEL" -> Color(0xFFF43F5E).copy(alpha = 0.16f)
+        "000" -> Color(0xFF10B981).copy(alpha = 0.16f)
+        else -> Color(0xFF1E293B)
+    }
+
+    val borderColor = when (key) {
+        "DEL" -> Color(0xFFF43F5E).copy(alpha = 0.35f)
+        "000" -> Color(0xFF10B981).copy(alpha = 0.35f)
+        else -> Color.White.copy(alpha = 0.08f)
     }
 
     val textColor = when (key) {
-        "DEL" -> AppColors.Danger
-        "000" -> AppColors.Primary
-        else -> AppColors.DeepBlueText
+        "DEL" -> Color(0xFFF43F5E)
+        "000" -> Color(0xFF10B981)
+        else -> Color(0xFFF8FAFC)
     }
 
     Box(
@@ -176,6 +183,7 @@ private fun CatPadKey(
             .scale(scale)
             .clip(RoundedCornerShape(18.dp))
             .background(backgroundColor)
+            .border(1.dp, borderColor, RoundedCornerShape(18.dp))
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
