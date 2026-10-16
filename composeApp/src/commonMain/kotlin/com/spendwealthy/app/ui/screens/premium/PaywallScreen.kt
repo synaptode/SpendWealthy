@@ -179,7 +179,7 @@ class PaywallScreen : Screen {
                 Spacer(Modifier.height(14.dp))
 
                 Text(
-                    text = "SpendWealthy Pro 🐾",
+                    text = "SpendWealthy Sovereign ✦",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Black,
                     color = Color.White

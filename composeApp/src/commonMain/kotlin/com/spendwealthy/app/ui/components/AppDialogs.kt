@@ -2,7 +2,9 @@ package com.spendwealthy.app.ui.components
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -23,8 +25,8 @@ fun CatDialog(
     onDismissRequest: () -> Unit,
     title: String,
     message: String,
-    confirmText: String = "Pounce! 🐾",
-    dismissText: String = "Not now 🐈",
+    confirmText: String = "Lanjutkan",
+    dismissText: String = "Batal",
     onConfirm: () -> Unit,
     icon: androidx.compose.ui.graphics.vector.ImageVector? = null
 ) {
@@ -47,9 +49,14 @@ fun CatDialog(
                 .fillMaxWidth(0.85f)
                 .scale(scale)
         ) {
-            AppCard(
-                hasCatEars = true,
-                modifier = Modifier.padding(top = 16.dp)
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(26.dp)),
+                shape = RoundedCornerShape(26.dp),
+                color = Color(0xFF0F172A),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+                shadowElevation = 16.dp
             ) {
                 Column(
                     modifier = Modifier.padding(24.dp),
@@ -61,25 +68,25 @@ fun CatDialog(
                             modifier = Modifier
                                 .size(56.dp)
                                 .clip(RoundedCornerShape(20.dp))
-                                .background(AppColors.Primary.copy(alpha = 0.1f)),
+                                .background(AppColors.Primary.copy(alpha = 0.15f))
+                                .border(1.dp, AppColors.Primary.copy(alpha = 0.3f), RoundedCornerShape(20.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(icon, null, tint = AppColors.Primary, modifier = Modifier.size(32.dp))
+                            Icon(icon, null, tint = AppColors.Primary, modifier = Modifier.size(30.dp))
                         }
                     }
 
                     Text(
                         text = title,
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Black,
-                        color = AppColors.DeepBlueText
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.TextMain
                     )
 
                     Text(
                         text = message,
                         style = MaterialTheme.typography.bodyMedium,
                         color = AppColors.TextMuted,
-                        fontWeight = FontWeight.Bold,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
 
@@ -93,9 +100,9 @@ fun CatDialog(
                             onClick = onDismissRequest,
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(16.dp),
-                            border = androidx.compose.foundation.BorderStroke(2.dp, AppColors.BackgroundSoftBlue)
+                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f))
                         ) {
-                            Text(dismissText, color = AppColors.TextMuted, fontWeight = FontWeight.Black)
+                            Text(dismissText, color = AppColors.TextMuted, fontWeight = FontWeight.SemiBold)
                         }
 
                         AppButton(

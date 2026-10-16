@@ -4,7 +4,7 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Pets
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -16,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spendwealthy.app.ui.theme.AppColors
@@ -61,50 +60,51 @@ fun SuccessCelebration(
         verticalArrangement = Arrangement.Center
     ) {
         Box(contentAlignment = Alignment.Center) {
-            // Pounce Shockwave
+            // Emerald Luxury Shockwave
             Canvas(modifier = Modifier.size(240.dp)) {
                 drawCircle(
                     color = AppColors.Primary.copy(alpha = shockwaveAlpha.value * 0.3f),
                     radius = (size.minDimension / 2) * shockwaveScale.value,
-                    style = Stroke(width = 4.dp.toPx())
+                    style = Stroke(width = 3.dp.toPx())
                 )
             }
 
-            // Glow
+            // Radial Glow
             Canvas(modifier = Modifier.size(200.dp)) {
                 drawCircle(
-                    color = AppColors.Primary.copy(alpha = 0.1f),
+                    color = AppColors.Primary.copy(alpha = 0.15f),
                     radius = (size.minDimension / 2) * scale.value
                 )
             }
             
             Icon(
-                imageVector = Icons.Default.Pets,
+                imageVector = Icons.Default.CheckCircle,
                 contentDescription = null,
                 tint = AppColors.Primary,
                 modifier = Modifier
-                    .size(120.dp)
+                    .size(96.dp)
                     .scale(scale.value)
             )
         }
         
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(28.dp))
         
         Text(
             text = title,
-            style = MaterialTheme.typography.displaySmall,
-            fontWeight = FontWeight.Black,
-            color = AppColors.DeepBlueText,
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = AppColors.TextMain,
             modifier = Modifier.graphicsLayer { this.alpha = alpha.value }
         )
         
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         
-        CatBubble(
+        Text(
             text = message,
-            modifier = Modifier
-                .padding(horizontal = 32.dp)
-                .graphicsLayer { this.alpha = alpha.value }
+            style = MaterialTheme.typography.bodyMedium,
+            color = AppColors.TextMuted,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            modifier = Modifier.graphicsLayer { this.alpha = alpha.value }
         )
     }
 }
