@@ -1,6 +1,8 @@
 package com.spendwealthy.app.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -14,7 +16,8 @@ import com.spendwealthy.app.ui.theme.AppColors
 @Composable
 fun AppCard(
     modifier: Modifier = Modifier,
-    backgroundColor: Color = AppColors.CardBackground,
+    backgroundColor: Color = AppColors.Surface,
+    borderColor: Color = Color.White.copy(alpha = 0.08f),
     hasCatEars: Boolean = false,
     content: @Composable () -> Unit
 ) {
@@ -23,11 +26,12 @@ fun AppCard(
             .shadow(
                 elevation = 8.dp,
                 shape = RoundedCornerShape(22.dp),
-                spotColor = Color.Black.copy(alpha = 0.06f),
-                ambientColor = Color.Black.copy(alpha = 0.03f)
+                spotColor = Color.Black.copy(alpha = 0.2f),
+                ambientColor = Color.Black.copy(alpha = 0.1f)
             )
             .clip(RoundedCornerShape(22.dp))
             .background(backgroundColor)
+            .border(BorderStroke(1.dp, borderColor), RoundedCornerShape(22.dp))
             .padding(18.dp)
     ) {
         content()
