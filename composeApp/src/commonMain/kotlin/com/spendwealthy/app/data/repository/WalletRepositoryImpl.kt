@@ -3,17 +3,18 @@ package com.spendwealthy.app.data.repository
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
+import com.spendwealthy.app.core.architecture.DefaultDispatcherProvider
+import com.spendwealthy.app.core.architecture.DispatcherProvider
 import com.spendwealthy.app.data.mapper.toDomain
 import com.spendwealthy.app.db.AppDatabase
 import com.spendwealthy.app.domain.model.Wallet
 import com.spendwealthy.app.domain.repository.WalletRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class WalletRepositoryImpl(
-    private val db: AppDatabase
+    private val db: AppDatabase,
+    private val dispatchers: DispatcherProvider = DefaultDispatcherProvider()
 ) : WalletRepository {
 
     private val queries = db.appDatabaseQueries
@@ -21,14 +22,14 @@ class WalletRepositoryImpl(
     override fun getWallets(): Flow<List<Wallet>> {
         return queries.selectAllWallets()
             .asFlow()
-            .mapToList(Dispatchers.IO)
+            .mapToList(dispatchers.io)
             .map { entities -> entities.map { it.toDomain() } }
     }
 
     override fun getWalletById(id: String): Flow<Wallet?> {
         return queries.selectWalletById(id)
             .asFlow()
-            .mapToOneOrNull(Dispatchers.IO)
+            .mapToOneOrNull(dispatchers.io)
             .map { it?.toDomain() }
     }
 

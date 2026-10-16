@@ -2,15 +2,16 @@ package com.spendwealthy.app.data.repository
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToOneOrNull
+import com.spendwealthy.app.core.architecture.DefaultDispatcherProvider
+import com.spendwealthy.app.core.architecture.DispatcherProvider
 import com.spendwealthy.app.db.AppDatabase
 import com.spendwealthy.app.domain.repository.PreferenceRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class PreferenceRepositoryImpl(
-    private val db: AppDatabase
+    private val db: AppDatabase,
+    private val dispatchers: DispatcherProvider = DefaultDispatcherProvider()
 ) : PreferenceRepository {
 
     private val queries = db.appDatabaseQueries
@@ -18,7 +19,7 @@ class PreferenceRepositoryImpl(
     override fun getString(key: String): Flow<String?> {
         return queries.selectPreference(key)
             .asFlow()
-            .mapToOneOrNull(Dispatchers.IO)
+            .mapToOneOrNull(dispatchers.io)
     }
 
     override suspend fun setString(key: String, value: String) {

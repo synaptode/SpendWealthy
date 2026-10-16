@@ -3,17 +3,18 @@ package com.spendwealthy.app.data.repository
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
+import com.spendwealthy.app.core.architecture.DefaultDispatcherProvider
+import com.spendwealthy.app.core.architecture.DispatcherProvider
 import com.spendwealthy.app.data.mapper.toDomain
 import com.spendwealthy.app.db.AppDatabase
 import com.spendwealthy.app.domain.model.BillReminder
 import com.spendwealthy.app.domain.repository.BillRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class BillRepositoryImpl(
-    private val db: AppDatabase
+    private val db: AppDatabase,
+    private val dispatchers: DispatcherProvider = DefaultDispatcherProvider()
 ) : BillRepository {
 
     private val queries = db.appDatabaseQueries
@@ -21,14 +22,14 @@ class BillRepositoryImpl(
     override fun getBillReminders(): Flow<List<BillReminder>> {
         return queries.selectAllBillReminders()
             .asFlow()
-            .mapToList(Dispatchers.IO)
+            .mapToList(dispatchers.io)
             .map { entities -> entities.map { it.toDomain() } }
     }
 
     override fun getBillReminderById(id: String): Flow<BillReminder?> {
         return queries.selectBillReminderById(id)
             .asFlow()
-            .mapToOneOrNull(Dispatchers.IO)
+            .mapToOneOrNull(dispatchers.io)
             .map { it?.toDomain() }
     }
 

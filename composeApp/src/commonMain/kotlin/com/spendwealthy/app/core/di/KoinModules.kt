@@ -35,16 +35,16 @@ val commonModule = module {
     // Database & Repositories
     single { createDatabase(get()) }
 
-    single<WalletRepository> { WalletRepositoryImpl(get()) }
-    single<TransactionRepository> { TransactionRepositoryImpl(get()) }
-    single<CategoryRepository> { CategoryRepositoryImpl(get()) }
-    single<BudgetRepository> { BudgetRepositoryImpl(get()) }
-    single<BillRepository> { BillRepositoryImpl(get()) }
-    single<PreferenceRepository> { PreferenceRepositoryImpl(get()) }
+    single<WalletRepository> { WalletRepositoryImpl(get(), get()) }
+    single<TransactionRepository> { TransactionRepositoryImpl(get(), get()) }
+    single<CategoryRepository> { CategoryRepositoryImpl(get(), get()) }
+    single<BudgetRepository> { BudgetRepositoryImpl(get(), get()) }
+    single<BillRepository> { BillRepositoryImpl(get(), get()) }
+    single<PreferenceRepository> { PreferenceRepositoryImpl(get(), get()) }
     single<SubscriptionRepository> { LocalSubscriptionRepository(get()) }
-    single<DocumentRepository> { SqlDelightDocumentRepository(get()) }
+    single<DocumentRepository> { SqlDelightDocumentRepository(get(), get()) }
     single<FamilyRepository> { MemoryFamilyRepository() }
-    single<GoalRepository> { SqlDelightGoalRepository(get()) }
+    single<GoalRepository> { SqlDelightGoalRepository(get(), get()) }
 
     // Domain Services
     single { BalanceCalculator() }
