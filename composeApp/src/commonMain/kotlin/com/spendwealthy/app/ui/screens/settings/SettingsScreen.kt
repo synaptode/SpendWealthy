@@ -282,68 +282,84 @@ class SettingsScreen : Screen {
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(22.dp),
-            color = AppColors.Surface,
+            color = AppColors.SurfaceRaised,
             border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
         ) {
-            Row(
-                modifier = Modifier.padding(18.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Box(
+                modifier = Modifier
+                    .background(
+                        androidx.compose.ui.graphics.Brush.linearGradient(
+                            listOf(
+                                Color(0xFF1E293B),
+                                Color(0xFF0F172A)
+                            )
+                        )
+                    )
+                    .padding(20.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(52.dp)
-                            .clip(CircleShape)
-                            .background(AppColors.Primary.copy(alpha = 0.12f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = userName.take(1).uppercase(),
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = AppColors.Primary
-                        )
-                    }
-                    Spacer(Modifier.width(14.dp))
-                    Column {
-                        Text(
-                            text = userName,
-                            fontWeight = FontWeight.ExtraBold,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = AppColors.TextMain
-                        )
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = if (plan == SubscriptionPlan.FREE) AppColors.SurfaceRaised else AppColors.Primary.copy(alpha = 0.14f),
-                            modifier = Modifier.padding(top = 4.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(52.dp)
+                                .clip(CircleShape)
+                                .background(AppColors.Primary.copy(alpha = 0.15f)),
+                            contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = planName,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = if (plan == SubscriptionPlan.FREE) AppColors.TextMuted else AppColors.Primary,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                text = userName.take(1).uppercase(),
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = AppColors.Primary
                             )
                         }
+                        Spacer(Modifier.width(14.dp))
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                text = userName,
+                                fontWeight = FontWeight.ExtraBold,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = AppColors.TextMain
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = if (plan == SubscriptionPlan.FREE) AppColors.SurfaceRaised else AppColors.Primary.copy(alpha = 0.18f),
+                                border = androidx.compose.foundation.BorderStroke(
+                                    1.dp,
+                                    if (plan == SubscriptionPlan.FREE) AppColors.Outline else AppColors.Primary.copy(alpha = 0.3f)
+                                )
+                            ) {
+                                Text(
+                                    text = planName,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (plan == SubscriptionPlan.FREE) AppColors.TextMuted else AppColors.Primary,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                )
+                            }
+                        }
                     }
-                }
 
-                if (plan == SubscriptionPlan.FREE) {
-                    Surface(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable(onClick = onUpgrade),
-                        shape = RoundedCornerShape(12.dp),
-                        color = AppColors.Primary
-                    ) {
-                        Text(
-                            text = "Upgrade",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
-                        )
+                    if (plan == SubscriptionPlan.FREE) {
+                        Surface(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable(onClick = onUpgrade),
+                            shape = RoundedCornerShape(12.dp),
+                            color = AppColors.Primary
+                        ) {
+                            Text(
+                                text = "Upgrade",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF090D16),
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+                            )
+                        }
                     }
                 }
             }

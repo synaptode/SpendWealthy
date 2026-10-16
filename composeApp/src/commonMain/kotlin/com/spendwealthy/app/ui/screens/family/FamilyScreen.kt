@@ -123,20 +123,45 @@ class FamilyScreen : Screen {
 
     @Composable
     private fun FamilyOverviewCard(familyName: String) {
-        AppGlassCard(backgroundColor = AppColors.Primary) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(familyName, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = Color.White)
-                        PremiumBadge()
-                    }
-                    Text("Collaborative Wealth Management", style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.8f))
-                }
-                Box(
-                    modifier = Modifier.size(56.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.2f)),
-                    contentAlignment = Alignment.Center
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(22.dp),
+            color = AppColors.SurfaceRaised,
+            border = BorderStroke(1.dp, AppColors.Outline)
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(
+                        androidx.compose.ui.graphics.Brush.linearGradient(
+                            listOf(
+                                Color(0xFF1E293B),
+                                Color(0xFF0F172A)
+                            )
+                        )
+                    )
+                    .padding(20.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Default.Groups, null, tint = Color.White, modifier = Modifier.size(32.dp))
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(familyName, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = AppColors.TextMain)
+                            PremiumBadge()
+                        }
+                        Text("Collaborative Family Wealth Space", style = MaterialTheme.typography.bodySmall, color = AppColors.TextMuted)
+                    }
+                    Box(
+                        modifier = Modifier
+                            .size(52.dp)
+                            .clip(CircleShape)
+                            .background(AppColors.Primary.copy(alpha = 0.15f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.Groups, null, tint = AppColors.Primary, modifier = Modifier.size(28.dp))
+                    }
                 }
             }
         }
@@ -205,7 +230,7 @@ class FamilyScreen : Screen {
             border = BorderStroke(1.dp, AppColors.Outline)
         ) {
             Row(modifier = Modifier.padding(4.dp)) {
-                listOf("Members", "Activity").forEachIndexed { index, label ->
+                listOf("Anggota", "Aktivitas").forEachIndexed { index, label ->
                     val isSelected = selectedIndex == index
                     Box(
                         modifier = Modifier
@@ -219,7 +244,7 @@ class FamilyScreen : Screen {
                         Text(
                             text = label,
                             fontWeight = FontWeight.Bold,
-                            color = if (isSelected) Color.White else AppColors.TextMuted,
+                            color = if (isSelected) Color(0xFF090D16) else AppColors.TextMuted,
                             fontSize = 14.sp
                         )
                     }

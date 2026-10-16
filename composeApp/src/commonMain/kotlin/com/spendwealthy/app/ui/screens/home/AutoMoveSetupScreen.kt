@@ -61,7 +61,7 @@ class AutoMoveSetupScreen : Screen {
                     ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = AppColors.TextMain)
                     }
-                    Text("Auto-Move Setup", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
+                    Text("Otomasi Auto-Move", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = AppColors.TextMain)
                     Box(Modifier.size(44.dp))
                 }
             }
@@ -72,16 +72,16 @@ class AutoMoveSetupScreen : Screen {
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 item {
-                    Text("Automate your growth by moving money automatically between accounts and goals.", style = MaterialTheme.typography.bodyMedium, color = AppColors.TextMuted)
+                    Text("Otomatiskan alokasi kekayaan dengan memindahkan dana secara berkala antar rekening dan target impian.", style = MaterialTheme.typography.bodyMedium, color = AppColors.TextMuted)
                 }
 
                 item {
-                    AppAmountInput(value = amount, onValueChange = { amount = it }, label = "Amount to Move")
+                    AppAmountInput(value = amount, onValueChange = { amount = it }, label = "Nominal yang Dipindahkan (Rp)")
                 }
 
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("From Wallet", fontWeight = FontWeight.Bold)
+                        Text("Dari Sumber Dana", fontWeight = FontWeight.Bold, color = AppColors.TextMain)
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             items(state.wallets) { wallet ->
                                 SelectionChip(
@@ -96,7 +96,7 @@ class AutoMoveSetupScreen : Screen {
 
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("To Savings Goal", fontWeight = FontWeight.Bold)
+                        Text("Ke Pos Target / Tabungan", fontWeight = FontWeight.Bold, color = AppColors.TextMain)
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             items(state.goals) { goal ->
                                 SelectionChip(
@@ -111,11 +111,15 @@ class AutoMoveSetupScreen : Screen {
 
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("Frequency", fontWeight = FontWeight.Bold)
+                        Text("Frekuensi Eksekusi", fontWeight = FontWeight.Bold, color = AppColors.TextMain)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            RecurrenceType.values().filter { it != RecurrenceType.NONE }.forEach { type ->
+                            listOf(
+                                RecurrenceType.DAILY to "Harian",
+                                RecurrenceType.WEEKLY to "Mingguan",
+                                RecurrenceType.MONTHLY to "Bulanan"
+                            ).forEach { (type, label) ->
                                 SelectionChip(
-                                    label = type.name.lowercase().replaceFirstChar { it.uppercase() },
+                                    label = label,
                                     isSelected = selectedFrequency == type,
                                     onClick = { selectedFrequency = type }
                                 )
@@ -127,7 +131,7 @@ class AutoMoveSetupScreen : Screen {
                 item {
                     Spacer(Modifier.height(12.dp))
                     AppButton(
-                        text = "Create Automation",
+                        text = "Aktifkan Otomatisasi Alokasi",
                         onClick = { navigator.pop() },
                         modifier = Modifier.fillMaxWidth(),
                         enabled = amount.isNotBlank() && selectedSource != null && selectedTargetGoal != null
@@ -140,15 +144,17 @@ class AutoMoveSetupScreen : Screen {
     @Composable
     private fun SelectionChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
         Surface(
-            modifier = Modifier.clickable(onClick = onClick),
-            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier
+                .clip(RoundedCornerShape(14.dp))
+                .clickable(onClick = onClick),
+            shape = RoundedCornerShape(14.dp),
             color = if (isSelected) AppColors.Primary else AppColors.SurfaceRaised,
             border = androidx.compose.foundation.BorderStroke(1.dp, if (isSelected) AppColors.Primary else AppColors.Outline)
         ) {
             Text(
                 text = label,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                color = if (isSelected) Color.White else AppColors.TextMain,
+                color = if (isSelected) Color(0xFF090D16) else AppColors.TextMain,
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp
             )
