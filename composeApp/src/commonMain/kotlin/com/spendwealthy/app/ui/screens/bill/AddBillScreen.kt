@@ -26,7 +26,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -43,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -58,6 +61,25 @@ import com.spendwealthy.app.ui.components.AppAmountInput
 import com.spendwealthy.app.ui.components.AppButton
 import com.spendwealthy.app.ui.components.AppTextField
 import com.spendwealthy.app.ui.theme.AppColors
+
+private data class BillPreset(
+    val name: String,
+    val suggestedAmount: Long,
+    val iconEmoji: String,
+    val recurrence: RecurrenceType = RecurrenceType.MONTHLY
+)
+
+private val BILL_PRESETS = listOf(
+    BillPreset("Listrik PLN", 250_000L, "⚡"),
+    BillPreset("WiFi Indihome / Biznet", 385_000L, "🌐"),
+    BillPreset("BPJS Kesehatan", 150_000L, "🏥"),
+    BillPreset("Netflix", 186_000L, "🎬"),
+    BillPreset("Spotify Family", 86_900L, "🎵"),
+    BillPreset("iCloud Storage", 45_000L, "☁️"),
+    BillPreset("YouTube Premium", 69_000L, "▶️"),
+    BillPreset("Sewa / Kos", 1_500_000L, "🏠"),
+    BillPreset("Cicilan Gadget", 850_000L, "📱")
+)
 
 class AddBillScreen : Screen {
 
@@ -94,7 +116,7 @@ class AddBillScreen : Screen {
                 item {
                     Header(
                         title = "Tambah Tagihan",
-                        subtitle = "Pengingat otomatis jadwal pembayaran",
+                        subtitle = "Pengingat otomatis jadwal recurring & kewajiban",
                         onClose = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             navigator.pop()
@@ -103,12 +125,27 @@ class AddBillScreen : Screen {
                 }
 
                 item {
-                    FormSection(title = "Nama Tagihan / Langganan", icon = Icons.AutoMirrored.Filled.ReceiptLong) {
+                    PresetSection(
+                        selectedName = state.name,
+                        onSelectPreset = { preset ->
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            viewModel.onEvent(AddBillEvent.NameChanged(preset.name))
+                            if (state.amount.isBlank() || state.amount == "0") {
+                                viewModel.onEvent(AddBillEvent.AmountChanged(preset.suggestedAmount.toString()))
+                            }
+                            viewModel.onEvent(AddBillEvent.RecurrenceChanged(preset.recurrence))
+                        }
+                    )
+                    Spacer(Modifier.height(14.dp))
+                }
+
+                item {
+                    FormSection(title = "Nama Tagihan / Layanan", icon = Icons.AutoMirrored.Filled.ReceiptLong) {
                         AppTextField(
                             value = state.name,
                             onValueChange = { viewModel.onEvent(AddBillEvent.NameChanged(it)) },
                             label = "Nama Tagihan",
-                            placeholder = "Listrik PLN, WiFi Indihome, BPJS, Netflix"
+                            placeholder = "Listrik PLN, WiFi Indihome, Netflix, BPJS"
                         )
                     }
                 }
@@ -128,17 +165,24 @@ class AddBillScreen : Screen {
                         AppTextField(
                             value = state.dueDay,
                             onValueChange = { viewModel.onEvent(AddBillEvent.DueDateChanged(it)) },
-                            label = "Tanggal Jatuh Tempo (1 - 31)",
-                            placeholder = "Contoh: 20",
+                            label = "Tanggal Jatuh Tempo Tiap Bulan (1 - 31)",
+                            placeholder = "Contoh: 25",
                             modifier = Modifier.fillMaxWidth()
                         )
                         Text(
-                            text = "Pengingat otomatis akan dikirimkan sebelum tanggal ini.",
+                            text = "SpendWealthy akan mengirimkan notifikasi proaktif sebelum tanggal jatuh tempo.",
                             style = MaterialTheme.typography.bodySmall,
                             color = AppColors.TextMuted,
-                            modifier = Modifier.padding(top = 6.dp, start = 4.dp)
+                            modifier = Modifier.padding(top = 8.dp, start = 4.dp)
                         )
-                        Spacer(Modifier.height(12.dp))
+                        Spacer(Modifier.height(14.dp))
+                        Text(
+                            text = "Frekuensi Pengulangan",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.TextMain,
+                            modifier = Modifier.padding(bottom = 8.dp, start = 4.dp)
+                        )
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             items(RecurrenceType.entries.toList()) { type ->
                                 val label = when (type) {
@@ -171,7 +215,7 @@ class AddBillScreen : Screen {
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
                     }
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(20.dp))
                     AppButton(
                         text = "Simpan Tagihan",
                         onClick = {
@@ -188,11 +232,71 @@ class AddBillScreen : Screen {
     }
 
     @Composable
+    private fun PresetSection(
+        selectedName: String,
+        onSelectPreset: (BillPreset) -> Unit
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AutoAwesome,
+                    contentDescription = null,
+                    tint = AppColors.Accent,
+                    modifier = Modifier.size(16.dp)
+                )
+                Text(
+                    text = "Preset Langganan Cepat",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = AppColors.TextMain
+                )
+            }
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = PaddingValues(horizontal = 2.dp)
+            ) {
+                items(BILL_PRESETS) { preset ->
+                    val isSelected = selectedName.equals(preset.name, ignoreCase = true)
+                    Surface(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(14.dp))
+                            .clickable { onSelectPreset(preset) },
+                        shape = RoundedCornerShape(14.dp),
+                        color = if (isSelected) AppColors.Primary.copy(alpha = 0.2f) else AppColors.SurfaceRaised,
+                        border = BorderStroke(
+                            1.dp,
+                            if (isSelected) AppColors.Primary else AppColors.Outline
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(text = preset.iconEmoji, fontSize = 15.sp)
+                            Text(
+                                text = preset.name,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.SemiBold,
+                                color = if (isSelected) AppColors.Primary else AppColors.TextMain
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
     private fun Header(title: String, subtitle: String, onClose: () -> Unit) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
+                .padding(bottom = 20.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -202,7 +306,7 @@ class AddBillScreen : Screen {
                     .clip(CircleShape)
                     .clickable(onClick = onClose),
                 shape = CircleShape,
-                color = AppColors.Surface,
+                color = AppColors.SurfaceRaised,
                 border = BorderStroke(1.dp, AppColors.Outline)
             ) {
                 Box(contentAlignment = Alignment.Center) {
@@ -250,7 +354,7 @@ class AddBillScreen : Screen {
                     modifier = Modifier
                         .size(28.dp)
                         .clip(CircleShape)
-                        .background(AppColors.Primary.copy(alpha = 0.12f)),
+                        .background(AppColors.Primary.copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -273,7 +377,7 @@ class AddBillScreen : Screen {
                 color = AppColors.Surface,
                 border = BorderStroke(1.dp, AppColors.Outline)
             ) {
-                Box(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                Box(modifier = Modifier.fillMaxWidth().padding(18.dp)) {
                     content()
                 }
             }
@@ -283,18 +387,34 @@ class AddBillScreen : Screen {
     @Composable
     private fun ChoiceChip(text: String, selected: Boolean, onClick: () -> Unit) {
         Surface(
-            modifier = Modifier.clickable(onClick = onClick),
+            modifier = Modifier
+                .clip(RoundedCornerShape(12.dp))
+                .clickable(onClick = onClick),
             shape = RoundedCornerShape(12.dp),
             color = if (selected) AppColors.Primary else AppColors.SurfaceRaised,
             border = BorderStroke(1.dp, if (selected) AppColors.Primary else AppColors.Outline)
         ) {
-            Text(
-                text = text,
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                color = if (selected) Color.White else AppColors.TextMain,
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.labelMedium
-            )
+            Row(
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                if (selected) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
+                Text(
+                    text = text,
+                    color = if (selected) Color.White else AppColors.TextMain,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.labelMedium
+                )
+            }
         }
     }
 }
+

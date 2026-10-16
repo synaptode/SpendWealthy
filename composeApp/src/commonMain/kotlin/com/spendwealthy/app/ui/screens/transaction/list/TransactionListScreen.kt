@@ -298,64 +298,123 @@ class TransactionListScreen : Screen {
     ) {
         Surface(
             modifier = modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            color = AppColors.CardDark,
-            shadowElevation = 6.dp,
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
+            shape = RoundedCornerShape(22.dp),
+            color = AppColors.SurfaceRaised,
+            border = BorderStroke(1.dp, AppColors.Outline)
         ) {
-            Column(
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .background(
+                        androidx.compose.ui.graphics.Brush.linearGradient(
+                            listOf(
+                                Color(0xFF1E293B),
+                                Color(0xFF0F172A)
+                            )
+                        )
+                    )
                     .padding(20.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .clip(CircleShape)
+                                    .background(if (isSurplus) AppColors.Accent else AppColors.Danger)
+                            )
+                            Text(
+                                text = "ARUS KAS BERSIH (NET)",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.TextMuted,
+                                letterSpacing = 1.sp
+                            )
+                        }
+
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = (if (isSurplus) AppColors.Success else AppColors.Danger).copy(alpha = 0.15f),
+                            border = BorderStroke(1.dp, (if (isSurplus) AppColors.Success else AppColors.Danger).copy(alpha = 0.3f))
+                        ) {
+                            Text(
+                                text = if (isSurplus) "Surplus Arus Kas" else "Defisit Arus Kas",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = if (isSurplus) AppColors.Success else AppColors.Danger,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+
                     Text(
-                        text = "RINGKASAN CASHFLOW",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White.copy(alpha = 0.55f),
-                        letterSpacing = 1.sp
+                        text = (if (isSurplus) "+ " else "") + net,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Black,
+                        color = if (isSurplus) AppColors.Success else AppColors.Danger
                     )
 
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(if (isSurplus) AppColors.Success.copy(alpha = 0.25f) else AppColors.Danger.copy(alpha = 0.25f))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .background(Color.White.copy(alpha = 0.06f))
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(
-                            text = if (isSurplus) "Surplus" else "Defisit",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (isSurplus) AppColors.Accent else AppColors.Danger
-                        )
-                    }
-                }
-
-                Spacer(Modifier.height(14.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Icon(Icons.Default.ArrowDownward, null, tint = AppColors.Success, modifier = Modifier.size(14.dp))
-                            Text("Total Pemasukan", fontSize = 11.sp, color = Color.White.copy(alpha = 0.6f))
+                        Column {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDownward,
+                                    contentDescription = null,
+                                    tint = AppColors.Success,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text("Pemasukan", fontSize = 12.sp, color = AppColors.TextMuted)
+                            }
+                            Text(
+                                text = income,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.TextMain,
+                                modifier = Modifier.padding(top = 2.dp)
+                            )
                         }
-                        Text(income, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.padding(top = 2.dp))
-                    }
 
-                    Column(horizontalAlignment = Alignment.End) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Icon(Icons.Default.ArrowUpward, null, tint = AppColors.Danger, modifier = Modifier.size(14.dp))
-                            Text("Total Pengeluaran", fontSize = 11.sp, color = Color.White.copy(alpha = 0.6f))
+                        Column(horizontalAlignment = Alignment.End) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ArrowUpward,
+                                    contentDescription = null,
+                                    tint = AppColors.Danger,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text("Pengeluaran", fontSize = 12.sp, color = AppColors.TextMuted)
+                            }
+                            Text(
+                                text = expense,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.TextMain,
+                                modifier = Modifier.padding(top = 2.dp)
+                            )
                         }
-                        Text(expense, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.padding(top = 2.dp))
                     }
                 }
             }

@@ -1,13 +1,12 @@
 package com.spendwealthy.app.ui.screens.bill
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,9 +31,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -49,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -62,6 +64,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.BillReminder
 import com.spendwealthy.app.domain.model.BillStatus
 import com.spendwealthy.app.domain.model.Money
+import com.spendwealthy.app.domain.model.RecurrenceType
 import com.spendwealthy.app.ui.components.EmptyState
 import com.spendwealthy.app.ui.theme.AppColors
 
@@ -85,7 +88,7 @@ class BillListScreen : Screen {
                     .fillMaxSize()
                     .windowInsetsPadding(WindowInsets.statusBars),
                 contentPadding = PaddingValues(start = 24.dp, top = 12.dp, end = 24.dp, bottom = 140.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
                     BillsHeader(
@@ -112,8 +115,8 @@ class BillListScreen : Screen {
                 if (state.bills.isEmpty()) {
                     item {
                         EmptyState(
-                            title = "Tidak ada tagihan aktif",
-                            message = "Tambahkan tagihan bulanan atau paylater agar selalu ingat tanggal jatuh tempo.",
+                            title = "Belum Ada Tagihan Terjadwal",
+                            message = "Daftarkan tagihan bulanan atau cicilan paylater agar arus kas selalu terprediksi.",
                             icon = Icons.AutoMirrored.Filled.ReceiptLong
                         )
                     }
@@ -145,7 +148,8 @@ class BillListScreen : Screen {
             ) {
                 Surface(
                     shape = RoundedCornerShape(16.dp),
-                    color = AppColors.Primary,
+                    color = AppColors.SurfaceRaised,
+                    border = BorderStroke(1.dp, AppColors.Primary),
                     shadowElevation = 8.dp
                 ) {
                     Row(
@@ -155,13 +159,13 @@ class BillListScreen : Screen {
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = AppColors.Primary,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(Modifier.width(10.dp))
                         Text(
                             text = successMessage ?: "",
-                            color = Color.White,
+                            color = AppColors.TextMain,
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.bodyMedium
                         )
@@ -192,8 +196,8 @@ class BillListScreen : Screen {
                     .clip(CircleShape)
                     .clickable(onClick = onBack),
                 shape = CircleShape,
-                color = AppColors.Surface,
-                border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+                color = AppColors.SurfaceRaised,
+                border = BorderStroke(1.dp, AppColors.Outline)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
@@ -207,13 +211,13 @@ class BillListScreen : Screen {
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "Tagihan & Paylater",
+                    text = "Tagihan & Langganan",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.ExtraBold,
                     color = AppColors.TextMain
                 )
                 Text(
-                    text = "Jadwal pembayaran & kewajiban",
+                    text = "Jadwal pembayaran & recurring",
                     style = MaterialTheme.typography.bodySmall,
                     color = AppColors.TextMuted
                 )
@@ -231,7 +235,7 @@ class BillListScreen : Screen {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "Tambah Tagihan",
-                        tint = Color.White,
+                        tint = Color(0xFF090D16),
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -243,41 +247,66 @@ class BillListScreen : Screen {
     private fun BillSummaryBanner(totalAmount: String, count: Int) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(22.dp),
             color = AppColors.SurfaceRaised,
-            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+            border = BorderStroke(1.dp, AppColors.Outline)
         ) {
-            Row(
-                modifier = Modifier.padding(18.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Box(
+                modifier = Modifier
+                    .background(
+                        Brush.linearGradient(
+                            listOf(
+                                Color(0xFF1E293B),
+                                Color(0xFF0F172A)
+                            )
+                        )
+                    )
+                    .padding(20.dp)
             ) {
-                Column {
-                    Text(
-                        text = "Total Kewajiban Terjadwal",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = AppColors.TextMuted
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = totalAmount,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Black,
-                        color = AppColors.TextMain
-                    )
-                }
-
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = AppColors.Primary.copy(alpha = 0.12f)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "$count tagihan",
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = AppColors.Primary
-                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .clip(CircleShape)
+                                    .background(AppColors.Accent)
+                            )
+                            Text(
+                                text = "Total Kewajiban Terjadwal",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.TextMuted
+                            )
+                        }
+                        Text(
+                            text = totalAmount,
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Black,
+                            color = AppColors.TextMain
+                        )
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = AppColors.Primary.copy(alpha = 0.15f),
+                        border = BorderStroke(1.dp, AppColors.Primary.copy(alpha = 0.3f))
+                    ) {
+                        Text(
+                            text = "$count tagihan aktif",
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = AppColors.Primary
+                        )
+                    }
                 }
             }
         }
@@ -289,18 +318,31 @@ class BillListScreen : Screen {
         status: BillStatus,
         onPaid: () -> Unit
     ) {
-        val (statusLabel, statusColor) = when (status) {
-            BillStatus.OVERDUE -> "Terlewat" to AppColors.Danger
-            BillStatus.DUE_SOON -> "Segera Jatuh Tempo" to AppColors.Warning
-            BillStatus.PAID -> "Lunas" to AppColors.Success
-            else -> "Terjadwal" to AppColors.Primary
+        val (statusLabel, statusColor, statusIcon) = when (status) {
+            BillStatus.OVERDUE -> Triple("Jatuh Tempo Terlewat", AppColors.Danger, Icons.Default.ErrorOutline)
+            BillStatus.DUE_SOON -> Triple("Segera Jatuh Tempo", AppColors.Warning, Icons.Default.Schedule)
+            BillStatus.PAID -> Triple("Sudah Lunas", AppColors.Success, Icons.Default.Check)
+            else -> Triple("Terjadwal", AppColors.Primary, Icons.Default.CalendarMonth)
+        }
+
+        val recurrenceLabel = when (bill.recurrenceType) {
+            RecurrenceType.NONE -> "Sekali"
+            RecurrenceType.DAILY -> "Harian"
+            RecurrenceType.WEEKLY -> "Mingguan"
+            RecurrenceType.MONTHLY -> "Bulanan"
+            RecurrenceType.YEARLY -> "Tahunan"
         }
 
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
             color = AppColors.Surface,
-            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+            border = BorderStroke(
+                1.dp,
+                if (status == BillStatus.DUE_SOON) AppColors.Warning.copy(alpha = 0.4f)
+                else if (status == BillStatus.OVERDUE) AppColors.Danger.copy(alpha = 0.4f)
+                else AppColors.Outline
+            )
         ) {
             Column(
                 modifier = Modifier.padding(18.dp),
@@ -317,38 +359,55 @@ class BillListScreen : Screen {
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(44.dp)
+                                .size(46.dp)
                                 .clip(RoundedCornerShape(14.dp))
                                 .background(statusColor.copy(alpha = 0.12f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = if (status == BillStatus.PAID) Icons.Default.Check else Icons.AutoMirrored.Filled.ReceiptLong,
+                                imageVector = statusIcon,
                                 contentDescription = null,
                                 tint = statusColor,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(22.dp)
                             )
                         }
                         Spacer(Modifier.width(14.dp))
-                        Column {
+                        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                             Text(
                                 text = bill.name,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = AppColors.TextMain
                             )
-                            Text(
-                                text = "Tempo: ${bill.dueDate}",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = AppColors.TextMuted
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = "Jatuh tempo: ${bill.dueDate}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = AppColors.TextMuted
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .size(3.dp)
+                                        .clip(CircleShape)
+                                        .background(AppColors.TextMuted)
+                                )
+                                Text(
+                                    text = recurrenceLabel,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = AppColors.TextMuted,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
                         }
                     }
 
                     Text(
                         text = bill.amount.format(),
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.ExtraBold,
+                        fontWeight = FontWeight.Black,
                         color = if (status == BillStatus.PAID) AppColors.Success else AppColors.TextMain
                     )
                 }
@@ -360,15 +419,27 @@ class BillListScreen : Screen {
                 ) {
                     Surface(
                         shape = RoundedCornerShape(8.dp),
-                        color = statusColor.copy(alpha = 0.12f)
+                        color = statusColor.copy(alpha = 0.12f),
+                        border = BorderStroke(1.dp, statusColor.copy(alpha = 0.25f))
                     ) {
-                        Text(
-                            text = statusLabel,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = statusColor
-                        )
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = statusIcon,
+                                contentDescription = null,
+                                tint = statusColor,
+                                modifier = Modifier.size(12.dp)
+                            )
+                            Text(
+                                text = statusLabel,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = statusColor
+                            )
+                        }
                     }
 
                     if (status != BillStatus.PAID) {
@@ -379,13 +450,24 @@ class BillListScreen : Screen {
                             shape = RoundedCornerShape(12.dp),
                             color = AppColors.Primary
                         ) {
-                            Text(
-                                text = "Tandai Lunas",
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = null,
+                                    tint = Color(0xFF090D16),
+                                    modifier = Modifier.size(15.dp)
+                                )
+                                Text(
+                                    text = "Tandai Lunas",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF090D16)
+                                )
+                            }
                         }
                     }
                 }
@@ -393,3 +475,4 @@ class BillListScreen : Screen {
         }
     }
 }
+
