@@ -101,7 +101,7 @@ run_ios() {
             -configuration Debug \
             -destination "id=$BOOTED_DEVICE_ID" \
             -derivedDataPath iosApp/build \
-            build | xcbeautify 2>/dev/null || xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug -destination "id=$BOOTED_DEVICE_ID" -derivedDataPath iosApp/build build -quiet
+            build
 
         DERIVED_APP=$(find iosApp/build -name "Spendwealthy.app" 2>/dev/null | head -n 1 || true)
         if [ -z "$DERIVED_APP" ]; then

@@ -37,7 +37,8 @@ data class OnboardingState(
     val billAmount: String = "",
     val billDueDay: String = "25",
     val avatarId: Int = 0,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val isCompleted: Boolean = false
 ) : UiState
 
 class OnboardingViewModel(
@@ -158,7 +159,11 @@ class OnboardingViewModel(
 
             preferenceRepository.setBoolean("onboarding_completed", true)
             
-            _uiState.value = _uiState.value.copy(isLoading = false)
+            _uiState.value = _uiState.value.copy(isLoading = false, isCompleted = true)
         }
+    }
+
+    fun skipToComplete() {
+        completeOnboarding()
     }
 }
