@@ -7,3 +7,15 @@ plugins {
     alias(libs.plugins.composeCompiler) apply false
     alias(libs.plugins.kotlinMultiplatform) apply false
 }
+
+tasks.register<Exec>("runIos") {
+    group = "application"
+    description = "Boots the iOS simulator and launches the SpendWealthy app"
+    commandLine("./run.sh", "ios")
+}
+
+tasks.register<Exec>("runAndroid") {
+    group = "application"
+    description = "Boots the Android emulator/device and launches the SpendWealthy app"
+    commandLine("./run.sh", "android")
+}

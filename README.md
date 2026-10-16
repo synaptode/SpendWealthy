@@ -262,7 +262,29 @@ Tercatat di `docs/adr/`:
 - Android Studio Koala / Ladybug+
 - Xcode 15+ (untuk target iOS di macOS)
 
-### Build & Menjalankan
+### Shortcut Menjalankan Instan (1-Command Runner)
+
+Tersedia skrip runner cerdas dan Makefile yang otomatis mendeteksi, mem-boot simulator, membuka jendela aplikasi, dan meluncurkan SpendWealthy:
+
+```bash
+# iOS Simulator (Otomatis boot iPhone simulator & buka jendela Simulator.app)
+make ios
+# atau: ./run.sh ios (atau: ./run.sh fast-ios untuk launch < 2 detik)
+
+# Android Emulator / Device (Otomatis deteksi AVD, install APK & launch MainActivity)
+make android
+# atau: ./run.sh android
+
+# Menjalankan KEDUA platform sekaligus (Android + iOS side-by-side)
+make both
+# atau: ./run.sh both
+
+# Menjalankan seluruh 33 unit tests
+make test
+# atau: ./run.sh test
+```
+
+### Manual Gradle Commands
 
 ```bash
 # Kompilasi Android Debug
@@ -271,8 +293,9 @@ Tercatat di `docs/adr/`:
 # Kompilasi iOS Simulator
 ./gradlew :composeApp:compileKotlinIosSimulatorArm64
 
-# Menjalankan di Android
-./gradlew :composeApp:installDebug
+# Menjalankan via Gradle Tasks
+./gradlew runIos
+./gradlew runAndroid
 ```
 
 ---
