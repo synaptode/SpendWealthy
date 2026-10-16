@@ -167,9 +167,9 @@ class HomeScreen : Screen {
                     )
                 }
 
-                // 5. Intelligent Pounce Spotlight (Single Dynamic Insight)
+                // 5. Intelligent Wealth Spotlight (Single Dynamic Insight)
                 item {
-                    PounceSpotlightCard(
+                    IntelligenceSpotlightCard(
                         state = state,
                         onViewDetails = { rootNavigator.push(ReportScreen()) },
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
@@ -187,7 +187,7 @@ class HomeScreen : Screen {
                     )
                 }
 
-                // 7. Pounce Wealth Lab (Minimalist 2-Column Discovery Grid)
+                // 7. Wealth Intelligence Lab (Minimalist 2-Column Discovery Grid)
                 item {
                     WealthLabSection(
                         score = state.sovereignWealthScore?.score ?: 80,
@@ -210,7 +210,6 @@ class HomeScreen : Screen {
                     }
                 )
             }
-
 
             achievedGoalForCelebration?.let { goal ->
                 GoalCelebrationOverlay(
@@ -237,17 +236,29 @@ class HomeScreen : Screen {
         ) {
             Column {
                 Text(
-                    text = "Halo, $userName 🐾",
-                    fontSize = 20.sp,
+                    text = "Halo, $userName",
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = AppColors.TextMain
                 )
-                Text(
-                    text = "Cashflow harian terkendali",
-                    fontSize = 13.sp,
-                    color = AppColors.TextMuted,
-                    modifier = Modifier.padding(top = 2.dp)
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.padding(top = 4.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(7.dp)
+                            .clip(CircleShape)
+                            .background(AppColors.Primary)
+                    )
+                    Text(
+                        text = "Cashflow Terkendali ✦ Private Wealth",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = AppColors.TextMuted
+                    )
+                }
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -257,7 +268,7 @@ class HomeScreen : Screen {
                         .size(42.dp)
                         .clip(CircleShape)
                         .background(AppColors.Surface)
-                        .border(1.dp, AppColors.Outline.copy(alpha = 0.6f), CircleShape)
+                        .border(1.dp, Color.White.copy(alpha = 0.12f), CircleShape)
                         .clickable {
                             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                             onToggleBalance()
@@ -286,10 +297,10 @@ class HomeScreen : Screen {
     ) {
         Surface(
             modifier = modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(28.dp),
-            color = AppColors.CardDark,
-            shadowElevation = 8.dp,
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
+            shape = RoundedCornerShape(26.dp),
+            color = Color(0xFF0F172A),
+            shadowElevation = 12.dp,
+            border = BorderStroke(1.dp, Color(0xFF10B981).copy(alpha = 0.25f))
         ) {
             Column(
                 modifier = Modifier
@@ -297,8 +308,8 @@ class HomeScreen : Screen {
                     .background(
                         Brush.verticalGradient(
                             listOf(
-                                AppColors.CardDark,
-                                Color(0xFF0F151F)
+                                Color(0xFF0F172A),
+                                Color(0xFF1E293B)
                             )
                         )
                     )
@@ -310,46 +321,58 @@ class HomeScreen : Screen {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "TOTAL SALDO BERSIH",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White.copy(alpha = 0.55f),
-                        letterSpacing = 1.2.sp
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .clip(CircleShape)
+                                .background(AppColors.Primary)
+                        )
+                        Text(
+                            text = "TOTAL SALDO BERSIH",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White.copy(alpha = 0.6f),
+                            letterSpacing = 1.4.sp
+                        )
+                    }
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
-                            .background(AppColors.Primary.copy(alpha = 0.25f))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                            .background(AppColors.Primary.copy(alpha = 0.2f))
+                            .border(1.dp, AppColors.Primary.copy(alpha = 0.35f), RoundedCornerShape(8.dp))
+                            .padding(horizontal = 8.dp, vertical = 3.dp)
                     ) {
                         Text(
-                            text = "Aktif",
+                            text = "✦ Portofolio Aktif",
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
-                            color = AppColors.Accent
+                            color = AppColors.Primary
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
                 // Balance Number
                 Text(
                     text = if (isBalanceHidden) "••••••••••" else totalBalance.format(),
-                    fontSize = 32.sp,
+                    fontSize = 34.sp,
                     fontWeight = FontWeight.Black,
                     color = Color.White,
                     letterSpacing = (-0.5).sp
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(18.dp))
 
                 // Safe-to-Spend ("Sisa Aman Harian") Highlight Pill
                 Surface(
                     shape = RoundedCornerShape(16.dp),
-                    color = Color.White.copy(alpha = 0.07f),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.06f)),
+                    color = Color.White.copy(alpha = 0.05f),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
@@ -365,7 +388,7 @@ class HomeScreen : Screen {
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(34.dp)
+                                    .size(32.dp)
                                     .clip(CircleShape)
                                     .background(AppColors.Accent),
                                 contentAlignment = Alignment.Center
@@ -373,15 +396,15 @@ class HomeScreen : Screen {
                                 Icon(
                                     imageVector = Icons.Default.ElectricBolt,
                                     contentDescription = null,
-                                    tint = AppColors.CardDark,
-                                    modifier = Modifier.size(18.dp)
+                                    tint = Color(0xFF090D16),
+                                    modifier = Modifier.size(17.dp)
                                 )
                             }
                             Column {
                                 Text(
                                     text = "Sisa Aman Harian",
                                     fontSize = 11.sp,
-                                    color = Color.White.copy(alpha = 0.7f),
+                                    color = Color(0xFF94A3B8),
                                     fontWeight = FontWeight.Medium
                                 )
                                 Text(
@@ -393,12 +416,19 @@ class HomeScreen : Screen {
                             }
                         }
 
-                        Text(
-                            text = "Bebas Cemas",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White.copy(alpha = 0.5f)
-                        )
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color.White.copy(alpha = 0.08f))
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = "Bebas Cemas",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White.copy(alpha = 0.7f)
+                            )
+                        }
                     }
                 }
 
@@ -411,11 +441,11 @@ class HomeScreen : Screen {
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(24.dp)
+                                .size(26.dp)
                                 .clip(CircleShape)
                                 .background(AppColors.Success.copy(alpha = 0.2f)),
                             contentAlignment = Alignment.Center
@@ -423,18 +453,18 @@ class HomeScreen : Screen {
                             Icon(Icons.Default.ArrowDownward, null, tint = AppColors.Success, modifier = Modifier.size(14.dp))
                         }
                         Column {
-                            Text("Masuk", fontSize = 10.sp, color = Color.White.copy(alpha = 0.5f))
-                            Text(if (isBalanceHidden) "••••" else totalIncome.format(), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                            Text("Masuk Bulan Ini", fontSize = 10.sp, color = Color(0xFF94A3B8))
+                            Text(if (isBalanceHidden) "••••" else totalIncome.format(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppColors.Success)
                         }
                     }
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(24.dp)
+                                .size(26.dp)
                                 .clip(CircleShape)
                                 .background(AppColors.Danger.copy(alpha = 0.2f)),
                             contentAlignment = Alignment.Center
@@ -442,8 +472,8 @@ class HomeScreen : Screen {
                             Icon(Icons.Default.ArrowUpward, null, tint = AppColors.Danger, modifier = Modifier.size(14.dp))
                         }
                         Column(horizontalAlignment = Alignment.End) {
-                            Text("Keluar", fontSize = 10.sp, color = Color.White.copy(alpha = 0.5f))
-                            Text(if (isBalanceHidden) "••••" else totalExpense.format(), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                            Text("Keluar Bulan Ini", fontSize = 10.sp, color = Color(0xFF94A3B8))
+                            Text(if (isBalanceHidden) "••••" else totalExpense.format(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppColors.Danger)
                         }
                     }
                 }
@@ -497,7 +527,6 @@ class HomeScreen : Screen {
                 icon = Icons.AutoMirrored.Filled.ReceiptLong,
                 label = "Tagihan",
                 isPrimary = false,
-
                 onClick = {
                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     onBills()
@@ -522,13 +551,13 @@ class HomeScreen : Screen {
                     .size(54.dp)
                     .clip(CircleShape)
                     .background(if (isPrimary) AppColors.Primary else AppColors.Surface)
-                    .border(1.dp, if (isPrimary) Color.Transparent else AppColors.Outline.copy(alpha = 0.7f), CircleShape),
+                    .border(1.dp, if (isPrimary) Color.Transparent else Color.White.copy(alpha = 0.12f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = label,
-                    tint = if (isPrimary) AppColors.Accent else AppColors.TextMain,
+                    tint = if (isPrimary) Color(0xFF090D16) else AppColors.TextMain,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -589,7 +618,7 @@ class HomeScreen : Screen {
                             .height(115.dp)
                             .clip(RoundedCornerShape(20.dp))
                             .background(AppColors.Surface.copy(alpha = 0.6f))
-                            .border(1.dp, AppColors.Outline, RoundedCornerShape(20.dp))
+                            .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(20.dp))
                             .clickable(onClick = onAddWallet)
                             .padding(16.dp),
                         contentAlignment = Alignment.Center
@@ -599,7 +628,7 @@ class HomeScreen : Screen {
                                 modifier = Modifier
                                     .size(36.dp)
                                     .clip(CircleShape)
-                                    .background(AppColors.PrimaryContainer.copy(alpha = 0.5f)),
+                                    .background(AppColors.Primary.copy(alpha = 0.2f)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(Icons.Default.Add, null, tint = AppColors.Primary, modifier = Modifier.size(20.dp))
@@ -626,12 +655,20 @@ class HomeScreen : Screen {
                 .height(115.dp),
             shape = RoundedCornerShape(20.dp),
             color = AppColors.Surface,
-            shadowElevation = 4.dp,
-            border = BorderStroke(1.dp, AppColors.Outline.copy(alpha = 0.5f))
+            shadowElevation = 6.dp,
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .background(
+                        Brush.linearGradient(
+                            listOf(
+                                Color(0xFF0F172A),
+                                Color(0xFF1E293B)
+                            )
+                        )
+                    )
                     .padding(14.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
@@ -674,7 +711,7 @@ class HomeScreen : Screen {
     }
 
     @Composable
-    private fun PounceSpotlightCard(
+    private fun IntelligenceSpotlightCard(
         state: HomeState,
         onViewDetails: () -> Unit,
         modifier: Modifier = Modifier
@@ -683,18 +720,18 @@ class HomeScreen : Screen {
         val nearestBill = state.upcomingBills.firstOrNull()
 
         val headline = when {
-            hasAnomaly -> "Perhatian: Bocor Halus Terdeteksi"
+            hasAnomaly -> "Perhatian: Anomali Pengeluaran Terdeteksi"
             nearestBill != null -> "Pengingat Tagihan Terdekat"
-            else -> "Cashflow Dalam Kondisi Zen 🐾"
+            else -> "Arus Kas Optimal & Terkendali ✦"
         }
 
         val description = when {
             hasAnomaly -> "Ada pengeluaran berulang melebihi rata-rata mingguanmu."
             nearestBill != null -> "${nearestBill.name} (${nearestBill.amount.format()}) jatuh tempo pada ${nearestBill.dueDate}."
-            else -> "Pengeluaran harianmu berada dalam batas aman. Pertahankan ritme ini!"
+            else -> "Pengeluaran harianmu berada dalam batas aman. Pertahankan ritme ini untuk memaksimalkan tabungan!"
         }
 
-        val cardBg = if (hasAnomaly) AppColors.Danger.copy(alpha = 0.08f) else AppColors.PrimaryContainer.copy(alpha = 0.45f)
+        val cardBg = if (hasAnomaly) AppColors.Danger.copy(alpha = 0.12f) else AppColors.Surface
         val iconColor = if (hasAnomaly) AppColors.Danger else AppColors.Primary
 
         Surface(
@@ -703,7 +740,7 @@ class HomeScreen : Screen {
                 .clickable(onClick = onViewDetails),
             shape = RoundedCornerShape(22.dp),
             color = cardBg,
-            border = BorderStroke(1.dp, iconColor.copy(alpha = 0.2f))
+            border = BorderStroke(1.dp, iconColor.copy(alpha = 0.25f))
         ) {
             Row(
                 modifier = Modifier
@@ -716,14 +753,15 @@ class HomeScreen : Screen {
                     modifier = Modifier
                         .size(44.dp)
                         .clip(CircleShape)
-                        .background(Color.White),
+                        .background(iconColor.copy(alpha = 0.15f))
+                        .border(1.dp, iconColor.copy(alpha = 0.3f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = if (hasAnomaly) Icons.Default.WarningAmber else Icons.Default.CheckCircle,
                         contentDescription = null,
                         tint = iconColor,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(22.dp)
                     )
                 }
 
@@ -792,7 +830,7 @@ class HomeScreen : Screen {
                         .padding(vertical = 8.dp),
                     shape = RoundedCornerShape(18.dp),
                     color = AppColors.Surface,
-                    border = BorderStroke(1.dp, AppColors.Outline.copy(alpha = 0.5f))
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
                 ) {
                     Column(
                         modifier = Modifier
@@ -807,7 +845,7 @@ class HomeScreen : Screen {
                             color = AppColors.TextMain
                         )
                         Text(
-                            text = "Yuk catat pengeluaran pertamamu hari ini 🐾",
+                            text = "Catat transaksi pertamamu untuk melacak arus kas.",
                             fontSize = 12.sp,
                             color = AppColors.TextMuted,
                             modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
@@ -823,7 +861,7 @@ class HomeScreen : Screen {
                                 text = "+ Catat Sekarang",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White
+                                color = Color(0xFF090D16)
                             )
                         }
                     }
@@ -832,7 +870,7 @@ class HomeScreen : Screen {
                 Surface(
                     shape = RoundedCornerShape(20.dp),
                     color = AppColors.Surface,
-                    border = BorderStroke(1.dp, AppColors.Outline.copy(alpha = 0.5f)),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
@@ -856,7 +894,7 @@ class HomeScreen : Screen {
                                         modifier = Modifier
                                             .size(38.dp)
                                             .clip(CircleShape)
-                                            .background(if (isIncome) AppColors.Success.copy(alpha = 0.15f) else AppColors.Outline.copy(alpha = 0.4f)),
+                                            .background(if (isIncome) AppColors.Success.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.08f)),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Icon(
@@ -898,7 +936,7 @@ class HomeScreen : Screen {
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(1.dp)
-                                        .background(AppColors.Outline.copy(alpha = 0.35f))
+                                        .background(Color.White.copy(alpha = 0.06f))
                                 )
                             }
                         }
@@ -917,7 +955,7 @@ class HomeScreen : Screen {
     ) {
         Column(modifier = modifier.fillMaxWidth()) {
             Text(
-                text = "Pounce Lab & Analitik",
+                text = "Wealth Intelligence Lab",
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
                 color = AppColors.TextMain,
@@ -935,7 +973,7 @@ class HomeScreen : Screen {
                         .clickable(onClick = onOpenAnalytics),
                     shape = RoundedCornerShape(20.dp),
                     color = AppColors.Surface,
-                    border = BorderStroke(1.dp, AppColors.Outline.copy(alpha = 0.5f))
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
@@ -960,7 +998,7 @@ class HomeScreen : Screen {
                             )
                         }
                         Text(
-                            text = "Mandiri Finansial ⚡",
+                            text = "Sovereign Wealth ✦ Mandiri",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = AppColors.Success,
@@ -976,11 +1014,11 @@ class HomeScreen : Screen {
                         .clickable(onClick = onOpenAnalytics),
                     shape = RoundedCornerShape(20.dp),
                     color = AppColors.Surface,
-                    border = BorderStroke(1.dp, AppColors.Outline.copy(alpha = 0.5f))
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Target Impian",
+                            text = "Target Portofolio",
                             fontSize = 12.sp,
                             color = AppColors.TextMuted,
                             fontWeight = FontWeight.Medium
@@ -993,10 +1031,10 @@ class HomeScreen : Screen {
                             color = AppColors.TextMain
                         )
                         Text(
-                            text = "Tabungan Terjadwal 🎯",
+                            text = "Pertumbuhan Terjadwal ✦",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = AppColors.Primary,
+                            color = AppColors.Secondary,
                             modifier = Modifier.padding(top = 4.dp)
                         )
                     }
