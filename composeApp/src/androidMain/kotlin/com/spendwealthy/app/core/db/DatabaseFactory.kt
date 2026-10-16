@@ -7,6 +7,6 @@ import com.spendwealthy.app.db.AppDatabase
 
 actual class DriverFactory(private val context: Context) {
     actual fun createDriver(): SqlDriver {
-        return AndroidSqliteDriver(AppDatabase.Schema, context, "spendwealthy.db")
+        return AndroidSqliteDriver(AppDatabase.Schema, context, "spendwealthy_v2.db")
     }
 }

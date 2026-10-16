@@ -1,6 +1,7 @@
 package com.spendwealthy.app.ui.screens.report
 
-import androidx.compose.foundation.Canvas
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,11 +24,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.FileDownload
-import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,20 +42,19 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
+import com.spendwealthy.app.ui.components.CategoryPieChart
+import com.spendwealthy.app.ui.components.PieChartData
 import com.spendwealthy.app.ui.theme.AppColors
 
 class ReportScreen : Screen {
@@ -58,6 +64,7 @@ class ReportScreen : Screen {
         val viewModel = koinScreenModel<ReportViewModel>()
         val state by viewModel.uiState.collectAsState()
         val snackbarHostState = remember { SnackbarHostState() }
+        val haptic = LocalHapticFeedback.current
 
         LaunchedEffect(viewModel) {
             viewModel.effect.collect { effect ->
@@ -67,21 +74,70 @@ class ReportScreen : Screen {
             }
         }
 
-        Scaffold(containerColor = AppColors.Background, snackbarHost = { SnackbarHost(snackbarHostState) }, contentWindowInsets = WindowInsets(0, 0, 0, 0)) { padding ->
+        Scaffold(
+            containerColor = AppColors.Background,
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        ) { padding ->
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding).background(AppColors.Background).windowInsetsPadding(WindowInsets.statusBars),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .background(AppColors.Background)
+                    .windowInsetsPadding(WindowInsets.statusBars),
                 contentPadding = PaddingValues(start = 24.dp, top = 12.dp, end = 24.dp, bottom = 140.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                item { ReportHeader(onExport = { viewModel.exportCsv() }, loading = state.exportInProgress) }
-                item { OverviewCard(state) }
-                item { InsightCard(state.insight) }
-                item { SectionHeader("Spending breakdown") }
+                item {
+                    ReportHeader(
+                        onExport = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            viewModel.exportCsv()
+                        },
+                        loading = state.exportInProgress
+                    )
+                }
+
+                item { CashflowOverviewCard(state) }
+
+                item { FinancialInsightBanner(state.insight) }
+
+                if (state.categorySummaries.isNotEmpty()) {
+                    item {
+                        SectionTitle("Komposisi Pengeluaran")
+                    }
+                    item {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(22.dp),
+                            color = AppColors.Surface,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 20.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CategoryPieChart(
+                                    data = state.categorySummaries.map {
+                                        PieChartData(it.amount.amount.toFloat(), it.color, it.categoryName)
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    SectionTitle("Rincian per Kategori")
+                }
+
                 if (state.categorySummaries.isEmpty()) {
-                    item { EmptyBreakdown() }
+                    item { EmptyReportState() }
                 } else {
                     items(state.categorySummaries, key = { it.categoryId ?: it.categoryName }) { summary ->
-                        CategoryRow(summary)
+                        CategorySpendingRow(summary)
                     }
                 }
             }
@@ -90,99 +146,325 @@ class ReportScreen : Screen {
 
     @Composable
     private fun ReportHeader(onExport: () -> Unit, loading: Boolean) {
-        Row(Modifier.fillMaxWidth().padding(bottom = 10.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 6.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Column {
-                Text("Reports", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black, color = AppColors.TextMain)
-                Text("Monthly income and spending", style = MaterialTheme.typography.labelMedium, color = AppColors.TextMuted)
-            }
-            Box(Modifier.size(44.dp).clip(CircleShape).background(AppColors.Primary).clickable(enabled = !loading, onClick = onExport), contentAlignment = Alignment.Center) {
-                Icon(Icons.Default.FileDownload, null, tint = Color.White, modifier = Modifier.size(20.dp))
-            }
-        }
-    }
-
-    @Composable
-    private fun OverviewCard(state: ReportState) {
-        Surface(shape = RoundedCornerShape(24.dp), color = AppColors.Accent) {
-            Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Monthly overview", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = AppColors.TextMain)
-                    Text("${(state.savingRate * 100).toInt()}%", fontWeight = FontWeight.Black, color = AppColors.Primary)
-                }
-                MiniBars(
-                    income = state.totalIncome.amount.toFloat(),
-                    expense = state.totalExpense.amount.toFloat(),
-                    modifier = Modifier.fillMaxWidth().height(92.dp)
+                Text(
+                    text = "Laporan & Analitik",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = AppColors.TextMain
                 )
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    MetricBox(Modifier.weight(1f), "Income", state.totalIncome.format(), AppColors.Success)
-                    MetricBox(Modifier.weight(1f), "Spending", state.totalExpense.format(), AppColors.Danger)
+                Text(
+                    text = "Arus kas & pola pengeluaran bulanan",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = AppColors.TextMuted
+                )
+            }
+
+            Surface(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(CircleShape)
+                    .clickable(enabled = !loading, onClick = onExport),
+                shape = CircleShape,
+                color = AppColors.Surface,
+                border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    if (loading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            color = AppColors.Primary,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.FileDownload,
+                            contentDescription = "Ekspor CSV",
+                            tint = AppColors.TextMain,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
             }
         }
     }
 
     @Composable
-    private fun MiniBars(income: Float, expense: Float, modifier: Modifier) {
-        Canvas(modifier) {
-            val max = maxOf(income, expense, 1f)
-            val barWidth = size.width / 5f
-            val incomeHeight = size.height * (income / max).coerceIn(0.08f, 1f)
-            val expenseHeight = size.height * (expense / max).coerceIn(0.08f, 1f)
-            drawRoundRect(AppColors.Primary, Offset(size.width * 0.18f, size.height - incomeHeight), Size(barWidth, incomeHeight), CornerRadius(20.dp.toPx(), 20.dp.toPx()))
-            drawRoundRect(AppColors.CardDark, Offset(size.width * 0.58f, size.height - expenseHeight), Size(barWidth, expenseHeight), CornerRadius(20.dp.toPx(), 20.dp.toPx()))
+    private fun CashflowOverviewCard(state: ReportState) {
+        val savingRatePercent = (state.savingRate * 100).toInt()
+        val savingRateColor = if (savingRatePercent >= 20) AppColors.Success else AppColors.Warning
+
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            color = AppColors.Surface,
+            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Ringkasan Arus Kas",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.TextMain
+                    )
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = savingRateColor.copy(alpha = 0.12f)
+                    ) {
+                        Text(
+                            text = "Tabungan: $savingRatePercent%",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = savingRateColor,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    CashflowStatBox(
+                        title = "Pemasukan",
+                        amount = state.totalIncome.format(),
+                        icon = Icons.AutoMirrored.Filled.TrendingUp,
+                        tint = AppColors.Success,
+                        modifier = Modifier.weight(1f)
+                    )
+                    CashflowStatBox(
+                        title = "Pengeluaran",
+                        amount = state.totalExpense.format(),
+                        icon = Icons.AutoMirrored.Filled.TrendingDown,
+                        tint = AppColors.Danger,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
         }
     }
 
     @Composable
-    private fun MetricBox(modifier: Modifier, label: String, value: String, color: Color) {
-        Column(modifier.clip(RoundedCornerShape(16.dp)).background(Color.White.copy(alpha = 0.58f)).padding(12.dp)) {
-            Text(label, style = MaterialTheme.typography.labelSmall, color = AppColors.TextMain.copy(alpha = 0.64f))
-            Text(value, fontWeight = FontWeight.Black, color = color)
+    private fun CashflowStatBox(
+        title: String,
+        amount: String,
+        icon: androidx.compose.ui.graphics.vector.ImageVector,
+        tint: Color,
+        modifier: Modifier = Modifier
+    ) {
+        Surface(
+            modifier = modifier,
+            shape = RoundedCornerShape(16.dp),
+            color = AppColors.SurfaceRaised,
+            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+        ) {
+            Column(
+                modifier = Modifier.padding(14.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(CircleShape)
+                            .background(tint.copy(alpha = 0.12f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = tint,
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = AppColors.TextMuted
+                    )
+                }
+                Text(
+                    text = amount,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = AppColors.TextMain
+                )
+            }
         }
     }
 
     @Composable
-    private fun InsightCard(text: String) {
-        Surface(shape = RoundedCornerShape(22.dp), color = AppColors.PrimaryContainer) {
-            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(44.dp).clip(CircleShape).background(AppColors.CardDark), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.Lightbulb, null, tint = AppColors.Accent, modifier = Modifier.size(21.dp))
+    private fun FinancialInsightBanner(insight: String) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(18.dp),
+            color = AppColors.Primary.copy(alpha = 0.08f),
+            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Primary.copy(alpha = 0.2f))
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(CircleShape)
+                        .background(AppColors.Primary.copy(alpha = 0.14f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AutoAwesome,
+                        contentDescription = null,
+                        tint = AppColors.Primary,
+                        modifier = Modifier.size(18.dp)
+                    )
                 }
                 Spacer(Modifier.width(12.dp))
-                Text(text, style = MaterialTheme.typography.bodyMedium, color = AppColors.TextMain, fontWeight = FontWeight.SemiBold)
+                Text(
+                    text = insight,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = AppColors.TextMain,
+                    fontWeight = FontWeight.SemiBold,
+                    lineHeight = 18.sp
+                )
             }
         }
     }
 
     @Composable
-    private fun SectionHeader(title: String) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
-            Icon(Icons.Default.BarChart, null, tint = AppColors.Primary, modifier = Modifier.size(20.dp))
-            Spacer(Modifier.width(8.dp))
-            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = AppColors.TextMain)
-        }
+    private fun SectionTitle(title: String) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
+            color = AppColors.TextMuted,
+            modifier = Modifier.padding(top = 4.dp)
+        )
     }
 
     @Composable
-    private fun CategoryRow(summary: CategorySummary) {
-        Surface(shape = RoundedCornerShape(20.dp), color = AppColors.Surface, shadowElevation = 4.dp) {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text(summary.categoryName, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
-                    Text(summary.amount.format(), fontWeight = FontWeight.Black, color = AppColors.TextMain)
+    private fun CategorySpendingRow(summary: CategorySummary) {
+        val percentageInt = (summary.percentage * 100).toInt()
+        val animatedProgress by animateFloatAsState(
+            targetValue = summary.percentage.toFloat().coerceIn(0f, 1f),
+            animationSpec = tween(500)
+        )
+
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(18.dp),
+            color = AppColors.Surface,
+            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(10.dp)
+                                .clip(CircleShape)
+                                .background(summary.color)
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        Text(
+                            text = summary.categoryName,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.TextMain
+                        )
+                    }
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = summary.amount.format(),
+                            fontWeight = FontWeight.ExtraBold,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = AppColors.TextMain
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = "$percentageInt%",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = AppColors.TextMuted
+                        )
+                    }
                 }
-                Box(Modifier.fillMaxWidth().height(10.dp).clip(CircleShape).background(AppColors.SurfaceMuted)) {
-                    Box(Modifier.fillMaxWidth(summary.percentage.toFloat().coerceIn(0f, 1f)).height(10.dp).clip(CircleShape).background(AppColors.Primary))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(AppColors.SurfaceRaised)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(animatedProgress)
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(3.dp))
+                            .background(summary.color)
+                    )
                 }
             }
         }
     }
 
     @Composable
-    private fun EmptyBreakdown() {
-        Surface(shape = RoundedCornerShape(20.dp), color = AppColors.Surface) {
-            Text("No spending data for this month yet.", modifier = Modifier.padding(16.dp), color = AppColors.TextMuted, fontWeight = FontWeight.SemiBold)
+    private fun EmptyReportState() {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            color = AppColors.Surface,
+            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+        ) {
+            Column(
+                modifier = Modifier.padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PieChart,
+                    contentDescription = null,
+                    tint = AppColors.TextMuted,
+                    modifier = Modifier.size(36.dp)
+                )
+                Text(
+                    text = "Belum Ada Pengeluaran",
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = AppColors.TextMain
+                )
+                Text(
+                    text = "Transaksi pengeluaran bulan ini akan otomatis dikelompokkan dalam grafik dan persentase di sini.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = AppColors.TextMuted,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            }
         }
     }
 }

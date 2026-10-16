@@ -27,12 +27,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Payments
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -46,8 +43,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -66,6 +67,7 @@ class AddBillScreen : Screen {
         val state by viewModel.uiState.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
         val snackbarHostState = remember { SnackbarHostState() }
+        val haptic = LocalHapticFeedback.current
 
         LaunchedEffect(viewModel) {
             viewModel.effect.collect { effect ->
@@ -76,62 +78,106 @@ class AddBillScreen : Screen {
             }
         }
 
-        Scaffold(containerColor = AppColors.Background, snackbarHost = { SnackbarHost(snackbarHostState) }, contentWindowInsets = WindowInsets(0, 0, 0, 0)) { padding ->
+        Scaffold(
+            containerColor = AppColors.Background,
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        ) { padding ->
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding).background(AppColors.Background).windowInsetsPadding(WindowInsets.statusBars),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .background(AppColors.Background)
+                    .windowInsetsPadding(WindowInsets.statusBars),
                 contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
             ) {
-                item { Header(onClose = { navigator.pop() }) }
                 item {
-                    FormSection("Bill details", Icons.AutoMirrored.Filled.ReceiptLong) {
+                    Header(
+                        title = "Tambah Tagihan",
+                        subtitle = "Pengingat otomatis jadwal pembayaran",
+                        onClose = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            navigator.pop()
+                        }
+                    )
+                }
+
+                item {
+                    FormSection(title = "Nama Tagihan / Langganan", icon = Icons.AutoMirrored.Filled.ReceiptLong) {
                         AppTextField(
                             value = state.name,
                             onValueChange = { viewModel.onEvent(AddBillEvent.NameChanged(it)) },
-                            label = "Bill name",
-                            placeholder = "Electricity, Netflix, Internet"
+                            label = "Nama Tagihan",
+                            placeholder = "Listrik PLN, WiFi Indihome, BPJS, Netflix"
                         )
                     }
                 }
+
                 item {
-                    FormSection("Amount", Icons.Default.Payments) {
+                    FormSection(title = "Nominal Kewajiban", icon = Icons.Default.Payments) {
                         AppAmountInput(
                             value = state.amount,
                             onValueChange = { viewModel.onEvent(AddBillEvent.AmountChanged(it)) },
-                            label = "Amount"
+                            label = "Jumlah Tagihan (Rp)"
                         )
                     }
                 }
+
                 item {
-                    FormSection("Schedule", Icons.Default.CalendarMonth) {
-                        OutlinedTextField(
+                    FormSection(title = "Jadwal Jatuh Tempo", icon = Icons.Default.CalendarMonth) {
+                        AppTextField(
                             value = state.dueDay,
                             onValueChange = { viewModel.onEvent(AddBillEvent.DueDateChanged(it)) },
-                            label = { Text("Due day") },
-                            supportingText = { Text("Use day 1-31. Short months are adjusted automatically.") },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            shape = RoundedCornerShape(20.dp)
+                            label = "Tanggal Jatuh Tempo (1 - 31)",
+                            placeholder = "Contoh: 20",
+                            modifier = Modifier.fillMaxWidth()
                         )
-                        Spacer(Modifier.height(10.dp))
+                        Text(
+                            text = "Pengingat otomatis akan dikirimkan sebelum tanggal ini.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = AppColors.TextMuted,
+                            modifier = Modifier.padding(top = 6.dp, start = 4.dp)
+                        )
+                        Spacer(Modifier.height(12.dp))
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            items(RecurrenceType.values().toList()) { type ->
-                                FilterChip(
+                            items(RecurrenceType.entries.toList()) { type ->
+                                val label = when (type) {
+                                    RecurrenceType.NONE -> "Sekali Bayar"
+                                    RecurrenceType.DAILY -> "Harian"
+                                    RecurrenceType.WEEKLY -> "Mingguan"
+                                    RecurrenceType.MONTHLY -> "Bulanan"
+                                    RecurrenceType.YEARLY -> "Tahunan"
+                                }
+                                ChoiceChip(
+                                    text = label,
                                     selected = state.recurrenceType == type,
-                                    onClick = { viewModel.onEvent(AddBillEvent.RecurrenceChanged(type)) },
-                                    label = { Text(type.name.lowercase().replaceFirstChar { it.uppercase() }) }
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        viewModel.onEvent(AddBillEvent.RecurrenceChanged(type))
+                                    }
                                 )
                             }
                         }
                     }
                 }
+
                 item {
                     state.errorMessage?.let {
-                        Text(it, color = AppColors.Danger, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
-                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = it,
+                            color = AppColors.Danger,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
                     }
+                    Spacer(Modifier.height(16.dp))
                     AppButton(
-                        text = "Save Bill",
-                        onClick = { viewModel.onEvent(AddBillEvent.SaveClicked) },
+                        text = "Simpan Tagihan",
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            viewModel.onEvent(AddBillEvent.SaveClicked)
+                        },
                         isLoading = state.isLoading,
                         enabled = state.name.isNotBlank() && (state.amount.toLongOrNull() ?: 0L) > 0L && !state.isLoading
                     )
@@ -142,37 +188,113 @@ class AddBillScreen : Screen {
     }
 
     @Composable
-    private fun Header(onClose: () -> Unit) {
-        Row(Modifier.fillMaxWidth().padding(bottom = 18.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            CircleButton(Icons.AutoMirrored.Filled.ArrowBack, onClose)
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("New Bill", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = AppColors.TextMain)
-                Text("Schedule recurring payments", style = MaterialTheme.typography.labelMedium, color = AppColors.TextMuted)
+    private fun Header(title: String, subtitle: String, onClose: () -> Unit) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(CircleShape)
+                    .clickable(onClick = onClose),
+                shape = CircleShape,
+                color = AppColors.Surface,
+                border = BorderStroke(1.dp, AppColors.Outline)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Kembali",
+                        tint = AppColors.TextMain,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
-            CircleButton(Icons.Default.Close, onClose)
+
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = AppColors.TextMain
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = AppColors.TextMuted
+                )
+            }
+
+            Spacer(Modifier.size(42.dp))
         }
     }
 
     @Composable
-    private fun FormSection(title: String, icon: androidx.compose.ui.graphics.vector.ImageVector, content: @Composable () -> Unit) {
-        Column(Modifier.fillMaxWidth().padding(vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    private fun FormSection(
+        title: String,
+        icon: androidx.compose.ui.graphics.vector.ImageVector,
+        content: @Composable () -> Unit
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(32.dp).clip(CircleShape).background(AppColors.Primary.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
-                    Icon(icon, null, tint = AppColors.Primary, modifier = Modifier.size(17.dp))
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .background(AppColors.Primary.copy(alpha = 0.12f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = AppColors.Primary,
+                        modifier = Modifier.size(15.dp)
+                    )
                 }
                 Spacer(Modifier.width(10.dp))
-                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = AppColors.TextMain)
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = AppColors.TextMain
+                )
             }
-            Surface(shape = RoundedCornerShape(22.dp), color = AppColors.Surface, shadowElevation = 6.dp, border = BorderStroke(1.dp, AppColors.Outline)) {
-                Box(Modifier.fillMaxWidth().padding(16.dp)) { content() }
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = AppColors.Surface,
+                border = BorderStroke(1.dp, AppColors.Outline)
+            ) {
+                Box(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                    content()
+                }
             }
         }
     }
 
     @Composable
-    private fun CircleButton(icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
-        Box(Modifier.size(44.dp).clip(CircleShape).background(AppColors.SurfaceRaised).clickable(onClick = onClick), contentAlignment = Alignment.Center) {
-            Icon(icon, null, tint = AppColors.TextMain, modifier = Modifier.size(20.dp))
+    private fun ChoiceChip(text: String, selected: Boolean, onClick: () -> Unit) {
+        Surface(
+            modifier = Modifier.clickable(onClick = onClick),
+            shape = RoundedCornerShape(12.dp),
+            color = if (selected) AppColors.Primary else AppColors.SurfaceRaised,
+            border = BorderStroke(1.dp, if (selected) AppColors.Primary else AppColors.Outline)
+        ) {
+            Text(
+                text = text,
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                color = if (selected) Color.White else AppColors.TextMain,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.labelMedium
+            )
         }
     }
 }

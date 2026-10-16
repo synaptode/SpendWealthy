@@ -7,15 +7,13 @@ import com.spendwealthy.app.domain.model.Transaction
 import com.spendwealthy.app.domain.model.Wallet
 import com.spendwealthy.app.domain.repository.TransactionRepository
 import com.spendwealthy.app.domain.repository.WalletRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 data class WalletDetailState(
     val wallet: Wallet? = null,
     val transactions: List<Transaction> = emptyList(),
+    val filterByFamily: Boolean = false,
     val isLoading: Boolean = false
 ) : UiState
 
@@ -44,4 +42,16 @@ class WalletDetailViewModel(
             }
         }
     }
+
+    fun toggleFamilyFilter() {
+        _uiState.value = _uiState.value.copy(filterByFamily = !_uiState.value.filterByFamily)
+    }
+
+    val filteredTransactions: StateFlow<List<Transaction>> = _uiState.map { state ->
+        if (state.filterByFamily) {
+            state.transactions.filter { it.familyId != null }
+        } else {
+            state.transactions
+        }
+    }.stateIn<List<Transaction>>(screenModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 }

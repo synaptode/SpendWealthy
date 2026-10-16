@@ -28,7 +28,8 @@ class SqlDelightLedgerRepository(
                 note = transaction.note,
                 merchant = transaction.merchant,
                 createdAt = transaction.createdAt,
-                updatedAt = transaction.updatedAt
+                updatedAt = transaction.updatedAt,
+                familyId = transaction.familyId
             )
 
             val sourceWallet = queries.selectWalletById(transaction.walletId).executeAsOneOrNull()

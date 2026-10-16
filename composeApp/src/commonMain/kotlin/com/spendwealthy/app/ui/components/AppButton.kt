@@ -32,6 +32,7 @@ fun AppButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     isLoading: Boolean = false,
+    icon: androidx.compose.ui.graphics.vector.ImageVector? = null,
     containerColor: Color? = null,
     contentColor: Color = Color.White
 ) {
@@ -69,12 +70,25 @@ fun AppButton(
                 strokeWidth = 2.dp
             )
         } else {
-            Text(
-                text = text,
-                color = if (enabled) contentColor else MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                icon?.let {
+                    androidx.compose.material3.Icon(
+                        imageVector = it,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = if (enabled) contentColor else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Text(
+                    text = text,
+                    color = if (enabled) contentColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }

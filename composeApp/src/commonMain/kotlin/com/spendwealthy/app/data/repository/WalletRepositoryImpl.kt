@@ -40,7 +40,8 @@ class WalletRepositoryImpl(
             currency = wallet.balance.currency,
             type = wallet.type.name,
             createdAt = wallet.createdAt,
-            isArchived = wallet.isArchived
+            isArchived = wallet.isArchived,
+            familyId = wallet.familyId
         )
     }
 
@@ -60,7 +61,8 @@ class WalletRepositoryImpl(
                 currency = wallet.currency,
                 type = wallet.type,
                 createdAt = wallet.createdAt,
-                isArchived = true
+                isArchived = true,
+                familyId = wallet.familyId
             )
         }
     }

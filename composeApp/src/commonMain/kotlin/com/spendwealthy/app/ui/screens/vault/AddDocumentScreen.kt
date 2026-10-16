@@ -25,7 +25,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material3.Icon
@@ -44,8 +44,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -53,15 +56,18 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.DocumentType
 import com.spendwealthy.app.ui.components.AppButton
 import com.spendwealthy.app.ui.components.AppTextField
+import com.spendwealthy.app.ui.components.PremiumBadge
 import com.spendwealthy.app.ui.theme.AppColors
 
 class AddDocumentScreen : Screen {
+
     @Composable
     override fun Content() {
         val viewModel = koinScreenModel<AddDocumentViewModel>()
         val state by viewModel.uiState.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
         val snackbarHostState = remember { SnackbarHostState() }
+        val haptic = LocalHapticFeedback.current
 
         LaunchedEffect(viewModel) {
             viewModel.effect.collect { effect ->
@@ -72,50 +78,146 @@ class AddDocumentScreen : Screen {
             }
         }
 
-        Scaffold(containerColor = AppColors.Background, snackbarHost = { SnackbarHost(snackbarHostState) }, contentWindowInsets = WindowInsets(0, 0, 0, 0)) { padding ->
+        Scaffold(
+            containerColor = AppColors.Background,
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        ) { padding ->
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding).background(AppColors.Background).windowInsetsPadding(WindowInsets.statusBars),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .background(AppColors.Background)
+                    .windowInsetsPadding(WindowInsets.statusBars),
                 contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
             ) {
-                item { Header(onClose = { navigator.pop() }) }
                 item {
-                    Section("Document details", Icons.Default.Description) {
+                    Header(
+                        title = "Tambah Dokumen",
+                        subtitle = "Arsip terenkripsi aman di perangkat",
+                        onClose = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            navigator.pop()
+                        }
+                    )
+                }
+
+                item {
+                    FormSection(title = "Pindai Cerdas", icon = Icons.Default.AutoAwesome) {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    viewModel.onEvent(AddDocumentEvent.SmartScanClicked)
+                                },
+                            shape = RoundedCornerShape(16.dp),
+                            color = AppColors.Primary.copy(alpha = 0.06f),
+                            border = BorderStroke(1.dp, AppColors.Primary.copy(alpha = 0.2f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(38.dp)
+                                        .clip(CircleShape)
+                                        .background(AppColors.Primary),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.AutoAwesome,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                                Spacer(Modifier.width(14.dp))
+                                Column {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Text(
+                                            text = "Pindai Dokumen dengan AI",
+                                            fontWeight = FontWeight.Bold,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = AppColors.Primary
+                                        )
+                                        PremiumBadge()
+                                    }
+                                    Text(
+                                        text = "Ekstraksi otomatis teks & tanggal kedaluwarsa",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = AppColors.TextMuted
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    FormSection(title = "Detail Dokumen", icon = Icons.Default.Description) {
                         AppTextField(
                             value = state.name,
                             onValueChange = { viewModel.onEvent(AddDocumentEvent.NameChanged(it)) },
-                            label = "Name",
-                            placeholder = "Invoice, warranty, contract"
+                            label = "Nama Dokumen",
+                            placeholder = "KTP, Polis AIA, Kartu Garansi iPad"
                         )
                         Spacer(Modifier.height(12.dp))
                         AppTextField(
                             value = state.filePath,
                             onValueChange = { viewModel.onEvent(AddDocumentEvent.FilePathChanged(it)) },
-                            label = "Reference",
-                            placeholder = "Optional local note or path"
+                            label = "Catatan / Nomor Referensi (Opsional)",
+                            placeholder = "Nomor polis, seri nota, atau ID"
                         )
                     }
                 }
+
                 item {
-                    Section("Type", Icons.Default.Folder) {
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            items(DocumentType.values().toList()) { type ->
+                    FormSection(title = "Tipe Dokumen", icon = Icons.Default.Folder) {
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(DocumentType.entries.toList()) { type ->
+                                val label = when (type) {
+                                    DocumentType.IDENTITY -> "Identitas"
+                                    DocumentType.RECEIPT -> "Struk / Nota"
+                                    DocumentType.INVOICE -> "Faktur"
+                                    DocumentType.WARRANTY -> "Garansi"
+                                    DocumentType.CONTRACT -> "Kontrak"
+                                    DocumentType.OTHER -> "Lainnya"
+                                }
                                 ChoiceChip(
-                                    text = type.name.lowercase().replaceFirstChar { it.uppercase() },
+                                    text = label,
                                     selected = state.type == type,
-                                    onClick = { viewModel.onEvent(AddDocumentEvent.TypeChanged(type)) }
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        viewModel.onEvent(AddDocumentEvent.TypeChanged(type))
+                                    }
                                 )
                             }
                         }
                     }
                 }
+
                 item {
                     state.errorMessage?.let {
-                        Text(it, color = AppColors.Danger, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
-                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = it,
+                            color = AppColors.Danger,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
                     }
+                    Spacer(Modifier.height(16.dp))
                     AppButton(
-                        text = "Save Document",
-                        onClick = { viewModel.onEvent(AddDocumentEvent.SaveClicked) },
+                        text = "Simpan ke Brankas",
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            viewModel.onEvent(AddDocumentEvent.SaveClicked)
+                        },
                         isLoading = state.isLoading,
                         enabled = state.name.isNotBlank() && !state.isLoading
                     )
@@ -126,29 +228,94 @@ class AddDocumentScreen : Screen {
     }
 
     @Composable
-    private fun Header(onClose: () -> Unit) {
-        Row(Modifier.fillMaxWidth().padding(bottom = 18.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            CircleButton(Icons.AutoMirrored.Filled.ArrowBack, onClose)
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("New Document", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = AppColors.TextMain)
-                Text("Store financial file metadata", style = MaterialTheme.typography.labelMedium, color = AppColors.TextMuted)
+    private fun Header(title: String, subtitle: String, onClose: () -> Unit) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(CircleShape)
+                    .clickable(onClick = onClose),
+                shape = CircleShape,
+                color = AppColors.Surface,
+                border = BorderStroke(1.dp, AppColors.Outline)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Kembali",
+                        tint = AppColors.TextMain,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
-            CircleButton(Icons.Default.Close, onClose)
+
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = AppColors.TextMain
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = AppColors.TextMuted
+                )
+            }
+
+            Spacer(Modifier.size(42.dp))
         }
     }
 
     @Composable
-    private fun Section(title: String, icon: androidx.compose.ui.graphics.vector.ImageVector, content: @Composable () -> Unit) {
-        Column(Modifier.fillMaxWidth().padding(vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    private fun FormSection(
+        title: String,
+        icon: androidx.compose.ui.graphics.vector.ImageVector,
+        content: @Composable () -> Unit
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(32.dp).clip(CircleShape).background(AppColors.Primary.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
-                    Icon(icon, null, tint = AppColors.Primary, modifier = Modifier.size(17.dp))
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .background(AppColors.Primary.copy(alpha = 0.12f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = AppColors.Primary,
+                        modifier = Modifier.size(15.dp)
+                    )
                 }
                 Spacer(Modifier.width(10.dp))
-                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = AppColors.TextMain)
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = AppColors.TextMain
+                )
             }
-            Surface(shape = RoundedCornerShape(22.dp), color = AppColors.Surface, shadowElevation = 6.dp) {
-                Box(Modifier.fillMaxWidth().padding(16.dp)) { content() }
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = AppColors.Surface,
+                border = BorderStroke(1.dp, AppColors.Outline)
+            ) {
+                Box(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                    content()
+                }
             }
         }
     }
@@ -157,18 +324,17 @@ class AddDocumentScreen : Screen {
     private fun ChoiceChip(text: String, selected: Boolean, onClick: () -> Unit) {
         Surface(
             modifier = Modifier.clickable(onClick = onClick),
-            shape = RoundedCornerShape(18.dp),
+            shape = RoundedCornerShape(12.dp),
             color = if (selected) AppColors.Primary else AppColors.SurfaceRaised,
             border = BorderStroke(1.dp, if (selected) AppColors.Primary else AppColors.Outline)
         ) {
-            Text(text, modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp), color = if (selected) Color.White else AppColors.TextMain, fontWeight = FontWeight.Bold)
-        }
-    }
-
-    @Composable
-    private fun CircleButton(icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
-        Box(Modifier.size(44.dp).clip(CircleShape).background(AppColors.SurfaceRaised).clickable(onClick = onClick), contentAlignment = Alignment.Center) {
-            Icon(icon, null, tint = AppColors.TextMain, modifier = Modifier.size(20.dp))
+            Text(
+                text = text,
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                color = if (selected) Color.White else AppColors.TextMain,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.labelMedium
+            )
         }
     }
 }

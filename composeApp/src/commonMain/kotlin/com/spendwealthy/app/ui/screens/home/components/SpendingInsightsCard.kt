@@ -1,130 +1,91 @@
 package com.spendwealthy.app.ui.screens.home.components
 
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spendwealthy.app.ui.components.AppCard
+import com.spendwealthy.app.domain.service.CatInsight
+import com.spendwealthy.app.domain.service.CatMood
+import com.spendwealthy.app.domain.service.InsightImpact
+import com.spendwealthy.app.ui.components.AppGlassCard
+import com.spendwealthy.app.ui.theme.AppColors
 
 @Composable
 fun SpendingInsightsCard(
-    modifier: Modifier = Modifier,
-    dataPoints: List<Float> = listOf(0.2f, 0.5f, 0.4f, 0.8f, 0.6f, 0.9f, 0.7f) // Mock data 0.0 to 1.0
+    insight: CatInsight,
+    modifier: Modifier = Modifier
 ) {
-    AppCard(modifier = modifier.fillMaxWidth()) {
-        Column {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = "Statistik Pengeluaran",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "Minggu Ini",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Text(
-                        text = "+12%",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
+    AppGlassCard(
+        modifier = modifier.fillMaxWidth(),
+        backgroundColor = when (insight.impact) {
+            InsightImpact.POSITIVE -> AppColors.Success.copy(alpha = 0.05f)
+            InsightImpact.NEGATIVE -> AppColors.Danger.copy(alpha = 0.05f)
+            InsightImpact.NEUTRAL -> AppColors.GlassBackground
+        }
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            CatAvatar(insight.mood)
             
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            // Simple Line Chart
-            val animationProgress = remember { Animatable(0f) }
-            LaunchedEffect(Unit) {
-                animationProgress.animateTo(
-                    targetValue = 1f,
-                    animationSpec = tween(durationMillis = 1500, easing = FastOutSlowInEasing)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = insight.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Black,
+                    color = AppColors.TextMain
                 )
-            }
-            
-            val primaryColor = MaterialTheme.colorScheme.primary
-            
-            Canvas(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp)
-            ) {
-                val width = size.width
-                val height = size.height
-                val spacing = width / (dataPoints.size - 1)
-                
-                val path = Path().apply {
-                    dataPoints.forEachIndexed { index, value ->
-                        val x = index * spacing
-                        val y = height - (value * height * animationProgress.value)
-                        if (index == 0) moveTo(x, y) else lineTo(x, y)
-                    }
-                }
-                
-                // Draw Gradient Fill
-                val fillPath = Path().apply {
-                    addPath(path)
-                    lineTo(width, height)
-                    lineTo(0f, height)
-                    close()
-                }
-                
-                drawPath(
-                    path = fillPath,
-                    brush = Brush.verticalGradient(
-                        colors = listOf(primaryColor.copy(alpha = 0.3f), Color.Transparent)
-                    )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = insight.message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    lineHeight = 20.sp,
+                    color = AppColors.TextMuted
                 )
-                
-                // Draw Line
-                drawPath(
-                    path = path,
-                    color = primaryColor,
-                    style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                listOf("Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min").forEach { day ->
-                    Text(
-                        text = day,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
             }
         }
+    }
+}
+
+@Composable
+private fun CatAvatar(mood: CatMood) {
+    val emoji = when (mood) {
+        CatMood.HAPPY -> "😺"
+        CatMood.SLEEPY -> "🥱"
+        CatMood.GRUMPY -> "😾"
+        CatMood.ALERT -> "🙀"
+        CatMood.PROUD -> "🦁"
+        CatMood.CURIOUS -> "🧐"
+        CatMood.NINJA -> "🥷"
+    }
+    
+    val bgColor = when (mood) {
+        CatMood.HAPPY -> Color(0xFFFFE082)
+        CatMood.SLEEPY -> Color(0xFFB0BEC5)
+        CatMood.GRUMPY -> Color(0xFFEF9A9A)
+        CatMood.ALERT -> Color(0xFFFFCC80)
+        CatMood.PROUD -> AppColors.Accent
+        CatMood.CURIOUS -> Color(0xFFCE93D8)
+        CatMood.NINJA -> Color(0xFF90CAF9)
+    }
+
+    Box(
+        modifier = Modifier
+            .size(56.dp)
+            .clip(CircleShape)
+            .background(bgColor),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(emoji, fontSize = 28.sp)
     }
 }

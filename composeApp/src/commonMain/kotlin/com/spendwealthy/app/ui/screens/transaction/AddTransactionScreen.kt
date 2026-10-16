@@ -44,11 +44,8 @@ import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -68,6 +65,8 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -80,9 +79,15 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.Category
 import com.spendwealthy.app.domain.model.TransactionType
 import com.spendwealthy.app.domain.model.Wallet
+import com.spendwealthy.app.ui.components.AppButton
+import com.spendwealthy.app.ui.components.AppTextField
 import com.spendwealthy.app.ui.components.CatPad
 import com.spendwealthy.app.ui.theme.AppColors
 
+/**
+ * Modern, frictionless transaction recording screen ("3-Tap Quick Entry").
+ * Opens with immediate tactile keypad access, category shortcuts, and live currency formatting.
+ */
 class AddTransactionScreen(
     private val initialType: TransactionType = TransactionType.EXPENSE
 ) : Screen {
@@ -93,7 +98,7 @@ class AddTransactionScreen(
         val state by viewModel.uiState.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
         val snackbarHostState = remember { SnackbarHostState() }
-        var showAmountPad by remember { mutableStateOf(false) }
+        var showAmountPad by remember { mutableStateOf(true) }
 
         LaunchedEffect(initialType) {
             viewModel.onEvent(AddTransactionEvent.TypeChanged(initialType))
@@ -115,8 +120,11 @@ class AddTransactionScreen(
         ) { padding ->
             Box(modifier = Modifier.fillMaxSize().padding(padding).background(AppColors.Background)) {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.statusBars).imePadding(),
-                    contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = 148.dp)
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .windowInsetsPadding(WindowInsets.statusBars)
+                        .imePadding(),
+                    contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 260.dp)
                 ) {
                     item { AddTransactionHeader(onClose = { navigator.pop() }) }
                     item { TypeSelector(state.type) { viewModel.onEvent(AddTransactionEvent.TypeChanged(it)) } }
@@ -131,7 +139,7 @@ class AddTransactionScreen(
                     if (state.type != TransactionType.TRANSFER) {
                         item {
                             PickerSection(
-                                title = "Category",
+                                title = "Kategori",
                                 icon = Icons.Default.Category,
                                 values = state.categories,
                                 selected = state.selectedCategory,
@@ -142,7 +150,7 @@ class AddTransactionScreen(
                     }
                     item {
                         PickerSection(
-                            title = if (state.type == TransactionType.TRANSFER) "From wallet" else "Wallet",
+                            title = if (state.type == TransactionType.TRANSFER) "Dari Dompet" else "Dompet",
                             icon = Icons.Default.AccountBalanceWallet,
                             values = state.wallets,
                             selected = state.selectedWallet,
@@ -153,7 +161,7 @@ class AddTransactionScreen(
                     if (state.type == TransactionType.TRANSFER) {
                         item {
                             PickerSection(
-                                title = "To wallet",
+                                title = "Ke Dompet",
                                 icon = Icons.Default.SwapHoriz,
                                 values = state.wallets.filter { it.id != state.selectedWallet?.id },
                                 selected = state.selectedTargetWallet,
@@ -176,18 +184,32 @@ class AddTransactionScreen(
                     }
                 }
 
+                // Interactive Bottom Keypad Drawer
                 AnimatedVisibility(
                     visible = showAmountPad,
                     enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
                     exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
                     modifier = Modifier.align(Alignment.BottomCenter)
                 ) {
-                    Column(modifier = Modifier.navigationBarsPadding()) {
+                    Column(
+                        modifier = Modifier
+                            .navigationBarsPadding()
+                            .fillMaxWidth()
+                            .background(AppColors.BackgroundSoftBlue)
+                    ) {
                         Box(
-                            modifier = Modifier.fillMaxWidth().height(36.dp).clickable { showAmountPad = false },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(32.dp)
+                                .clickable { showAmountPad = false },
                             contentAlignment = Alignment.Center
                         ) {
-                            Box(Modifier.size(42.dp, 4.dp).clip(CircleShape).background(AppColors.TextMuted.copy(alpha = 0.28f)))
+                            Box(
+                                Modifier
+                                    .size(38.dp, 4.dp)
+                                    .clip(CircleShape)
+                                    .background(AppColors.TextMuted.copy(alpha = 0.35f))
+                            )
                         }
                         CatPad(
                             currentValue = state.amount,
@@ -201,58 +223,112 @@ class AddTransactionScreen(
 
     @Composable
     private fun AddTransactionHeader(onClose: () -> Unit) {
+        val haptic = LocalHapticFeedback.current
+
         Row(
-            modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 14.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp, bottom = 14.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier.size(44.dp).clip(CircleShape).background(AppColors.SurfaceRaised).border(1.dp, AppColors.Outline, CircleShape)
-                    .clickable(onClick = onClose),
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(CircleShape)
+                    .background(AppColors.Surface)
+                    .border(1.dp, AppColors.Outline.copy(alpha = 0.6f), CircleShape)
+                    .clickable {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        onClose()
+                    },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = AppColors.TextMain, modifier = Modifier.size(20.dp))
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Kembali", tint = AppColors.TextMain, modifier = Modifier.size(18.dp))
             }
+
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("New Transaction", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = AppColors.TextMain)
-                Text("Record income, expense, or transfer", style = MaterialTheme.typography.labelMedium, color = AppColors.TextMuted)
+                Text(
+                    text = "Catat Transaksi",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = AppColors.TextMain
+                )
+                Text(
+                    text = "Kelola arus uang masuk & keluar",
+                    fontSize = 12.sp,
+                    color = AppColors.TextMuted
+                )
             }
+
             Box(
-                modifier = Modifier.size(44.dp).clip(CircleShape).background(AppColors.SurfaceRaised).border(1.dp, AppColors.Outline, CircleShape)
-                    .clickable(onClick = onClose),
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(CircleShape)
+                    .background(AppColors.Surface)
+                    .border(1.dp, AppColors.Outline.copy(alpha = 0.6f), CircleShape)
+                    .clickable {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        onClose()
+                    },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Close, null, tint = AppColors.TextMain, modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.Close, "Tutup", tint = AppColors.TextMain, modifier = Modifier.size(18.dp))
             }
         }
     }
 
     @Composable
     private fun TypeSelector(selected: TransactionType, onSelected: (TransactionType) -> Unit) {
+        val haptic = LocalHapticFeedback.current
+
+        val types = listOf(
+            TransactionType.EXPENSE to "Pengeluaran",
+            TransactionType.INCOME to "Pemasukan",
+            TransactionType.TRANSFER to "Transfer"
+        )
+
         Surface(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
-            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 10.dp),
+            shape = RoundedCornerShape(22.dp),
             color = AppColors.Surface,
-            shadowElevation = 8.dp
+            shadowElevation = 4.dp,
+            border = BorderStroke(1.dp, AppColors.Outline.copy(alpha = 0.5f))
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(8.dp).clip(RoundedCornerShape(20.dp)).background(AppColors.SurfaceMuted).padding(4.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(6.dp)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(AppColors.SurfaceMuted)
+                    .padding(4.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                TransactionType.values().forEach { type ->
+                types.forEach { (type, label) ->
                     val isSelected = selected == type
                     val scale by animateFloatAsState(if (isSelected) 1.02f else 1f)
+
                     Box(
-                        modifier = Modifier.weight(1f).scale(scale).clip(RoundedCornerShape(18.dp))
+                        modifier = Modifier
+                            .weight(1f)
+                            .scale(scale)
+                            .clip(RoundedCornerShape(16.dp))
                             .background(if (isSelected) AppColors.Primary else Color.Transparent)
-                            .clickable { onSelected(type) }
-                            .padding(vertical = 13.dp),
+                            .clickable {
+                                if (!isSelected) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    onSelected(type)
+                                }
+                            }
+                            .padding(vertical = 11.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = type.name.lowercase().replaceFirstChar { it.uppercase() },
+                            text = label,
                             color = if (isSelected) Color.White else AppColors.TextMuted,
-                            fontWeight = FontWeight.Black,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                             fontSize = 13.sp
                         )
                     }
@@ -268,21 +344,34 @@ class AddTransactionScreen(
         onClick: () -> Unit,
         onAmountChange: (String) -> Unit
     ) {
-        FormSection(title = "Amount", icon = Icons.Default.Payments) {
+        FormSection(title = "Nominal", icon = Icons.Default.Payments) {
             Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                color = AppColors.Surface,
-                shadowElevation = 8.dp
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().clickable(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
                         onClick = onClick
-                    ).padding(horizontal = 22.dp, vertical = 22.dp),
+                    ),
+                shape = RoundedCornerShape(22.dp),
+                color = AppColors.Surface,
+                shadowElevation = 4.dp,
+                border = BorderStroke(1.dp, if (error != null) AppColors.Danger else AppColors.Outline.copy(alpha = 0.5f))
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 20.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Text(
+                        text = "Rp",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.Primary,
+                        modifier = Modifier.padding(end = 12.dp)
+                    )
+
                     BasicTextField(
                         value = amount,
                         onValueChange = { input -> onAmountChange(input.filter { it.isDigit() }) },
@@ -290,24 +379,27 @@ class AddTransactionScreen(
                         singleLine = true,
                         textStyle = TextStyle(
                             color = if (amount.isBlank()) AppColors.TextMuted else AppColors.TextMain,
-                            fontSize = 36.sp,
-                            lineHeight = 42.sp,
+                            fontSize = 32.sp,
                             fontWeight = FontWeight.Black
                         ),
                         cursorBrush = SolidColor(AppColors.Primary),
                         modifier = Modifier.weight(1f),
                         decorationBox = { innerTextField ->
                             if (amount.isBlank()) {
-                                Text("0", fontSize = 36.sp, lineHeight = 42.sp, fontWeight = FontWeight.Black, color = AppColors.TextMuted)
+                                Text("0", fontSize = 32.sp, fontWeight = FontWeight.Black, color = AppColors.TextMuted.copy(alpha = 0.4f))
                             }
                             innerTextField()
                         }
                     )
-                    Text("Rp", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = AppColors.Primary)
                 }
             }
             if (!error.isNullOrBlank()) {
-                Text(error, style = MaterialTheme.typography.labelSmall, color = AppColors.Danger, modifier = Modifier.padding(start = 4.dp, top = 6.dp))
+                Text(
+                    text = error,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = AppColors.Danger,
+                    modifier = Modifier.padding(start = 6.dp, top = 4.dp)
+                )
             }
         }
     }
@@ -321,19 +413,24 @@ class AddTransactionScreen(
         label: (T) -> String,
         onSelected: (T) -> Unit
     ) {
+        val haptic = LocalHapticFeedback.current
+
         FormSection(title = title, icon = icon) {
             if (values.isEmpty()) {
-                EmptyPicker("No $title available")
+                EmptyPicker("Belum ada data $title")
             } else {
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 2.dp, vertical = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(values) { value ->
                         ChoiceChip(
                             text = label(value),
                             isSelected = value == selected,
-                            onClick = { onSelected(value) }
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                onSelected(value)
+                            }
                         )
                     }
                 }
@@ -343,53 +440,62 @@ class AddTransactionScreen(
 
     @Composable
     private fun NoteSection(note: String, onNoteChange: (String) -> Unit) {
-        FormSection(title = "Notes", icon = Icons.AutoMirrored.Filled.Notes) {
-            OutlinedTextField(
+        FormSection(title = "Catatan", icon = Icons.AutoMirrored.Filled.Notes) {
+            AppTextField(
                 value = note,
                 onValueChange = onNoteChange,
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 3,
-                shape = RoundedCornerShape(22.dp),
-                placeholder = { Text("What was this transaction for?") }
+                label = "Keterangan",
+                placeholder = "Misal: Makan siang, Kopi santai, Tagihan wifi",
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
 
     @Composable
     private fun SaveButton(state: AddTransactionState, onClick: () -> Unit) {
+        val haptic = LocalHapticFeedback.current
         val enabled = state.amount.toLongOrNull()?.let { it > 0 } == true &&
             state.selectedWallet != null &&
             (state.type != TransactionType.TRANSFER || state.selectedTargetWallet != null)
 
-        Button(
-            onClick = onClick,
+        AppButton(
+            text = if (state.isLoading) "Menyimpan..." else "Simpan Transaksi",
+            onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onClick()
+            },
             enabled = enabled && !state.isLoading,
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(58.dp),
-            shape = RoundedCornerShape(29.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = AppColors.Primary,
-                contentColor = Color.White,
-                disabledContainerColor = AppColors.Outline,
-                disabledContentColor = AppColors.TextMuted
-            )
-        ) {
-            Text(
-                text = if (state.isLoading) "Saving..." else "Save Transaction",
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
-        }
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp)
+        )
     }
 
     @Composable
     private fun FormSection(title: String, icon: ImageVector, content: @Composable ColumnScope.() -> Unit) {
-        Column(modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(32.dp).clip(CircleShape).background(AppColors.Primary.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
-                    Icon(icon, null, tint = AppColors.Primary, modifier = Modifier.size(17.dp))
+                Box(
+                    modifier = Modifier
+                        .size(30.dp)
+                        .clip(CircleShape)
+                        .background(AppColors.Primary.copy(alpha = 0.12f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(icon, null, tint = AppColors.Primary, modifier = Modifier.size(16.dp))
                 }
-                Spacer(Modifier.width(10.dp))
-                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = AppColors.TextMain)
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = title,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = AppColors.TextMain
+                )
             }
             content()
         }
@@ -399,15 +505,16 @@ class AddTransactionScreen(
     private fun ChoiceChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
         Surface(
             modifier = Modifier.clickable(onClick = onClick),
-            shape = RoundedCornerShape(18.dp),
+            shape = RoundedCornerShape(16.dp),
             color = if (isSelected) AppColors.Primary else AppColors.Surface,
-            border = BorderStroke(1.dp, if (isSelected) AppColors.Primary else AppColors.Outline)
+            border = BorderStroke(1.dp, if (isSelected) AppColors.Primary else AppColors.Outline.copy(alpha = 0.6f))
         ) {
             Text(
                 text = text,
-                modifier = Modifier.padding(horizontal = 18.dp, vertical = 13.dp),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
                 color = if (isSelected) Color.White else AppColors.TextMain,
-                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                 maxLines = 1
             )
         }
@@ -417,10 +524,17 @@ class AddTransactionScreen(
     private fun EmptyPicker(text: String) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(18.dp),
-            color = AppColors.Surface
+            shape = RoundedCornerShape(16.dp),
+            color = AppColors.Surface,
+            border = BorderStroke(1.dp, AppColors.Outline.copy(alpha = 0.5f))
         ) {
-            Text(text, modifier = Modifier.padding(16.dp), color = AppColors.TextMuted, fontWeight = FontWeight.SemiBold)
+            Text(
+                text = text,
+                modifier = Modifier.padding(14.dp),
+                color = AppColors.TextMuted,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium
+            )
         }
     }
 }

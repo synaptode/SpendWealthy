@@ -11,18 +11,25 @@ CREATE TABLE walletEntity (
     currency TEXT NOT NULL,
     type TEXT NOT NULL,
     createdAt INTEGER AS Instant NOT NULL,
-    isArchived INTEGER AS Boolean NOT NULL DEFAULT 0
+    isArchived INTEGER AS Boolean NOT NULL DEFAULT 0,
+    familyId TEXT
 );
 
 insertWallet:
-INSERT OR REPLACE INTO walletEntity(id, name, balanceAmount, currency, type, createdAt, isArchived)
-VALUES (?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO walletEntity(id, name, balanceAmount, currency, type, createdAt, isArchived, familyId)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
 selectAllWallets:
 SELECT * FROM walletEntity WHERE isArchived = 0;
 
 selectWalletById:
 SELECT * FROM walletEntity WHERE id = ?;
+
+selectWalletsByFamily:
+SELECT * FROM walletEntity WHERE familyId = ? AND isArchived = 0;
+
+selectPersonalWallets:
+SELECT * FROM walletEntity WHERE familyId IS NULL AND isArchived = 0;
 
 updateWalletBalance:
 UPDATE walletEntity SET balanceAmount = ? WHERE id = ?;
@@ -57,13 +64,14 @@ CREATE TABLE transactionEntity (
     merchant TEXT NOT NULL DEFAULT '',
     createdAt INTEGER AS Instant NOT NULL,
     updatedAt INTEGER AS Instant NOT NULL,
+    familyId TEXT,
     FOREIGN KEY (walletId) REFERENCES walletEntity(id),
     FOREIGN KEY (categoryId) REFERENCES categoryEntity(id)
 );
 
 insertTransaction:
-INSERT OR REPLACE INTO transactionEntity(id, amount, currency, type, categoryId, walletId, targetWalletId, date, note, merchant, createdAt, updatedAt)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO transactionEntity(id, amount, currency, type, categoryId, walletId, targetWalletId, date, note, merchant, createdAt, updatedAt, familyId)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 selectTransactionsByWallet:
 SELECT * FROM transactionEntity WHERE walletId = ? ORDER BY date DESC, createdAt DESC;
@@ -76,6 +84,12 @@ SELECT * FROM transactionEntity ORDER BY date DESC, createdAt DESC;
 
 selectTransactionById:
 SELECT * FROM transactionEntity WHERE id = ?;
+
+selectTransactionsByFamily:
+SELECT * FROM transactionEntity WHERE familyId = ? ORDER BY date DESC, createdAt DESC;
+
+selectPersonalTransactions:
+SELECT * FROM transactionEntity WHERE familyId IS NULL ORDER BY date DESC, createdAt DESC;
 
 deleteTransaction:
 DELETE FROM transactionEntity WHERE id = ?;
@@ -174,3 +188,45 @@ SELECT * FROM vaultDocumentEntity ORDER BY createdAt DESC;
 
 deleteVaultDocument:
 DELETE FROM vaultDocumentEntity WHERE id = ?;
+
+-- Family Table
+CREATE TABLE familyEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    createdAt INTEGER AS Instant NOT NULL
+);
+
+insertFamily:
+INSERT OR REPLACE INTO familyEntity(id, name, createdAt)
+VALUES (?, ?, ?);
+
+selectFamilyById:
+SELECT * FROM familyEntity WHERE id = ?;
+
+-- Goal Table
+CREATE TABLE goalEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    targetAmount INTEGER NOT NULL,
+    currentAmount INTEGER NOT NULL,
+    currency TEXT NOT NULL,
+    type TEXT NOT NULL,
+    deadline TEXT AS LocalDate,
+    createdAt INTEGER AS Instant NOT NULL
+);
+
+insertGoal:
+INSERT OR REPLACE INTO goalEntity(id, name, targetAmount, currentAmount, currency, type, deadline, createdAt)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+selectAllGoals:
+SELECT * FROM goalEntity ORDER BY createdAt DESC;
+
+selectGoalById:
+SELECT * FROM goalEntity WHERE id = ?;
+
+updateGoalProgress:
+UPDATE goalEntity SET currentAmount = ? WHERE id = ?;
+
+deleteGoal:
+DELETE FROM goalEntity WHERE id = ?;

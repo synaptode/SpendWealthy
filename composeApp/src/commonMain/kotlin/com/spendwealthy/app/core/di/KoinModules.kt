@@ -22,12 +22,19 @@ import com.spendwealthy.app.ui.screens.report.ReportViewModel
 import com.spendwealthy.app.ui.screens.settings.SettingsViewModel
 import com.spendwealthy.app.ui.screens.vault.VaultViewModel
 import com.spendwealthy.app.ui.screens.vault.AddDocumentViewModel
+import com.spendwealthy.app.ui.screens.family.FamilyViewModel
+import com.spendwealthy.app.core.architecture.DefaultDispatcherProvider
+import com.spendwealthy.app.core.architecture.DispatcherProvider
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
 val commonModule = module {
+    // Core Architecture & Concurrency
+    single<DispatcherProvider> { DefaultDispatcherProvider() }
+
     // Database & Repositories
     single { createDatabase(get()) }
+
     single<WalletRepository> { WalletRepositoryImpl(get()) }
     single<TransactionRepository> { TransactionRepositoryImpl(get()) }
     single<CategoryRepository> { CategoryRepositoryImpl(get()) }
@@ -36,6 +43,8 @@ val commonModule = module {
     single<PreferenceRepository> { PreferenceRepositoryImpl(get()) }
     single<SubscriptionRepository> { LocalSubscriptionRepository(get()) }
     single<DocumentRepository> { SqlDelightDocumentRepository(get()) }
+    single<FamilyRepository> { MemoryFamilyRepository() }
+    single<GoalRepository> { SqlDelightGoalRepository(get()) }
 
     // Domain Services
     single { BalanceCalculator() }
@@ -43,6 +52,34 @@ val commonModule = module {
     single { CsvReportExporter() }
     single { DataService() }
     single { CatInsightService() }
+    single { SafeToSpendEngine() }
+    single { NotificationService() }
+    single { AnalyticsService() }
+    single { WealthOptimizerEngine(get()) }
+    single { ResilienceService() }
+    single { TelemetryService() }
+    single { WealthNarrativeEngine() }
+    single { WealthProjectionEngine() }
+    single { ImpactSimulator(get()) }
+    single { AuditService() }
+    single { ContextEngine() }
+    single { AutoPilotService() }
+    single { AnomalyDetectionEngine() }
+    single { IntentDiscoveryEngine() }
+    single { DecisionAuditService() }
+    single { HistoricalSimulationEngine() }
+    single { FamilyConsensusService() }
+    single { TrendAnalysisService() }
+    single { WealthBlueprintEngine() }
+    single { OpportunityCostEngine() }
+    single { CoachingService() }
+    single { WealthShieldEngine() }
+    single { AssetIntelligenceEngine() }
+    single { LifecycleSimulationEngine() }
+    single { EstateIntelligenceEngine() }
+    single { LiquiditySimulationEngine() }
+    single { WealthScoreEngine() }
+    single { StressTestEngine() }
     single { SubscriptionPolicy(FreePlanLimits()) }
     single<LedgerRepository> { SqlDelightLedgerRepository(get(), get()) }
     
@@ -54,9 +91,49 @@ val commonModule = module {
     factory { ExportMonthlyTransactionsCsvUseCase(get(), get(), get(), get()) }
 
     // Screen Models
-    factory { AppViewModel(get(), get()) }
+    factory { AppViewModel(get(), get(), get()) }
     factory { OnboardingViewModel(get(), get(), get(), get(), get()) }
-    factory { HomeViewModel(get(), get(), get(), get(), get(), get()) }
+    factory {
+        HomeViewModel(
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get()
+            ,
+            get()
+            ,
+            get(),
+            get(),
+            get()
+        )
+    }
     factory { AddTransactionViewModel(get(), get(), get(), get(), get(), get()) }
     factory { TransactionListViewModel(get(), get()) }
     factory { WalletListViewModel(get()) }
@@ -68,8 +145,9 @@ val commonModule = module {
     factory { AddBillViewModel(get(), get(), get(), get()) }
     factory { ReportViewModel(get(), get(), get()) }
     factory { SettingsViewModel(get(), get(), get(), get(), get()) }
-    factory { VaultViewModel(get()) }
+    factory { VaultViewModel(get(), get()) }
     factory { AddDocumentViewModel(get()) }
+    factory { FamilyViewModel(get(), get()) }
 }
 
 fun initKoin(config: (org.koin.dsl.KoinAppDeclaration)? = null) = org.koin.core.context.startKoin {

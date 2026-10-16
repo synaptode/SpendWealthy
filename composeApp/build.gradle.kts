@@ -29,6 +29,7 @@ kotlin {
             baseName = "ComposeApp"
             isStatic = false
             linkerOpts("-lsqlite3")
+            freeCompilerArgs += "-Xbinary=bundleId=com.spendwealthy.app"
             export(libs.koin.core)
         }
     }

@@ -92,7 +92,7 @@ class OnboardingViewModel(
     }
 
     fun nextStep() {
-        if (_uiState.value.step < 5) {
+        if (_uiState.value.step < 4) {
             _uiState.value = _uiState.value.copy(step = _uiState.value.step + 1)
         } else {
             completeOnboarding()

@@ -60,7 +60,8 @@ class TransactionRepositoryImpl(
             note = transaction.note,
             merchant = transaction.merchant,
             createdAt = transaction.createdAt,
-            updatedAt = transaction.updatedAt
+            updatedAt = transaction.updatedAt,
+            familyId = transaction.familyId
         )
     }
 

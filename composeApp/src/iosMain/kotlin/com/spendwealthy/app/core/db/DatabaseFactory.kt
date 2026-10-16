@@ -6,6 +6,6 @@ import com.spendwealthy.app.db.AppDatabase
 
 actual class DriverFactory {
     actual fun createDriver(): SqlDriver {
-        return NativeSqliteDriver(AppDatabase.Schema, "spendwealthy.db")
+        return NativeSqliteDriver(AppDatabase.Schema, "spendwealthy_v2.db")
     }
 }

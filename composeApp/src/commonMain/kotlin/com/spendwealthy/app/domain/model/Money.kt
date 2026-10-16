@@ -28,6 +28,12 @@ data class Money(
     }
 
     operator fun times(factor: Int): Money = Money(amount * factor, currency)
+    operator fun div(factor: Int): Money = Money(amount / factor, currency)
+
+    operator fun compareTo(other: Money): Int {
+        require(currency == other.currency) { "Currency mismatch: $currency vs ${other.currency}" }
+        return amount.compareTo(other.amount)
+    }
 
     fun isZero() = amount == 0L
     fun isPositive() = amount > 0L

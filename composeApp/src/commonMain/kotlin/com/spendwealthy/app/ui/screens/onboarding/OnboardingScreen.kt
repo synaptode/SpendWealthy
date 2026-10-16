@@ -2,14 +2,7 @@
 
 package com.spendwealthy.app.ui.screens.onboarding
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,6 +23,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -41,10 +35,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -61,45 +56,56 @@ class OnboardingScreen : Screen {
     @Composable
     override fun Content() {
         val viewModel = koinScreenModel<OnboardingViewModel>()
-        val state by viewModel.uiState.collectAsState()
+        val state = viewModel.uiState.collectAsState().value
+        val haptic = LocalHapticFeedback.current
 
         Column(
-            modifier = Modifier.fillMaxSize().background(AppColors.Background),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(AppColors.Background),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            FinanceHero(modifier = Modifier.fillMaxWidth().weight(1.12f))
+            FinanceHero(modifier = Modifier.fillMaxWidth().weight(1.1f))
 
             Column(
-                modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 28.dp, vertical = 28.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(horizontal = 28.dp, vertical = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                AnimatedContent(
-                    targetState = state.step,
-                    transitionSpec = {
-                        (slideInHorizontally { it / 2 } + fadeIn()).togetherWith(slideOutHorizontally { -it / 2 } + fadeOut())
-                            .using(SizeTransform(clip = false))
-                    }
-                ) { step ->
-                    OnboardingStepContent(step, state, viewModel)
-                }
+                OnboardingStepContent(state.step, state, viewModel)
 
-                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(22.dp)) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
                     StepIndicator(state.step)
                     Button(
-                        onClick = { viewModel.nextStep() },
-                        modifier = Modifier.fillMaxWidth().height(62.dp),
-                        shape = RoundedCornerShape(31.dp),
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            viewModel.nextStep()
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(58.dp),
+                        shape = RoundedCornerShape(20.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = AppColors.Primary)
                     ) {
                         Text(
-                            text = if (state.step < 4) "Next" else "Get Started",
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = AppColors.TextContrast
+                            text = if (state.step < 4) "Lanjutkan" else "Mulai Sekarang",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
                         )
                         Spacer(Modifier.size(10.dp))
-                        Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = AppColors.TextContrast)
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(18.dp)
+                        )
                     }
                 }
             }
@@ -109,49 +115,68 @@ class OnboardingScreen : Screen {
     @Composable
     private fun FinanceHero(modifier: Modifier) {
         Box(
-            modifier = modifier.clip(RoundedCornerShape(bottomStart = 36.dp, bottomEnd = 36.dp)).background(AppColors.PrimaryDark)
+            modifier = modifier
+                .clip(RoundedCornerShape(bottomStart = 36.dp, bottomEnd = 36.dp))
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color(0xFF0F172A), Color(0xFF1E293B))
+                    )
+                )
         ) {
             Canvas(Modifier.fillMaxSize()) {
-                drawCircle(AppColors.CardBlue.copy(alpha = 0.42f), radius = size.width * 0.34f, center = Offset(size.width * 0.2f, size.height * 0.18f))
-                drawCircle(AppColors.Accent.copy(alpha = 0.52f), radius = size.width * 0.28f, center = Offset(size.width * 0.86f, size.height * 0.28f))
-                val cardWidth = size.width * 0.72f
-                val cardHeight = size.height * 0.28f
-                drawRoundRect(
-                    color = AppColors.CardBlue,
-                    topLeft = Offset(size.width * 0.14f, size.height * 0.34f),
-                    size = Size(cardWidth, cardHeight),
-                    cornerRadius = CornerRadius(28.dp.toPx(), 28.dp.toPx())
+                drawCircle(
+                    color = AppColors.Primary.copy(alpha = 0.2f),
+                    radius = size.width * 0.45f,
+                    center = Offset(size.width * 0.85f, size.height * 0.2f)
                 )
-                drawRoundRect(
-                    color = AppColors.Accent,
-                    topLeft = Offset(size.width * 0.28f, size.height * 0.58f),
-                    size = Size(cardWidth * 0.82f, cardHeight * 0.76f),
-                    cornerRadius = CornerRadius(24.dp.toPx(), 24.dp.toPx())
+                drawCircle(
+                    color = Color.White.copy(alpha = 0.04f),
+                    radius = size.width * 0.35f,
+                    center = Offset(size.width * 0.15f, size.height * 0.7f)
                 )
             }
 
             Row(
-                modifier = Modifier.align(Alignment.Center).padding(top = 26.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(top = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                HeroMetric(Icons.Default.CreditCard, "Cards")
-                HeroMetric(Icons.Default.PieChart, "Budget")
-                HeroMetric(Icons.AutoMirrored.Filled.TrendingUp, "Growth")
+                HeroMetric(Icons.Default.CreditCard, "Kartu")
+                HeroMetric(Icons.Default.PieChart, "Anggaran")
+                HeroMetric(Icons.Default.Security, "Brankas")
+                HeroMetric(Icons.AutoMirrored.Filled.TrendingUp, "Arus Kas")
             }
         }
     }
 
     @Composable
     private fun HeroMetric(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             Box(
-                modifier = Modifier.size(58.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.92f)),
+                modifier = Modifier
+                    .size(54.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(icon, null, tint = AppColors.Primary, modifier = Modifier.size(26.dp))
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
             }
-            Text(label, color = Color.White, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+            Text(
+                text = label,
+                color = Color.White.copy(alpha = 0.85f),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.SemiBold
+            )
         }
     }
 
@@ -159,10 +184,12 @@ class OnboardingScreen : Screen {
     private fun StepIndicator(step: Int) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             for (index in 1..4) {
-                val width by animateDpAsState(if (index == step) 24.dp else 8.dp)
+                val width by animateDpAsState(if (index == step) 28.dp else 8.dp)
                 Box(
-                    modifier = Modifier.size(width, 8.dp).clip(CircleShape)
-                        .background(if (index == step) AppColors.Secondary else AppColors.Outline)
+                    modifier = Modifier
+                        .size(width, 6.dp)
+                        .clip(CircleShape)
+                        .background(if (index == step) AppColors.Primary else AppColors.Outline)
                 )
             }
         }
@@ -173,69 +200,93 @@ class OnboardingScreen : Screen {
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             when (step) {
                 1 -> {
                     Text(
-                        text = "All Your Finances.\nOne Powerful Platform.",
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Black,
+                        text = "Satu Aplikasi Finansial.\nKendali Penuh Aset Anda.",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.ExtraBold,
                         textAlign = TextAlign.Center,
-                        lineHeight = 34.sp,
+                        lineHeight = 32.sp,
                         color = AppColors.TextMain
                     )
                     Text(
-                        text = "Send, receive, and manage money with a fast, secure daily finance workspace.",
+                        text = "Kelola arus kas harian, alokasi anggaran belanja, dan brankas dokumen secara offline-first dan terenkripsi.",
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center,
                         color = AppColors.TextMuted,
-                        modifier = Modifier.padding(horizontal = 10.dp)
+                        modifier = Modifier.padding(horizontal = 8.dp)
                     )
                 }
                 2 -> {
-                    Text("Set Up Your Profile", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black, color = AppColors.TextMain)
+                    Text(
+                        text = "Lengkapi Profil Anda",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.TextMain
+                    )
                     AppTextField(
                         value = state.name,
                         onValueChange = viewModel::onNameChanged,
-                        label = "Full Name",
-                        placeholder = "e.g. Alex Piter"
+                        label = "Nama Lengkap",
+                        placeholder = "Contoh: Alex Piter"
                     )
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
                         listOf("A", "M", "R", "S").forEachIndexed { index, initial ->
                             val isSelected = state.avatarId == index
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(58.dp)
-                                    .clip(RoundedCornerShape(18.dp))
+                                    .height(52.dp)
+                                    .clip(RoundedCornerShape(14.dp))
                                     .background(if (isSelected) AppColors.Primary else AppColors.SurfaceRaised)
                                     .clickable { viewModel.onAvatarChanged(index) },
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(initial, fontSize = 20.sp, fontWeight = FontWeight.Black, color = if (isSelected) Color.White else AppColors.TextMain)
+                                Text(
+                                    text = initial,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = if (isSelected) Color.White else AppColors.TextMain
+                                )
                             }
                         }
                     }
                 }
                 3 -> {
-                    Text("Create Main Wallet", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black, color = AppColors.TextMain)
+                    Text(
+                        text = "Buat Dompet Utama",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.TextMain
+                    )
                     AppTextField(
                         value = state.walletName,
                         onValueChange = viewModel::onWalletNameChanged,
-                        label = "Main Wallet Name",
-                        placeholder = "e.g. Everyday Wallet"
+                        label = "Nama Dompet",
+                        placeholder = "Contoh: Rekening Utama, Dompet Harian"
                     )
                     AppAmountInput(
                         value = state.initialBalance,
                         onValueChange = viewModel::onInitialBalanceChanged,
-                        label = "Initial Balance"
+                        label = "Saldo Awal (Rp)"
                     )
                 }
                 4 -> {
                     SuccessCelebration(
-                        title = "You're All Set!",
-                        message = "Your finance workspace is ready for budgets, cards, bills, and transactions."
+                        title = "Semua Siap!",
+                        message = "Workspace finansial pribadi Anda siap digunakan untuk mencatat pengeluaran, anggaran, dan brankas dokumen."
+                    )
+                }
+                else -> {
+                    SuccessCelebration(
+                        title = "Menyiapkan Data",
+                        message = "Kami sedang menyelesaikan konfigurasi aplikasi Anda."
                     )
                 }
             }

@@ -1,6 +1,6 @@
 package com.spendwealthy.app.ui.screens.transaction.list
 
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,40 +10,45 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AccountBalance
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Fastfood
-import androidx.compose.material.icons.filled.NotificationsNone
-import androidx.compose.material.icons.filled.Subscriptions
-import androidx.compose.material.icons.filled.Store
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
@@ -55,6 +60,10 @@ import com.spendwealthy.app.domain.model.Transaction
 import com.spendwealthy.app.domain.model.TransactionType
 import com.spendwealthy.app.ui.theme.AppColors
 
+/**
+ * Modern, minimalist transaction ledger ("Buku Kas & Riwayat").
+ * Features real-time search, category filtering, monthly cashflow summary, and clean typography.
+ */
 class TransactionListScreen : Screen {
 
     @Composable
@@ -62,207 +71,463 @@ class TransactionListScreen : Screen {
         val viewModel = koinScreenModel<TransactionListViewModel>()
         val state by viewModel.uiState.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
+        val haptic = LocalHapticFeedback.current
 
-        val income = state.filteredTransactions
+        val totalIncome = state.filteredTransactions
             .filter { it.type == TransactionType.INCOME }
             .sumOf { it.amount.amount }
-        val spending = state.filteredTransactions
+        val totalExpense = state.filteredTransactions
             .filter { it.type == TransactionType.EXPENSE }
             .sumOf { it.amount.amount }
+        val netCashflow = totalIncome - totalExpense
 
-        Box(modifier = Modifier.fillMaxSize().background(AppColors.Background)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(AppColors.Background)
+        ) {
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 116.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.statusBars),
+                contentPadding = PaddingValues(bottom = 120.dp)
             ) {
-                item { TransactionTopBar(onBack = { if (navigator.canPop) navigator.pop() }) }
+                // 1. Header
                 item {
-                    IncomeSummaryCard(
-                        totalIncome = Money(income, "IDR").format(),
-                        totalSpending = Money(spending, "IDR").format()
+                    LedgerHeader(
+                        canGoBack = navigator.canPop,
+                        onBack = { if (navigator.canPop) navigator.pop() }
                     )
                 }
-                item { TransactionsHeader() }
-                items(
-                    items = state.filteredTransactions,
-                    key = { it.id }
-                ) { transaction ->
-                    TransactionItem(transaction)
+
+                // 2. Search Bar
+                item {
+                    SearchBar(
+                        query = state.searchQuery,
+                        onQueryChange = { viewModel.onSearchQueryChanged(it) },
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
+                    )
+                }
+
+                // 3. Cashflow Summary Card
+                item {
+                    SummaryCard(
+                        income = Money(totalIncome, "IDR").format(),
+                        expense = Money(totalExpense, "IDR").format(),
+                        net = Money(netCashflow, "IDR").format(),
+                        isSurplus = netCashflow >= 0,
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
+                    )
+                }
+
+                // 4. Category Filter Chips
+                item {
+                    CategoryFilterRow(
+                        categories = state.categories,
+                        selected = state.selectedCategory,
+                        onSelect = {
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            viewModel.onCategorySelected(it)
+                        },
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+
+                // 5. Transaction Count Indicator
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Daftar Catatan",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.TextMain
+                        )
+                        Text(
+                            text = "${state.filteredTransactions.size} Transaksi",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = AppColors.TextMuted
+                        )
+                    }
+                }
+
+                // 6. Transactions List
+                if (state.filteredTransactions.isEmpty()) {
+                    item {
+                        EmptyLedgerState(
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 24.dp)
+                        )
+                    }
+                } else {
+                    items(
+                        items = state.filteredTransactions,
+                        key = { it.id }
+                    ) { transaction ->
+                        LedgerItem(
+                            transaction = transaction,
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+                        )
+                    }
                 }
             }
         }
     }
 
     @Composable
-    private fun TransactionTopBar(onBack: () -> Unit) {
+    private fun LedgerHeader(canGoBack: Boolean, onBack: () -> Unit) {
+        val haptic = LocalHapticFeedback.current
+
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 18.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            CircleIcon(Icons.AutoMirrored.Filled.ArrowBack, onBack)
-            Text(
-                text = "Transactions",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = AppColors.TextMain
-            )
-            CircleIcon(Icons.Default.NotificationsNone)
-        }
-    }
-
-    @Composable
-    private fun CircleIcon(icon: ImageVector, onClick: (() -> Unit)? = null) {
-        Box(
             modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .background(AppColors.SurfaceRaised)
-                .border(1.dp, AppColors.Outline, CircleShape)
-                .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
-            contentAlignment = Alignment.Center
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(icon, null, tint = AppColors.TextMain, modifier = Modifier.size(21.dp))
+            if (canGoBack) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(AppColors.Surface)
+                        .border(1.dp, AppColors.Outline.copy(alpha = 0.6f), CircleShape)
+                        .clickable {
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            onBack()
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Kembali",
+                        tint = AppColors.TextMain,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+                Spacer(Modifier.width(12.dp))
+            }
+
+            Column {
+                Text(
+                    text = "Buku Kas & Riwayat",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = AppColors.TextMain
+                )
+                Text(
+                    text = "Pantau setiap rupiah yang keluar & masuk",
+                    fontSize = 12.sp,
+                    color = AppColors.TextMuted
+                )
+            }
         }
     }
 
     @Composable
-    private fun IncomeSummaryCard(totalIncome: String, totalSpending: String) {
+    private fun SearchBar(
+        query: String,
+        onQueryChange: (String) -> Unit,
+        modifier: Modifier = Modifier
+    ) {
         Surface(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 12.dp),
-            shape = RoundedCornerShape(14.dp),
-            color = AppColors.Accent
+            modifier = modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            color = AppColors.Surface,
+            border = BorderStroke(1.dp, AppColors.Outline.copy(alpha = 0.6f))
         ) {
-            Column(modifier = Modifier.padding(18.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = null,
+                    tint = AppColors.TextMuted,
+                    modifier = Modifier.size(20.dp)
+                )
+
+                TextField(
+                    value = query,
+                    onValueChange = onQueryChange,
+                    placeholder = {
+                        Text(
+                            text = "Cari merchant, kategori, atau catatan...",
+                            fontSize = 13.sp,
+                            color = AppColors.TextMuted
+                        )
+                    },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    ),
+                    singleLine = true,
+                    modifier = Modifier.weight(1f)
+                )
+
+                if (query.isNotEmpty()) {
+                    Icon(
+                        imageVector = Icons.Default.Clear,
+                        contentDescription = "Hapus pencarian",
+                        tint = AppColors.TextMuted,
+                        modifier = Modifier
+                            .size(18.dp)
+                            .clickable { onQueryChange("") }
+                    )
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun SummaryCard(
+        income: String,
+        expense: String,
+        net: String,
+        isSurplus: Boolean,
+        modifier: Modifier = Modifier
+    ) {
+        Surface(
+            modifier = modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            color = AppColors.CardDark,
+            shadowElevation = 6.dp,
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "RINGKASAN CASHFLOW",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White.copy(alpha = 0.55f),
+                        letterSpacing = 1.sp
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(if (isSurplus) AppColors.Success.copy(alpha = 0.25f) else AppColors.Danger.copy(alpha = 0.25f))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = if (isSurplus) "Surplus" else "Defisit",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isSurplus) AppColors.Accent else AppColors.Danger
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(14.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column {
-                        Text("Income by", fontWeight = FontWeight.SemiBold, fontSize = 23.sp, color = AppColors.TextMain)
-                        Text("Viewing last 6 months chart", style = MaterialTheme.typography.labelMedium, color = AppColors.TextMain.copy(alpha = 0.62f))
-                    }
-                    Surface(shape = RoundedCornerShape(22.dp), color = Color.White.copy(alpha = 0.72f)) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("Monthly", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMain)
-                            Icon(Icons.Default.ExpandMore, null, tint = AppColors.TextMain, modifier = Modifier.size(16.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Icon(Icons.Default.ArrowDownward, null, tint = AppColors.Success, modifier = Modifier.size(14.dp))
+                            Text("Total Pemasukan", fontSize = 11.sp, color = Color.White.copy(alpha = 0.6f))
                         }
+                        Text(income, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.padding(top = 2.dp))
+                    }
+
+                    Column(horizontalAlignment = Alignment.End) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Icon(Icons.Default.ArrowUpward, null, tint = AppColors.Danger, modifier = Modifier.size(14.dp))
+                            Text("Total Pengeluaran", fontSize = 11.sp, color = Color.White.copy(alpha = 0.6f))
+                        }
+                        Text(expense, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.padding(top = 2.dp))
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun CategoryFilterRow(
+        categories: List<String>,
+        selected: String,
+        onSelect: (String) -> Unit,
+        modifier: Modifier = Modifier
+    ) {
+        LazyRow(
+            modifier = modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(categories) { category ->
+                val isSelected = category == selected
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = if (isSelected) AppColors.Primary else AppColors.Surface,
+                    border = BorderStroke(1.dp, if (isSelected) AppColors.Primary else AppColors.Outline.copy(alpha = 0.5f)),
+                    modifier = Modifier.clickable { onSelect(category) }
+                ) {
+                    Text(
+                        text = category,
+                        fontSize = 12.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                        color = if (isSelected) Color.White else AppColors.TextMain,
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+                    )
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun LedgerItem(
+        transaction: Transaction,
+        modifier: Modifier = Modifier
+    ) {
+        val isIncome = transaction.type == TransactionType.INCOME
+        val isTransfer = transaction.type == TransactionType.TRANSFER
+
+        Surface(
+            modifier = modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(18.dp),
+            color = AppColors.Surface,
+            border = BorderStroke(1.dp, AppColors.Outline.copy(alpha = 0.45f))
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(
+                                when {
+                                    isIncome -> AppColors.Success.copy(alpha = 0.15f)
+                                    isTransfer -> AppColors.Secondary.copy(alpha = 0.15f)
+                                    else -> AppColors.Outline.copy(alpha = 0.45f)
+                                }
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = when {
+                                isIncome -> Icons.AutoMirrored.Filled.TrendingUp
+                                isTransfer -> Icons.Default.SwapHoriz
+                                else -> Icons.AutoMirrored.Filled.ReceiptLong
+                            },
+                            contentDescription = null,
+                            tint = when {
+                                isIncome -> AppColors.Success
+                                isTransfer -> AppColors.Secondary
+                                else -> AppColors.TextMain
+                            },
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+
+                    Column {
+                        Text(
+                            text = transaction.note.ifBlank {
+                                transaction.merchant.ifBlank {
+                                    "Transaksi ${transaction.type.name.lowercase().replaceFirstChar { it.uppercase() }}"
+                                }
+                            },
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = AppColors.TextMain,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = "${transaction.date}",
+                            fontSize = 11.sp,
+                            color = AppColors.TextMuted
+                        )
                     }
                 }
 
-                Spacer(Modifier.height(28.dp))
+                Text(
+                    text = (if (isIncome) "+ " else if (isTransfer) "" else "- ") + transaction.amount.format(),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = when {
+                        isIncome -> AppColors.Success
+                        isTransfer -> AppColors.Secondary
+                        else -> AppColors.TextMain
+                    }
+                )
+            }
+        }
+    }
 
-                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(Color.White.copy(alpha = 0.64f)).padding(vertical = 12.dp)) {
-                    SummaryStat(Modifier.weight(1f), "Total Income", totalIncome)
-                    SummaryStat(Modifier.weight(1f), "Total Spendings", totalSpending)
+    @Composable
+    private fun EmptyLedgerState(modifier: Modifier = Modifier) {
+        Surface(
+            modifier = modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            color = AppColors.Surface,
+            border = BorderStroke(1.dp, AppColors.Outline.copy(alpha = 0.5f))
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(54.dp)
+                        .clip(CircleShape)
+                        .background(AppColors.PrimaryContainer.copy(alpha = 0.4f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
+                        contentDescription = null,
+                        tint = AppColors.Primary,
+                        modifier = Modifier.size(26.dp)
+                    )
                 }
 
-                Spacer(Modifier.height(22.dp))
+                Spacer(Modifier.height(14.dp))
 
-                SimpleBarChart(
-                    data = listOf(0.62f, 0.32f, 0.86f, 0.56f, 0.58f, 0.68f),
-                    modifier = Modifier.fillMaxWidth().height(112.dp)
-                )
-            }
-        }
-    }
-
-    @Composable
-    private fun SimpleBarChart(data: List<Float>, modifier: Modifier) {
-        val labels = listOf("Jan", "Feb", "Mar", "April", "May", "June")
-        Canvas(modifier = modifier) {
-            val chartHeight = size.height - 24.dp.toPx()
-            val barWidth = 34.dp.toPx()
-            val spacing = (size.width - (data.size * barWidth)) / (data.size + 1)
-            repeat(4) { index ->
-                val y = chartHeight * (index + 1) / 5f
-                drawLine(
-                    color = AppColors.Primary.copy(alpha = 0.16f),
-                    start = Offset(0f, y),
-                    end = Offset(size.width, y),
-                    strokeWidth = 1.dp.toPx()
-                )
-            }
-            data.forEachIndexed { index, value ->
-                val barHeight = chartHeight * value.coerceIn(0.12f, 1f)
-                val x = spacing + index * (barWidth + spacing)
-                drawRoundRect(
-                    color = AppColors.Primary,
-                    topLeft = Offset(x, chartHeight - barHeight),
-                    size = Size(barWidth, barHeight),
-                    cornerRadius = CornerRadius(18.dp.toPx(), 18.dp.toPx())
-                )
-            }
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            labels.forEach { label ->
-                Text(label, style = MaterialTheme.typography.labelSmall, color = AppColors.TextMain.copy(alpha = 0.7f))
-            }
-        }
-    }
-
-    @Composable
-    private fun SummaryStat(modifier: Modifier, label: String, amount: String) {
-        Column(modifier = modifier.padding(horizontal = 14.dp)) {
-            Text(label, style = MaterialTheme.typography.labelSmall, color = AppColors.TextMain.copy(alpha = 0.58f))
-            Text(amount, fontWeight = FontWeight.Black, fontSize = 22.sp, color = AppColors.TextMain)
-        }
-    }
-
-    @Composable
-    private fun TransactionsHeader() {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 22.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("Recent Transactions", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = AppColors.TextMain)
-            Text("See All  >", style = MaterialTheme.typography.labelMedium, color = AppColors.Secondary, fontWeight = FontWeight.SemiBold)
-        }
-    }
-
-    @Composable
-    private fun TransactionItem(transaction: Transaction) {
-        val isIncome = transaction.type == TransactionType.INCOME
-        val icon = when {
-            isIncome -> Icons.Default.AccountBalance
-            transaction.merchant.contains("netflix", ignoreCase = true) -> Icons.Default.Subscriptions
-            transaction.merchant.contains("mcdonald", ignoreCase = true) -> Icons.Default.Fastfood
-            else -> Icons.Default.Store
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 11.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier.size(54.dp).clip(CircleShape).background(if (isIncome) AppColors.Primary else AppColors.CardDark),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(icon, null, tint = if (isIncome) AppColors.Accent else Color.White, modifier = Modifier.size(24.dp))
-            }
-            Spacer(Modifier.width(14.dp))
-            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = transaction.merchant.ifBlank { transaction.note.ifBlank { "Transaction" } },
-                    fontWeight = FontWeight.SemiBold,
+                    text = "Tidak Ada Transaksi Ditemukan",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
                     color = AppColors.TextMain
                 )
-                Text(transaction.date.toString(), style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
-            }
-            Column(horizontalAlignment = Alignment.End) {
+
                 Text(
-                    text = "${if (isIncome) "+" else "-"}${transaction.amount.format()}",
-                    fontWeight = FontWeight.Black,
-                    color = if (isIncome) AppColors.Success else AppColors.TextMain
+                    text = "Coba ubah kata kunci pencarian atau pilih kategori lain",
+                    fontSize = 12.sp,
+                    color = AppColors.TextMuted,
+                    modifier = Modifier.padding(top = 4.dp)
                 )
-                Text(if (isIncome) "Income" else "Payment", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
             }
         }
     }

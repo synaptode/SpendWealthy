@@ -29,6 +29,7 @@ sealed class AddDocumentEvent : UiEvent {
     data class TypeChanged(val type: DocumentType) : AddDocumentEvent()
     data class FilePathChanged(val filePath: String) : AddDocumentEvent()
     object SaveClicked : AddDocumentEvent()
+    object SmartScanClicked : AddDocumentEvent()
 }
 
 sealed class AddDocumentEffect : UiEffect {
@@ -51,6 +52,20 @@ class AddDocumentViewModel(
             is AddDocumentEvent.TypeChanged -> _uiState.value = _uiState.value.copy(type = event.type, errorMessage = null)
             is AddDocumentEvent.FilePathChanged -> _uiState.value = _uiState.value.copy(filePath = event.filePath, errorMessage = null)
             AddDocumentEvent.SaveClicked -> save()
+            AddDocumentEvent.SmartScanClicked -> smartScan()
+        }
+    }
+
+    private fun smartScan() {
+        screenModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true)
+            kotlinx.coroutines.delay(1500) // Simulate processing
+            _uiState.value = _uiState.value.copy(
+                name = "Amazon Invoice #8829",
+                type = DocumentType.INVOICE,
+                filePath = "auto_scan_8829.pdf",
+                isLoading = false
+            )
         }
     }
 

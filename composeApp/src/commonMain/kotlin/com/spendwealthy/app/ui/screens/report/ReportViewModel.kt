@@ -38,7 +38,7 @@ data class CategorySummary(
     val categoryName: String,
     val amount: Money,
     val percentage: Double,
-    val color: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.Gray
+    val color: androidx.compose.ui.graphics.Color
 )
 
 class ReportViewModel(
@@ -53,6 +53,17 @@ class ReportViewModel(
     val effect = _effect.receiveAsFlow()
 
     private val currentMonth = KtClock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+
+    private val chartColors = listOf(
+        androidx.compose.ui.graphics.Color(0xFF818CF8), // Indigo
+        androidx.compose.ui.graphics.Color(0xFF34D399), // Emerald
+        androidx.compose.ui.graphics.Color(0xFFFBBF24), // Amber
+        androidx.compose.ui.graphics.Color(0xFFF87171), // Red
+        androidx.compose.ui.graphics.Color(0xFF60A5FA), // Blue
+        androidx.compose.ui.graphics.Color(0xFFA78BFA), // Violet
+        androidx.compose.ui.graphics.Color(0xFF4ADE80), // Green
+        androidx.compose.ui.graphics.Color(0xFFF472B6)  // Pink
+    )
 
     init {
         loadReport()
@@ -79,14 +90,15 @@ class ReportViewModel(
                     0.0
                 }
                 
-                val summaries = expenses.groupBy { it.categoryId }.map { (catId, trans) ->
+                val summaries = expenses.groupBy { it.categoryId }.entries.mapIndexed { index, (catId, trans) ->
                     val sum = trans.sumOf { it.amount.amount }
                     val category = categoryMap[catId]
                     CategorySummary(
                         categoryId = catId,
                         categoryName = category?.name ?: "Lainnya",
                         amount = Money(sum, "IDR"),
-                        percentage = if (totalExpense > 0) sum.toDouble() / totalExpense.toDouble() else 0.0
+                        percentage = if (totalExpense > 0) sum.toDouble() / totalExpense.toDouble() else 0.0,
+                        color = chartColors[index % chartColors.size]
                     )
                 }.sortedByDescending { it.amount.amount }
 

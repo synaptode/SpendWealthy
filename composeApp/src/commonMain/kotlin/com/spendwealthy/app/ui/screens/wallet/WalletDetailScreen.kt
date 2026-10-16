@@ -1,7 +1,6 @@
 package com.spendwealthy.app.ui.screens.wallet
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,8 +23,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.ShoppingBag
+import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -37,14 +38,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.Transaction
 import com.spendwealthy.app.domain.model.TransactionType
+import com.spendwealthy.app.domain.model.WalletType
 import com.spendwealthy.app.ui.theme.AppColors
 import org.koin.core.parameter.parametersOf
 
@@ -54,36 +59,63 @@ data class WalletDetailScreen(val walletId: String) : Screen {
     override fun Content() {
         val viewModel = koinScreenModel<WalletDetailViewModel> { parametersOf(walletId) }
         val state by viewModel.uiState.collectAsState()
+        val transactions by viewModel.filteredTransactions.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
+        val haptic = LocalHapticFeedback.current
 
         Box(modifier = Modifier.fillMaxSize().background(AppColors.Background)) {
             LazyColumn(
-                modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.statusBars),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.statusBars),
                 contentPadding = PaddingValues(start = 24.dp, top = 12.dp, end = 24.dp, bottom = 140.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                item { DetailHeader(title = state.wallet?.name ?: "Wallet Detail", onBack = { navigator.pop() }) }
+                item {
+                    DetailHeader(
+                        title = state.wallet?.name ?: "Detail Dompet",
+                        onBack = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            navigator.pop()
+                        }
+                    )
+                }
+
                 state.wallet?.let { wallet ->
                     item {
-                        Surface(shape = RoundedCornerShape(24.dp), color = AppColors.CardBlue) {
-                            Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                                Text("Current balance", style = MaterialTheme.typography.labelMedium, color = AppColors.TextMain.copy(alpha = 0.7f))
-                                Text(wallet.balance.format(), style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Black, color = AppColors.TextMain)
-                                Text(wallet.type.name.lowercase().replace("_", " ").replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.labelMedium, color = AppColors.TextMain.copy(alpha = 0.72f), fontWeight = FontWeight.SemiBold)
-                            }
-                        }
+                        WalletHeroCard(wallet = wallet)
                     }
                 }
-                item { SectionTitle("Recent activity") }
-                if (state.transactions.isEmpty()) {
+
+                state.wallet?.familyId?.let {
                     item {
-                        Surface(shape = RoundedCornerShape(20.dp), color = AppColors.Surface) {
-                            Text("No transactions recorded for this wallet yet.", modifier = Modifier.padding(16.dp), color = AppColors.TextMuted, fontWeight = FontWeight.SemiBold)
-                        }
+                        SpaceToggle(
+                            isFamily = state.filterByFamily,
+                            onToggle = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.toggleFamilyFilter()
+                            }
+                        )
+                    }
+                }
+
+                item {
+                    Text(
+                        text = "Riwayat Aktivitas",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.TextMuted,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+
+                if (transactions.isEmpty()) {
+                    item {
+                        EmptyWalletActivityState()
                     }
                 } else {
-                    items(state.transactions, key = { it.id }) { transaction ->
-                        TransactionRow(transaction)
+                    items(transactions, key = { it.id }) { transaction ->
+                        TransactionRowItem(transaction)
                     }
                 }
             }
@@ -92,41 +124,265 @@ data class WalletDetailScreen(val walletId: String) : Screen {
 
     @Composable
     private fun DetailHeader(title: String, onBack: () -> Unit) {
-        Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(44.dp).clip(CircleShape).background(AppColors.SurfaceRaised).border(1.dp, AppColors.Outline, CircleShape).clickable(onClick = onBack), contentAlignment = Alignment.Center) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = AppColors.TextMain, modifier = Modifier.size(20.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 6.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(CircleShape)
+                    .clickable(onClick = onBack),
+                shape = CircleShape,
+                color = AppColors.Surface,
+                border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Kembali",
+                        tint = AppColors.TextMain,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
+
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = AppColors.TextMain)
-                Text("Balance and activity", style = MaterialTheme.typography.labelMedium, color = AppColors.TextMuted)
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = AppColors.TextMain
+                )
+                Text(
+                    text = "Informasi saldo & riwayat",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = AppColors.TextMuted
+                )
             }
-            Box(Modifier.size(44.dp).clip(CircleShape).background(AppColors.SurfaceRaised), contentAlignment = Alignment.Center) {
-                Icon(Icons.Default.AccountBalanceWallet, null, tint = AppColors.Primary, modifier = Modifier.size(20.dp))
+
+            Surface(
+                modifier = Modifier.size(42.dp),
+                shape = CircleShape,
+                color = AppColors.Surface,
+                border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Default.AccountBalanceWallet,
+                        contentDescription = null,
+                        tint = AppColors.Primary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
         }
     }
 
     @Composable
-    private fun SectionTitle(title: String) {
-        Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = AppColors.TextMain, modifier = Modifier.padding(top = 8.dp))
+    private fun WalletHeroCard(wallet: com.spendwealthy.app.domain.model.Wallet) {
+        val isDebt = wallet.type == WalletType.PAYLATER || wallet.type == WalletType.CREDIT_CARD
+        val typeLabel = when (wallet.type) {
+            WalletType.BANK -> "Rekening Bank"
+            WalletType.EWALLET -> "Dompet Digital"
+            WalletType.CREDIT_CARD -> "Kartu Kredit"
+            WalletType.PAYLATER -> "Paylater"
+            WalletType.SAVINGS -> "Tabungan Terkunci"
+            WalletType.CASH -> "Uang Tunai"
+        }
+
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            color = AppColors.Surface,
+            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Saldo Saat Ini",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = AppColors.TextMuted
+                    )
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = AppColors.Primary.copy(alpha = 0.12f)
+                    ) {
+                        Text(
+                            text = typeLabel,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.Primary,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                        )
+                    }
+                }
+
+                Text(
+                    text = wallet.balance.format(),
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Black,
+                    color = if (isDebt && wallet.balance.amount < 0) AppColors.Danger else AppColors.TextMain
+                )
+            }
+        }
     }
 
     @Composable
-    private fun TransactionRow(transaction: Transaction) {
+    private fun SpaceToggle(isFamily: Boolean, onToggle: () -> Unit) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .clickable(onClick = onToggle),
+            color = AppColors.SurfaceRaised,
+            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+        ) {
+            Row(
+                modifier = Modifier.padding(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(if (!isFamily) AppColors.Primary else Color.Transparent)
+                        .padding(vertical = 10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Pribadi",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (!isFamily) Color.White else AppColors.TextMuted
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(if (isFamily) AppColors.Primary else Color.Transparent)
+                        .padding(vertical = 10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Ruang Keluarga",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (isFamily) Color.White else AppColors.TextMuted
+                    )
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun TransactionRowItem(transaction: Transaction) {
         val isIncome = transaction.type == TransactionType.INCOME
-        Surface(shape = RoundedCornerShape(20.dp), color = AppColors.Surface, shadowElevation = 4.dp) {
-            Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                    Box(Modifier.size(44.dp).clip(CircleShape).background(if (isIncome) AppColors.Primary.copy(alpha = 0.12f) else AppColors.CardDark), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.ShoppingBag, null, tint = if (isIncome) AppColors.Primary else Color.White, modifier = Modifier.size(20.dp))
+        val isTransfer = transaction.type == TransactionType.TRANSFER
+
+        val (icon, tint) = when {
+            isIncome -> Icons.AutoMirrored.Filled.TrendingUp to AppColors.Success
+            isTransfer -> Icons.Default.Receipt to AppColors.Primary
+            else -> Icons.AutoMirrored.Filled.TrendingDown to AppColors.TextMain
+        }
+
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(18.dp),
+            color = AppColors.Surface,
+            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(tint.copy(alpha = 0.12f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = tint,
+                            modifier = Modifier.size(18.dp)
+                        )
                     }
                     Spacer(Modifier.width(12.dp))
                     Column {
-                        Text(transaction.note.ifBlank { transaction.merchant.ifBlank { transaction.type.name.lowercase().replaceFirstChar { it.uppercase() } } }, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
-                        Text(transaction.date.toString(), style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
+                        Text(
+                            text = transaction.note.ifBlank { transaction.merchant.ifBlank { transaction.type.name } },
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = AppColors.TextMain
+                        )
+                        Text(
+                            text = transaction.date.toString(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = AppColors.TextMuted
+                        )
                     }
                 }
-                Text("${if (isIncome) "+" else "-"}${transaction.amount.format()}", fontWeight = FontWeight.Black, color = if (isIncome) AppColors.Success else AppColors.TextMain)
+
+                Text(
+                    text = "${if (isIncome) "+" else "-"}${transaction.amount.format()}",
+                    fontWeight = FontWeight.ExtraBold,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (isIncome) AppColors.Success else AppColors.TextMain
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun EmptyWalletActivityState() {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            color = AppColors.Surface,
+            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+        ) {
+            Column(
+                modifier = Modifier.padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Receipt,
+                    contentDescription = null,
+                    tint = AppColors.TextMuted,
+                    modifier = Modifier.size(36.dp)
+                )
+                Text(
+                    text = "Belum Ada Transaksi",
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = AppColors.TextMain
+                )
+                Text(
+                    text = "Aktivitas pembayaran atau transfer dari dompet ini akan muncul di sini.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = AppColors.TextMuted,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
             }
         }
     }

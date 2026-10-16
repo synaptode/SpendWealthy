@@ -8,13 +8,17 @@ import com.spendwealthy.app.core.architecture.UiState
 import com.spendwealthy.app.core.util.monthRange
 import com.spendwealthy.app.domain.model.*
 import com.spendwealthy.app.domain.repository.*
-import com.spendwealthy.app.domain.service.CatInsight
-import com.spendwealthy.app.domain.service.CatInsightService
+import com.spendwealthy.app.domain.service.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.channels.Channel
 import kotlinx.datetime.Clock as KtClock
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.minus
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
 
 data class HomeState(
     val userName: String = "User",
@@ -23,20 +27,62 @@ data class HomeState(
     val totalIncome: Money = Money.zero(),
     val totalExpense: Money = Money.zero(),
     val safeToSpend: Money = Money.zero(),
+    val dailyAllowance: Money = Money.zero(),
     val budgetUsage: Double = 0.0,
     val upcomingBills: List<BillReminder> = emptyList(),
     val recentTransactions: List<Transaction> = emptyList(),
     val daysUntilPayday: Int = 0,
     val dailyInsight: CatInsight? = null,
+    val familyInsight: CatInsight? = null,
+    val resilienceReport: ResilienceReport? = null,
+    val goals: List<Goal> = emptyList(),
+    val autoMoves: List<AutoMove> = emptyList(),
+    val automationImpact: Money = Money(0, "IDR"),
+    val growthProjection: Money = Money(0, "IDR"),
+    val optimizerRecommendations: List<OptimizerRecommendation> = emptyList(),
+    val optimizationLogs: List<OptimizationLog> = emptyList(),
+    val familyMembers: List<FamilyMember> = emptyList(),
+    val wallets: List<Wallet> = emptyList(),
+    val selectedScenario: ResilienceScenario = ResilienceScenario.Standard,
+    val healthTelemetry: FinancialHealthTelemetry? = null,
+    val wealthNarrative: WealthNarrative? = null,
+    val wealthProjection: WealthProjection? = null,
+    val auditReport: FinancialAuditReport? = null,
+    val financialContext: FinancialContext = FinancialContext.STANDARD,
+    val autoPilotStatus: AutoPilotStatus? = null,
+    val detectedAnomalies: List<FinancialAnomaly> = emptyList(),
+    val discoveredIntents: List<DiscoveryIntent> = emptyList(),
+    val pastComparison: SimulationComparison? = null,
+    val activeConsensusRequests: List<ConsensusRequest> = emptyList(),
+    val financialMomentum: MomentumAnalysis? = null,
+    val wealthBlueprint: WealthBlueprint? = null,
+    val discoveredOpportunities: List<WealthOpportunity> = emptyList(),
+    val dailyChallenge: FinancialChallenge? = null,
+    val wealthShield: WealthShieldStatus? = null,
+    val portfolioAnalysis: PortfolioAnalysis? = null,
+    val lifecycleReport: LifecycleReport? = null,
+    val estateReport: EstateReport? = null,
+    val sovereignWealthScore: WealthScore? = null,
+    val stressTestResult: StressTestResult? = null,
+    val liquidityReport: LiquidityReport? = null,
+    val simulationImpact: ImpactReport? = null,
     val isLoading: Boolean = false
 ) : UiState
 
 sealed class HomeEvent : UiEvent {
     object Refresh : HomeEvent()
+    data class ContributeToGoal(val goalId: String, val walletId: String, val amount: Long) : HomeEvent()
+    data class ExecuteOptimization(val recommendationId: String) : HomeEvent()
+    data class ChangeResilienceScenario(val scenario: ResilienceScenario) : HomeEvent()
+    data class SimulatePurchaseImpact(val amount: Long) : HomeEvent()
+    data class DiscoverIntent(val query: String) : HomeEvent()
+    object DismissSimulation : HomeEvent()
+    object SimulateMonthlyWrapup : HomeEvent()
 }
 
 sealed class HomeEffect : UiEffect {
     data class ShowError(val message: String) : HomeEffect()
+    data class ShowCelebration(val goal: Goal) : HomeEffect()
 }
 
 class HomeViewModel(
@@ -45,35 +91,91 @@ class HomeViewModel(
     private val preferenceRepository: PreferenceRepository,
     private val budgetRepository: BudgetRepository,
     private val billRepository: BillRepository,
-    private val insightService: CatInsightService
+    private val insightService: CatInsightService,
+    private val safeToSpendEngine: SafeToSpendEngine,
+    private val notificationService: NotificationService,
+    private val analyticsService: AnalyticsService,
+    private val optimizerEngine: WealthOptimizerEngine,
+    private val familyRepository: FamilyRepository,
+    private val goalRepository: GoalRepository,
+    private val resilienceService: ResilienceService,
+    private val telemetryService: TelemetryService,
+    private val narrativeEngine: WealthNarrativeEngine,
+    private val projectionEngine: WealthProjectionEngine,
+    private val impactSimulator: ImpactSimulator,
+    private val auditService: AuditService,
+    private val contextEngine: ContextEngine,
+    private val autoPilotService: AutoPilotService,
+    private val anomalyEngine: AnomalyDetectionEngine,
+    private val intentEngine: IntentDiscoveryEngine,
+    private val historicalEngine: HistoricalSimulationEngine,
+    private val consensusService: FamilyConsensusService,
+    private val trendService: TrendAnalysisService,
+    private val blueprintEngine: WealthBlueprintEngine,
+    private val opportunityEngine: OpportunityCostEngine,
+    private val coachingService: CoachingService,
+    private val shieldEngine: WealthShieldEngine,
+    private val assetEngine: AssetIntelligenceEngine,
+    private val lifecycleEngine: LifecycleSimulationEngine,
+    private val estateEngine: EstateIntelligenceEngine,
+    private val liquidityEngine: LiquiditySimulationEngine,
+    private val scoreEngine: WealthScoreEngine,
+    private val stressEngine: StressTestEngine
 ) : ScreenModel {
     private val _uiState = MutableStateFlow(HomeState())
     val uiState: StateFlow<HomeState> = _uiState.asStateFlow()
+
+    private val _effect = Channel<HomeEffect>(Channel.BUFFERED)
+    val effect = _effect.receiveAsFlow()
 
     init {
         observeData()
     }
 
+    private val _selectedScenario = MutableStateFlow<ResilienceScenario>(ResilienceScenario.Standard)
+
     private fun observeData() {
         screenModelScope.launch {
             preferenceRepository.getString("user_name").collectLatest { name ->
-                _uiState.value = _uiState.value.copy(userName = name ?: "User")
+                _uiState.update { it.copy(userName = name ?: "User") }
             }
         }
         screenModelScope.launch {
             preferenceRepository.getInt("user_avatar_id").collectLatest { avatarId ->
-                _uiState.value = _uiState.value.copy(userAvatarId = avatarId)
+                _uiState.update { it.copy(userAvatarId = avatarId) }
             }
         }
         screenModelScope.launch {
             val now = KtClock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
             val range = monthRange(now.year, now.monthNumber)
-            combine(
+            val walletTransactionsFlow = combine(
                 walletRepository.getWallets(),
-                transactionRepository.getTransactionsByDateRange(range.start, range.endInclusive),
+                transactionRepository.getTransactionsByDateRange(range.start, range.endInclusive)
+            ) { wallets, transactions ->
+                wallets to transactions
+            }
+            val budgetBillsFlow = combine(
                 budgetRepository.getBudgets(now.monthNumber, now.year),
                 billRepository.getBillReminders()
-            ) { wallets, transactions, budgets, bills ->
+            ) { budgets, bills ->
+                budgets to bills
+            }
+            val familyGoalsFlow = combine(
+                familyRepository.getFamily(),
+                goalRepository.getGoals()
+            ) { family, goals ->
+                family to goals
+            }
+
+            combine(
+                walletTransactionsFlow,
+                budgetBillsFlow,
+                familyGoalsFlow,
+                _selectedScenario
+            ) { walletTransactions, budgetBills, familyGoals, scenario ->
+                val (wallets, transactions) = walletTransactions
+                val (budgets, bills) = budgetBills
+                val (family, goals) = familyGoals
                 val totalBalance = wallets.sumOf { it.balance.amount }
                 val income = transactions.filter { it.type == TransactionType.INCOME }.sumOf { it.amount.amount }
                 val expense = transactions.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount.amount }
@@ -86,34 +188,386 @@ class HomeViewModel(
                 } else {
                     0.0
                 }
-                val safe = totalBalance - unpaidBills.sumOf { it.amount.amount }
+                val spentMap = transactions.filter { it.type == TransactionType.EXPENSE }.groupBy { it.categoryId }.mapValues { (_, tList) -> tList.sumOf { it.amount.amount } }
                 
-                val insight = insightService.getDailyInsight(transactions, budgets)
+                val safeResult = safeToSpendEngine.calculateAdvanced(
+                    totalLiquidity = Money(totalBalance, "IDR"),
+                    unpaidBills = unpaidBills,
+                    budgets = budgets,
+                    currentSpentInBudgets = spentMap,
+                    today = now,
+                    payday = range.endInclusive
+                )
+
+                val safeToSpend = safeResult.totalSafe
+                val dailyAllowance = safeResult.dailySafe
+                
+                val dailyInsight = insightService.getDailyInsight(transactions, budgets)
+                val familyInsight = insightService.getFamilyInsight(transactions, budgets)
+                val resilienceReport = resilienceService.calculateResilience(wallets, transactions, scenario)
+                val healthTelemetry = telemetryService.generateHealthTelemetry(
+                    wallets = wallets,
+                    transactions = transactions,
+                    executedOptimizations = _uiState.value.optimizationLogs.size,
+                    totalOptimizations = _uiState.value.optimizerRecommendations.size
+                )
+                
+                val narrative = narrativeEngine.generateNarrative(
+                    telemetry = healthTelemetry,
+                    resilience = resilienceReport,
+                    recommendations = _uiState.value.optimizerRecommendations,
+                    userName = _uiState.value.userName
+                )
+                
+                val projection = projectionEngine.generate12MonthProjection(
+                    currentLiquidity = Money(totalBalance, "IDR"),
+                    telemetry = healthTelemetry,
+                    activeGoals = goals
+                )
+                
+                val auditReport = auditService.generateExecutiveAudit(
+                    telemetry = healthTelemetry,
+                    resilience = resilienceReport,
+                    narrative = narrative,
+                    projection = projection,
+                    recommendations = _uiState.value.optimizerRecommendations
+                )
+                
+                val context = contextEngine.determineContext(healthTelemetry, resilienceReport)
+                
+                val autoPilotStatus = autoPilotService.getStatus(
+                    executedCount = _uiState.value.optimizationLogs.size,
+                    wealthCreated = 3450000L // Mocking cumulative wealth impact
+                )
+                
+                val anomalies = anomalyEngine.detectAnomalies(
+                    recentTransactions = transactions,
+                    averageMonthlySpending = 8_000_000L // Mocking average from profile
+                )
+                
+                val pastComparison = historicalEngine.simulateAlternatePast(
+                    transactions = transactions,
+                    actualCurrentBalance = Money(wallets.sumOf { it.balance.amount }, wallets.firstOrNull()?.balance?.currency ?: "IDR")
+                )
+                
+                val consensusRequests = consensusService.requests.filter { it.status == ConsensusStatus.PENDING }
+                
+                // Mocking historical snapshots for momentum calculation
+                val mockSnapshots = listOf(
+                    MomentumSnapshot(
+                        timestamp = KtClock.System.now().minus(7, DateTimeUnit.DAY, TimeZone.currentSystemDefault()),
+                        healthScore = 72,
+                        netWorth = Money(150_000_000, "IDR"),
+                        savingsRate = 0.15
+                    )
+                )
+                val momentum = trendService.calculateMomentum(healthTelemetry, mockSnapshots)
+                
+                val blueprint = blueprintEngine.generateBlueprint(
+                    wallets = wallets,
+                    monthlyIncome = 15_000_000L // Mocking income from profile
+                )
+                
+                val opportunities = opportunityEngine.discoverOpportunities(wallets)
+                
+                val dailyChallenge = coachingService.generateDailyChallenge()
+                
+                val shieldStatus = shieldEngine.evaluateShieldStatus(
+                    context = context,
+                    anomalies = anomalies,
+                    totalAssets = Money(totalBalance, wallets.firstOrNull()?.balance?.currency ?: "IDR")
+                )
+                
+                val portfolio = assetEngine.analyzePortfolio(
+                    listOf(
+                        Asset("a1", "Cash Reserves", AssetType.CASH, Money(totalBalance, "IDR"), 0.02, 1),
+                        Asset("a2", "Blue Chip Index", AssetType.STOCK, Money(50_000_000, "IDR"), 0.12, 5),
+                        Asset("a3", "Gold Bullion", AssetType.COMMODITY, Money(25_000_000, "IDR"), 0.05, 3)
+                    )
+                )
+                
+                val lifecycle = lifecycleEngine.simulateLifetime(
+                    currentAge = 30, // Mocking from profile
+                    targetRetirementAge = 65,
+                    currentNetWorth = portfolio.totalValue,
+                    monthlyContribution = 5_000_000L // Mocking from budget
+                )
+                
+                val estate = estateEngine.analyzeEstate(
+                    totalAssets = portfolio.totalValue,
+                    familyMembers = family?.members?.size ?: 0,
+                    hasVault = true // Mocking that vault is active
+                )
+                
+                val liquidity = liquidityEngine.simulateLiquidity(
+                    wallets = wallets,
+                    bills = bills,
+                    projectedIncome = 15_000_000L,
+                    next30DaysSpending = 8_000_000L
+                )
+                
+                val sovereignScore = scoreEngine.calculateScore(
+                    resilienceDays = (resilienceReport.runwayMonths * 30).toInt(),
+                    momentumScore = momentum.momentumScore.toDouble(),
+                    adherenceScore = blueprint.adherenceScore,
+                    liquidityScore = liquidity.safetyScore,
+                    legacyEfficiency = estate.wealthTransferEfficiency
+                )
+                
+                val stressTest = stressEngine.runBlackSwanSimulation(
+                    totalAssets = portfolio.totalValue,
+                    monthlyExpenses = 10_000_000L, // Mocking from budget
+                    isShieldActive = shieldStatus.isActive
+                )
+                
+                val transactionsWithFamily = transactions.toMutableList().apply {
+                    add(0, Transaction(
+                        id = "ft1",
+                        amount = Money(75000, "IDR"),
+                        type = TransactionType.EXPENSE,
+                        categoryId = "cat_food",
+                        walletId = "w1",
+                        targetWalletId = null,
+                        date = now,
+                        note = "Family Pizza Night",
+                        merchant = "Pizza Hut",
+                        createdAt = KtClock.System.now(),
+                        updatedAt = KtClock.System.now(),
+                        familyId = "fam_1",
+                        createdById = "2" // Sarah
+                    ))
+                }
                 
                 _uiState.value.copy(
                     totalBalance = Money(totalBalance, "IDR"),
                     totalIncome = Money(income, "IDR"),
                     totalExpense = Money(expense, "IDR"),
-                    safeToSpend = Money(safe, "IDR"),
+                    safeToSpend = safeToSpend,
+                    dailyAllowance = dailyAllowance,
                     budgetUsage = budgetUsage,
                     upcomingBills = unpaidBills.take(3),
-                    recentTransactions = transactions.take(5),
+                    recentTransactions = transactionsWithFamily.take(5),
                     daysUntilPayday = range.endInclusive.dayOfMonth - now.dayOfMonth,
-                    dailyInsight = insight
+                    dailyInsight = dailyInsight,
+                    familyInsight = familyInsight,
+                    resilienceReport = resilienceReport,
+                    healthTelemetry = healthTelemetry,
+                    wealthNarrative = narrative,
+                    wealthProjection = projection,
+                    auditReport = auditReport,
+                    financialContext = context,
+                    autoPilotStatus = autoPilotStatus,
+                    detectedAnomalies = anomalies,
+                    pastComparison = pastComparison,
+                    activeConsensusRequests = consensusRequests,
+                    financialMomentum = momentum,
+                    wealthBlueprint = blueprint,
+                    discoveredOpportunities = opportunities,
+                    dailyChallenge = dailyChallenge,
+                    wealthShield = shieldStatus,
+                    portfolioAnalysis = portfolio,
+                    lifecycleReport = lifecycle,
+                    estateReport = estate,
+                    liquidityReport = liquidity,
+                    sovereignWealthScore = sovereignScore,
+                    stressTestResult = stressTest,
+                    selectedScenario = scenario,
+                    familyMembers = family?.members ?: emptyList(),
+                    autoMoves = listOf(
+                        AutoMove(
+                            id = "am1",
+                            name = "Auto-Save to Emergency",
+                            amount = Money(500000, "IDR"),
+                            sourceWalletId = "w1",
+                            targetGoalId = "g1",
+                            frequency = RecurrenceType.MONTHLY,
+                            nextRunDate = KtClock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+                        )
+                    ),
+                    goals = listOf(
+                        Goal(
+                            id = "g1",
+                            name = "Emergency Fund",
+                            targetAmount = Money(25000000, "IDR"),
+                            currentAmount = Money(15600000, "IDR"),
+                            type = GoalType.SAVINGS,
+                            deadline = null,
+                            createdAt = KtClock.System.now()
+                        )
+                    ),
+                    automationImpact = analyticsService.calculateMonthlyAutomationImpact(
+                        listOf(
+                            AutoMoveLog("1", "am1", Money(500000, "IDR"), AutoMoveStatus.SUCCESS, KtClock.System.now()),
+                            AutoMoveLog("2", "am1", Money(500000, "IDR"), AutoMoveStatus.SUCCESS, KtClock.System.now())
+                        )
+                    ),
+                    growthProjection = analyticsService.calculateAnnualGrowthProjection(
+                        listOf(
+                            AutoMove(
+                                id = "am1",
+                                name = "Auto-Save to Emergency",
+                                amount = Money(500000, "IDR"),
+                                sourceWalletId = "w1",
+                                targetGoalId = "g1",
+                                frequency = RecurrenceType.MONTHLY,
+                                nextRunDate = KtClock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+                            )
+                        )
+                    ),
+                    optimizerRecommendations = optimizerEngine.generateRecommendations(
+                        wallets = wallets,
+                        goals = goals,
+                        billReminders = bills,
+                        safeToSpend = safeToSpend,
+                        familyMembers = family?.members ?: emptyList()
+                    )
                 )
-            }.collectLatest { state ->
-                _uiState.value = state
+            }.flowOn(Dispatchers.Default)
+            .onStart { _uiState.update { it.copy(isLoading = true) } }
+            .collectLatest { state ->
+                _uiState.value = state.copy(isLoading = false)
             }
         }
     }
 
-    fun refresh() {
-        observeData()
-    }
 
     fun onEvent(event: HomeEvent) {
         when (event) {
             HomeEvent.Refresh -> { /* Refresh logic */ }
+            is HomeEvent.ChangeResilienceScenario -> {
+                _selectedScenario.value = event.scenario
+            }
+            is HomeEvent.SimulatePurchaseImpact -> {
+                simulateImpact(event.amount)
+            }
+            is HomeEvent.DiscoverIntent -> {
+                val intents = intentEngine.discoverIntents(event.query)
+                _uiState.update { it.copy(discoveredIntents = intents) }
+            }
+            HomeEvent.DismissSimulation -> {
+                _uiState.update { it.copy(simulationImpact = null) }
+            }
+            is HomeEvent.ContributeToGoal -> contributeToGoal(event)
+            is HomeEvent.ExecuteOptimization -> executeOptimization(event)
+            HomeEvent.SimulateMonthlyWrapup -> simulateMonthlyWrapup()
+        }
+    }
+
+    private fun simulateMonthlyWrapup() {
+        screenModelScope.launch {
+            val wrapup = analyticsService.generateMonthlyWrapup(
+                logs = listOf(
+                    AutoMoveLog("1", "am1", Money(500000, "IDR"), AutoMoveStatus.SUCCESS, KtClock.System.now()),
+                    AutoMoveLog("2", "am1", Money(500000, "IDR"), AutoMoveStatus.SUCCESS, KtClock.System.now())
+                ),
+                optimizationLogs = _uiState.value.optimizationLogs,
+                goalsReached = 1
+            )
+            
+            notificationService.showNotification(
+                title = "Monthly Growth Report 📈",
+                message = wrapup,
+                type = NotificationType.INFO
+            )
+        }
+    }
+
+    private fun executeOptimization(event: HomeEvent.ExecuteOptimization) {
+        screenModelScope.launch {
+            val recommendation = _uiState.value.optimizerRecommendations.find { it.id == event.recommendationId } ?: return@launch
+            
+            // Simulate processing
+            delay(1500)
+            
+            _uiState.update { state ->
+                // Apply actions (simulated)
+                val updatedGoals = state.goals.map { g ->
+                    val action = recommendation.actions.find { it.targetId == g.id }
+                    if (action != null) {
+                        g.copy(currentAmount = g.currentAmount.copy(amount = g.currentAmount.amount + action.amount.amount))
+                    } else g
+                }
+                
+                val newLog = OptimizationLog(
+                    id = "olog_${KtClock.System.now().toEpochMilliseconds()}",
+                    recommendationId = recommendation.id,
+                    title = recommendation.title,
+                    impactScore = recommendation.impactScore,
+                    executedAt = KtClock.System.now()
+                )
+                
+                // Achievement Logic: Unlock "Family Power" badge if it was a family pooling strategy
+                if (recommendation.id.contains("pool")) {
+                    screenModelScope.launch {
+                        delay(2000) // Show after the initial success toast
+                        notificationService.showNotification(
+                            title = "Achievement Unlocked! 🏆",
+                            message = "You've earned the 'Family Power' badge for collective goal surging.",
+                            type = NotificationType.SUCCESS
+                        )
+                    }
+                }
+                
+                state.copy(
+                    optimizerRecommendations = state.optimizerRecommendations.filter { it.id != event.recommendationId },
+                    optimizationLogs = listOf(newLog) + state.optimizationLogs,
+                    goals = updatedGoals
+                )
+            }
+            
+            notificationService.showNotification(
+                title = "Optimization Executed! ✨",
+                message = "Your wealth is now working harder for you.",
+                type = NotificationType.SUCCESS
+            )
+        }
+    }
+
+    private fun simulateImpact(amount: Long) {
+        screenModelScope.launch {
+            val wallets = walletRepository.getWallets().first()
+            val transactions = transactionRepository.getTransactionsByDateRange(
+                KtClock.System.now().minus(30, DateTimeUnit.DAY, TimeZone.currentSystemDefault()).toLocalDateTime(TimeZone.currentSystemDefault()).date,
+                KtClock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+            ).first()
+            
+            val report = impactSimulator.simulatePurchaseImpact(
+                amount = Money(amount, "IDR"),
+                currentWallets = wallets,
+                recentTransactions = transactions
+            )
+            
+            _uiState.update { it.copy(simulationImpact = report) }
+        }
+    }
+    
+    private fun contributeToGoal(event: HomeEvent.ContributeToGoal) {
+        screenModelScope.launch {
+            _uiState.update { state ->
+                val updatedGoals = state.goals.map { g ->
+                    if (g.id == event.goalId) {
+                        val newAmount = g.currentAmount.amount + event.amount
+                        val updatedGoal = g.copy(currentAmount = g.currentAmount.copy(amount = newAmount))
+                        
+                        if (newAmount >= g.targetAmount.amount) {
+                            screenModelScope.launch { 
+                                _effect.send(HomeEffect.ShowCelebration(updatedGoal))
+                                // Also notify family space
+                                familyRepository.getFamily().firstOrNull()?.let { _ ->
+                                    notificationService.showNotification(
+                                        title = "Goal Achieved! 🥳",
+                                        message = "Your family reached the '${updatedGoal.name}' target!",
+                                        type = NotificationType.FAMILY
+                                    )
+                                }
+                            }
+                        }
+                        
+                        updatedGoal
+                    } else g
+                }
+                state.copy(goals = updatedGoals)
+            }
         }
     }
 

@@ -22,10 +22,11 @@ import com.spendwealthy.app.ui.theme.AppColors
 fun AppGlassCard(
     modifier: Modifier = Modifier,
     backgroundColor: Color = AppColors.GlassBackground,
+    backgroundBrush: Brush? = null,
     onClick: (() -> Unit)? = null,
+    padding: androidx.compose.ui.unit.Dp = 24.dp,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
     Box(
         modifier = modifier
             .shadow(
@@ -34,20 +35,22 @@ fun AppGlassCard(
                 spotColor = AppColors.Primary.copy(alpha = 0.15f)
             )
             .clip(RoundedCornerShape(32.dp))
-            .background(backgroundColor)
+            .then(if (backgroundBrush != null) Modifier.background(backgroundBrush) else Modifier.background(backgroundColor))
             .border(
                 width = 1.dp,
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        Color.White.copy(alpha = 0.5f),
-                        Color.White.copy(alpha = 0.1f)
+                        Color.White.copy(alpha = 0.4f),
+                        Color.White.copy(alpha = 0.05f)
                     )
                 ),
                 shape = RoundedCornerShape(32.dp)
             )
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
-            .padding(24.dp)
     ) {
-        Column(content = content)
+        Column(
+            modifier = Modifier.padding(padding),
+            content = content
+        )
     }
 }

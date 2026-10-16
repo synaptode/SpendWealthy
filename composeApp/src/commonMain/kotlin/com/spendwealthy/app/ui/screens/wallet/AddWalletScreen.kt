@@ -26,7 +26,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -44,8 +43,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -64,6 +66,7 @@ class AddWalletScreen : Screen {
         val state by viewModel.uiState.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
         val snackbarHostState = remember { SnackbarHostState() }
+        val haptic = LocalHapticFeedback.current
 
         LaunchedEffect(viewModel) {
             viewModel.effect.collect { effect ->
@@ -80,50 +83,87 @@ class AddWalletScreen : Screen {
             contentWindowInsets = WindowInsets(0, 0, 0, 0)
         ) { padding ->
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding).background(AppColors.Background).windowInsetsPadding(WindowInsets.statusBars),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .background(AppColors.Background)
+                    .windowInsetsPadding(WindowInsets.statusBars),
                 contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
             ) {
-                item { FormHeader("New Wallet", "Create a place for balance tracking", onClose = { navigator.pop() }) }
                 item {
-                    FormCard("Wallet name", Icons.Default.AccountBalanceWallet) {
+                    FormHeader(
+                        title = "Tambah Dompet",
+                        subtitle = "Catat sumber saldo baru",
+                        onClose = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            navigator.pop()
+                        }
+                    )
+                }
+
+                item {
+                    FormSection(title = "Nama Dompet / Rekening", icon = Icons.Default.AccountBalanceWallet) {
                         AppTextField(
                             value = state.name,
                             onValueChange = { viewModel.onEvent(AddWalletEvent.NameChanged(it)) },
-                            label = "Name",
-                            placeholder = "Cash, BCA, Savings"
+                            label = "Nama",
+                            placeholder = "BCA, Mandiri, GoPay, Tunai Dompet"
                         )
                     }
                 }
+
                 item {
-                    FormCard("Wallet type", Icons.Default.AccountBalanceWallet) {
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            items(WalletType.values().toList()) { type ->
+                    FormSection(title = "Tipe Sumber Dana", icon = Icons.Default.AccountBalanceWallet) {
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(WalletType.entries.toList()) { type ->
+                                val label = when (type) {
+                                    WalletType.BANK -> "Bank"
+                                    WalletType.EWALLET -> "E-Wallet"
+                                    WalletType.CASH -> "Tunai"
+                                    WalletType.CREDIT_CARD -> "Kartu Kredit"
+                                    WalletType.PAYLATER -> "Paylater"
+                                    WalletType.SAVINGS -> "Tabungan"
+                                }
                                 ChoiceChip(
-                                    text = type.name.lowercase().replace("_", " ").replaceFirstChar { it.uppercase() },
+                                    text = label,
                                     selected = state.type == type,
-                                    onClick = { viewModel.onEvent(AddWalletEvent.TypeChanged(type)) }
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        viewModel.onEvent(AddWalletEvent.TypeChanged(type))
+                                    }
                                 )
                             }
                         }
                     }
                 }
+
                 item {
-                    FormCard("Initial balance", Icons.Default.Payments) {
+                    FormSection(title = "Saldo Awal", icon = Icons.Default.Payments) {
                         AppAmountInput(
                             value = state.initialBalance,
                             onValueChange = { viewModel.onEvent(AddWalletEvent.BalanceChanged(it)) },
-                            label = "Balance"
+                            label = "Nominal Saldo (Rp)"
                         )
                     }
                 }
+
                 item {
                     state.errorMessage?.let {
-                        Text(it, color = AppColors.Danger, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
-                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = it,
+                            color = AppColors.Danger,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
                     }
+                    Spacer(Modifier.height(16.dp))
                     AppButton(
-                        text = "Save Wallet",
-                        onClick = { viewModel.onEvent(AddWalletEvent.SaveClicked) },
+                        text = "Simpan Dompet",
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            viewModel.onEvent(AddWalletEvent.SaveClicked)
+                        },
                         isLoading = state.isLoading,
                         enabled = state.name.isNotBlank() && !state.isLoading
                     )
@@ -135,28 +175,93 @@ class AddWalletScreen : Screen {
 
     @Composable
     private fun FormHeader(title: String, subtitle: String, onClose: () -> Unit) {
-        Row(Modifier.fillMaxWidth().padding(bottom = 18.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            CircleButton(Icons.AutoMirrored.Filled.ArrowBack, onClose)
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = AppColors.TextMain)
-                Text(subtitle, style = MaterialTheme.typography.labelMedium, color = AppColors.TextMuted)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(CircleShape)
+                    .clickable(onClick = onClose),
+                shape = CircleShape,
+                color = AppColors.Surface,
+                border = BorderStroke(1.dp, AppColors.Outline)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Kembali",
+                        tint = AppColors.TextMain,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
-            CircleButton(Icons.Default.Close, onClose)
+
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = AppColors.TextMain
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = AppColors.TextMuted
+                )
+            }
+
+            Spacer(Modifier.size(42.dp))
         }
     }
 
     @Composable
-    private fun FormCard(title: String, icon: androidx.compose.ui.graphics.vector.ImageVector, content: @Composable () -> Unit) {
-        Column(Modifier.fillMaxWidth().padding(vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    private fun FormSection(
+        title: String,
+        icon: androidx.compose.ui.graphics.vector.ImageVector,
+        content: @Composable () -> Unit
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(32.dp).clip(CircleShape).background(AppColors.Primary.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
-                    Icon(icon, null, tint = AppColors.Primary, modifier = Modifier.size(17.dp))
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .background(AppColors.Primary.copy(alpha = 0.12f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = AppColors.Primary,
+                        modifier = Modifier.size(15.dp)
+                    )
                 }
                 Spacer(Modifier.width(10.dp))
-                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = AppColors.TextMain)
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = AppColors.TextMain
+                )
             }
-            Surface(shape = RoundedCornerShape(22.dp), color = AppColors.Surface, shadowElevation = 6.dp) {
-                Box(Modifier.fillMaxWidth().padding(16.dp)) { content() }
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = AppColors.Surface,
+                border = BorderStroke(1.dp, AppColors.Outline)
+            ) {
+                Box(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                    content()
+                }
             }
         }
     }
@@ -165,18 +270,17 @@ class AddWalletScreen : Screen {
     private fun ChoiceChip(text: String, selected: Boolean, onClick: () -> Unit) {
         Surface(
             modifier = Modifier.clickable(onClick = onClick),
-            shape = RoundedCornerShape(18.dp),
+            shape = RoundedCornerShape(12.dp),
             color = if (selected) AppColors.Primary else AppColors.SurfaceRaised,
             border = BorderStroke(1.dp, if (selected) AppColors.Primary else AppColors.Outline)
         ) {
-            Text(text, modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp), color = if (selected) Color.White else AppColors.TextMain, fontWeight = FontWeight.Bold)
-        }
-    }
-
-    @Composable
-    private fun CircleButton(icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
-        Box(Modifier.size(44.dp).clip(CircleShape).background(AppColors.SurfaceRaised).clickable(onClick = onClick), contentAlignment = Alignment.Center) {
-            Icon(icon, null, tint = AppColors.TextMain, modifier = Modifier.size(20.dp))
+            Text(
+                text = text,
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                color = if (selected) Color.White else AppColors.TextMain,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.labelMedium
+            )
         }
     }
 }
