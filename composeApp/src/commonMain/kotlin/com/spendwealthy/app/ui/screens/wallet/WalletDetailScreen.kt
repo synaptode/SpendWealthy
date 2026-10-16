@@ -197,43 +197,67 @@ data class WalletDetailScreen(val walletId: String) : Screen {
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
-            color = AppColors.Surface,
+            color = AppColors.SurfaceRaised,
             border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
         ) {
-            Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Saldo Saat Ini",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = AppColors.TextMuted
-                    )
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = AppColors.Primary.copy(alpha = 0.12f)
-                    ) {
-                        Text(
-                            text = typeLabel,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = AppColors.Primary,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+            Box(
+                modifier = Modifier
+                    .background(
+                        androidx.compose.ui.graphics.Brush.linearGradient(
+                            listOf(
+                                Color(0xFF1E293B),
+                                Color(0xFF0F172A)
+                            )
                         )
+                    )
+                    .padding(22.dp)
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .clip(CircleShape)
+                                    .background(AppColors.Accent)
+                            )
+                            Text(
+                                text = "SALDO SAAT INI",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.TextMuted,
+                                letterSpacing = 0.5.sp
+                            )
+                        }
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = AppColors.Primary.copy(alpha = 0.15f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Primary.copy(alpha = 0.3f))
+                        ) {
+                            Text(
+                                text = typeLabel,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = AppColors.Primary,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                            )
+                        }
                     }
-                }
 
-                Text(
-                    text = wallet.balance.format(),
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Black,
-                    color = if (isDebt && wallet.balance.amount < 0) AppColors.Danger else AppColors.TextMain
-                )
+                    Text(
+                        text = wallet.balance.format(),
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Black,
+                        color = if (isDebt && wallet.balance.amount < 0) AppColors.Danger else AppColors.TextMain
+                    )
+                }
             }
         }
     }

@@ -184,7 +184,7 @@ class WalletListScreen : Screen {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "Tambah Dompet",
-                        tint = Color.White,
+                        tint = Color(0xFF090D16),
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -197,40 +197,66 @@ class WalletListScreen : Screen {
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(22.dp),
-            color = AppColors.Surface,
+            color = AppColors.SurfaceRaised,
             border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
         ) {
-            Row(
-                modifier = Modifier.padding(20.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Box(
+                modifier = Modifier
+                    .background(
+                        androidx.compose.ui.graphics.Brush.linearGradient(
+                            listOf(
+                                Color(0xFF1E293B),
+                                Color(0xFF0F172A)
+                            )
+                        )
+                    )
+                    .padding(20.dp)
             ) {
-                Column {
-                    Text(
-                        text = "Total Saldo Likuid",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = AppColors.TextMuted
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = totalFormatted,
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = AppColors.TextMain
-                    )
-                }
-
-                Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = AppColors.Primary.copy(alpha = 0.12f)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "$walletCount akun",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = AppColors.Primary,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .clip(CircleShape)
+                                    .background(AppColors.Accent)
+                            )
+                            Text(
+                                text = "TOTAL SALDO LIKUID",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.TextMuted,
+                                letterSpacing = 0.5.sp
+                            )
+                        }
+                        Text(
+                            text = totalFormatted,
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Black,
+                            color = AppColors.TextMain
+                        )
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = AppColors.Primary.copy(alpha = 0.15f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Primary.copy(alpha = 0.3f))
+                    ) {
+                        Text(
+                            text = "$walletCount akun aktif",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = AppColors.Primary,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        )
+                    }
                 }
             }
         }

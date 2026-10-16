@@ -219,7 +219,7 @@ class VaultScreen : Screen {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "Tambah Dokumen",
-                        tint = Color.White,
+                        tint = Color(0xFF090D16),
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -239,99 +239,110 @@ class VaultScreen : Screen {
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp, vertical = 8.dp),
             shape = RoundedCornerShape(24.dp),
-            color = AppColors.Surface,
+            color = AppColors.SurfaceRaised,
             border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
         ) {
-            Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(18.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(46.dp)
-                                .clip(CircleShape)
-                                .background(AppColors.Primary.copy(alpha = 0.12f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = null,
-                                tint = AppColors.Primary,
-                                modifier = Modifier.size(22.dp)
+            Box(
+                modifier = Modifier
+                    .background(
+                        Brush.linearGradient(
+                            listOf(
+                                Color(0xFF1E293B),
+                                Color(0xFF0F172A)
                             )
-                        }
-                        Spacer(Modifier.width(12.dp))
-                        Column {
-                            Text(
-                                text = "Pengguna SpendWealthy",
-                                fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = AppColors.TextMain
-                            )
-                            Text(
-                                text = "Paket: $plan",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = AppColors.TextMuted
-                            )
-                        }
-                    }
-
-                    Surface(
-                        shape = RoundedCornerShape(10.dp),
-                        color = AppColors.Primary.copy(alpha = 0.12f)
-                    ) {
-                        Text(
-                            text = "Skor: $securityScore%",
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = AppColors.Primary
                         )
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    StatPill("Dokumen", "$documentsCount arsip")
-                    StatPill("Keamanan", "Terenkripsi")
-                    StatPill("Status", if (securityScore >= 70) "Prima" else "Tinjau")
-                }
-
-                if (plan.equals("Free", ignoreCase = true)) {
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(14.dp))
-                            .clickable(onClick = onUpgrade),
-                        shape = RoundedCornerShape(14.dp),
-                        color = AppColors.Primary
+                    )
+                    .padding(20.dp)
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(
-                            modifier = Modifier.padding(vertical = 12.dp),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(46.dp)
+                                    .clip(CircleShape)
+                                    .background(AppColors.Primary.copy(alpha = 0.15f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Security,
+                                    contentDescription = null,
+                                    tint = AppColors.Primary,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                            Spacer(Modifier.width(12.dp))
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(
+                                    text = "Sovereign Vault Shield",
+                                    fontWeight = FontWeight.ExtraBold,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = AppColors.TextMain
+                                )
+                                Text(
+                                    text = "Enkripsi AES-256 GCM • Tier $plan",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = AppColors.TextMuted
+                                )
+                            }
+                        }
+
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = AppColors.Primary.copy(alpha = 0.15f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Primary.copy(alpha = 0.3f))
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Lock,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(Modifier.width(8.dp))
                             Text(
-                                text = "Upgrade ke SpendWealthy Pro",
-                                fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.White
+                                text = "Skor: $securityScore%",
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Black,
+                                color = AppColors.Primary
                             )
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        StatPill("Dokumen", "$documentsCount arsip")
+                        StatPill("Protokol", "E2E Enkripsi")
+                        StatPill("Status Keamanan", if (securityScore >= 70) "Sangat Kuat" else "Perlu Tinjauan")
+                    }
+
+                    if (plan.equals("Free", ignoreCase = true)) {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(14.dp))
+                                .clickable(onClick = onUpgrade),
+                            shape = RoundedCornerShape(14.dp),
+                            color = AppColors.Primary
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(vertical = 12.dp),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Lock,
+                                    contentDescription = null,
+                                    tint = Color(0xFF090D16),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    text = "Upgrade ke SpendWealthy Sovereign",
+                                    fontWeight = FontWeight.Bold,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color(0xFF090D16)
+                                )
+                            }
                         }
                     }
                 }

@@ -161,14 +161,14 @@ class BudgetListScreen : Screen {
         ) {
             Column {
                 Text(
-                    text = "Kartu & Anggaran",
+                    text = "Portofolio & Anggaran",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.ExtraBold,
                     color = AppColors.TextMain,
                     letterSpacing = (-0.5).sp
                 )
                 Text(
-                    text = "Kelola kartu debit, pos keuangan & limit",
+                    text = "Alokasi batas pos belanja & pemantauan likuiditas",
                     style = MaterialTheme.typography.bodySmall,
                     color = AppColors.TextMuted
                 )
@@ -185,7 +185,7 @@ class BudgetListScreen : Screen {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "Tambah Kartu",
-                        tint = Color.White,
+                        tint = Color(0xFF090D16),
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -228,7 +228,7 @@ class BudgetListScreen : Screen {
                     badgeText = "Dilindungi",
                     network = "GPN",
                     gradient = Brush.linearGradient(
-                        colors = listOf(Color(0xFF042F2E), Color(0xFF065F46))
+                        colors = listOf(Color(0xFF064E3B), Color(0xFF022C22))
                     ),
                     onClick = onClick
                 )
@@ -490,14 +490,26 @@ class BudgetListScreen : Screen {
         val progress = usage.toFloat().coerceIn(0f, 1f)
         val animatedProgress by animateFloatAsState(
             targetValue = progress,
-            animationSpec = tween(durationMillis = 600)
+            animationSpec = tween(durationMillis = 650)
         )
 
         val percentageInt = (usage * 100).toInt()
-        val accentColor = when {
-            usage >= 0.9 -> AppColors.Danger
-            usage >= 0.7 -> AppColors.Warning
-            else -> AppColors.Primary
+        val (accentColor, progressBrush, statusLabel) = when {
+            usage >= 0.9 -> Triple(
+                AppColors.Danger,
+                Brush.horizontalGradient(listOf(Color(0xFFF43F5E), Color(0xFFE11D48))),
+                "Hampir Penuh"
+            )
+            usage >= 0.7 -> Triple(
+                AppColors.Warning,
+                Brush.horizontalGradient(listOf(Color(0xFFF59E0B), Color(0xFFFBBF24))),
+                "Waspada"
+            )
+            else -> Triple(
+                AppColors.Primary,
+                Brush.horizontalGradient(listOf(Color(0xFF10B981), Color(0xFF34D399), Color(0xFFDEFF37))),
+                "Terkendali"
+            )
         }
 
         Surface(
@@ -517,11 +529,14 @@ class BudgetListScreen : Screen {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
                         Box(
                             modifier = Modifier
-                                .size(42.dp)
-                                .clip(RoundedCornerShape(12.dp))
+                                .size(44.dp)
+                                .clip(RoundedCornerShape(14.dp))
                                 .background(accentColor.copy(alpha = 0.12f)),
                             contentAlignment = Alignment.Center
                         ) {
@@ -533,7 +548,7 @@ class BudgetListScreen : Screen {
                             )
                         }
                         Spacer(Modifier.width(12.dp))
-                        Column {
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(
                                 text = title,
                                 fontWeight = FontWeight.Bold,
@@ -541,43 +556,49 @@ class BudgetListScreen : Screen {
                                 color = AppColors.TextMain
                             )
                             Text(
-                                text = "Tersisa: $remaining",
+                                text = "Sisa anggaran: $remaining",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = AppColors.TextMuted
                             )
                         }
                     }
 
-                    Column(horizontalAlignment = Alignment.End) {
+                    Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(
                             text = budget.limit.format(),
-                            fontWeight = FontWeight.ExtraBold,
-                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Black,
+                            style = MaterialTheme.typography.bodyLarge,
                             color = AppColors.TextMain
                         )
-                        Text(
-                            text = "$percentageInt% terpakai",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = accentColor
-                        )
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = accentColor.copy(alpha = 0.15f)
+                        ) {
+                            Text(
+                                text = "$statusLabel • $percentageInt%",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = accentColor,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
                     }
                 }
 
-                // Progress Bar
+                // High-End Gradient Progress Bar
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(8.dp)
-                        .clip(RoundedCornerShape(4.dp))
+                        .height(9.dp)
+                        .clip(RoundedCornerShape(5.dp))
                         .background(AppColors.SurfaceRaised)
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth(animatedProgress)
-                            .height(8.dp)
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(accentColor)
+                            .height(9.dp)
+                            .clip(RoundedCornerShape(5.dp))
+                            .background(progressBrush)
                     )
                 }
             }
@@ -623,7 +644,7 @@ class BudgetListScreen : Screen {
                         color = AppColors.TextMain
                     )
                     Text(
-                        text = "Atur batas belanja per kategori agar keuanganmu tetap aman terkontrol.",
+                        text = "Atur batas belanja per kategori agar pos keuangan tetap terkendali.",
                         style = MaterialTheme.typography.bodySmall,
                         color = AppColors.TextMuted
                     )

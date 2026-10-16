@@ -204,56 +204,79 @@ class ReportScreen : Screen {
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
-            color = AppColors.Surface,
+            color = AppColors.SurfaceRaised,
             border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
         ) {
-            Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Ringkasan Arus Kas",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = AppColors.TextMain
+            Box(
+                modifier = Modifier
+                    .background(
+                        androidx.compose.ui.graphics.Brush.linearGradient(
+                            listOf(
+                                Color(0xFF1E293B),
+                                Color(0xFF0F172A)
+                            )
+                        )
                     )
-                    Surface(
-                        shape = RoundedCornerShape(10.dp),
-                        color = savingRateColor.copy(alpha = 0.12f)
+                    .padding(22.dp)
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = "Tabungan: $savingRatePercent%",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = savingRateColor,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .clip(CircleShape)
+                                    .background(AppColors.Accent)
+                            )
+                            Text(
+                                text = "RINGKASAN ARUS KAS",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.TextMuted,
+                                letterSpacing = 0.5.sp
+                            )
+                        }
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = savingRateColor.copy(alpha = 0.15f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, savingRateColor.copy(alpha = 0.3f))
+                        ) {
+                            Text(
+                                text = "Rasio Tabungan: $savingRatePercent%",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = savingRateColor,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        CashflowStatBox(
+                            title = "Pemasukan",
+                            amount = state.totalIncome.format(),
+                            icon = Icons.AutoMirrored.Filled.TrendingUp,
+                            tint = AppColors.Success,
+                            modifier = Modifier.weight(1f)
+                        )
+                        CashflowStatBox(
+                            title = "Pengeluaran",
+                            amount = state.totalExpense.format(),
+                            icon = Icons.AutoMirrored.Filled.TrendingDown,
+                            tint = AppColors.Danger,
+                            modifier = Modifier.weight(1f)
                         )
                     }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    CashflowStatBox(
-                        title = "Pemasukan",
-                        amount = state.totalIncome.format(),
-                        icon = Icons.AutoMirrored.Filled.TrendingUp,
-                        tint = AppColors.Success,
-                        modifier = Modifier.weight(1f)
-                    )
-                    CashflowStatBox(
-                        title = "Pengeluaran",
-                        amount = state.totalExpense.format(),
-                        icon = Icons.AutoMirrored.Filled.TrendingDown,
-                        tint = AppColors.Danger,
-                        modifier = Modifier.weight(1f)
-                    )
                 }
             }
         }
