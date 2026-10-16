@@ -102,6 +102,56 @@ class AddWalletScreen : Screen {
                 }
 
                 item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "PRESET DOMPET CEPAT",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = AppColors.TextMuted,
+                            letterSpacing = 1.sp
+                        )
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(QuickWalletPresets) { preset ->
+                                val isSelected = state.name == preset.name && state.type == preset.type
+                                Surface(
+                                    modifier = Modifier.clickable {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        viewModel.onEvent(AddWalletEvent.NameChanged(preset.name))
+                                        viewModel.onEvent(AddWalletEvent.TypeChanged(preset.type))
+                                    },
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = if (isSelected) AppColors.Primary else AppColors.SurfaceRaised,
+                                    border = BorderStroke(
+                                        1.dp,
+                                        if (isSelected) AppColors.Primary else AppColors.Outline
+                                    )
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        Text(
+                                            text = preset.name,
+                                            fontWeight = FontWeight.Bold,
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = if (isSelected) Color(0xFF090D16) else AppColors.TextMain
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                item {
                     FormSection(title = "Nama Dompet / Rekening", icon = Icons.Default.AccountBalanceWallet) {
                         AppTextField(
                             value = state.name,
@@ -139,11 +189,39 @@ class AddWalletScreen : Screen {
 
                 item {
                     FormSection(title = "Saldo Awal", icon = Icons.Default.Payments) {
-                        AppAmountInput(
-                            value = state.initialBalance,
-                            onValueChange = { viewModel.onEvent(AddWalletEvent.BalanceChanged(it)) },
-                            label = "Nominal Saldo (Rp)"
-                        )
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            AppAmountInput(
+                                value = state.initialBalance,
+                                onValueChange = { viewModel.onEvent(AddWalletEvent.BalanceChanged(it)) },
+                                label = "Nominal Saldo (Rp)"
+                            )
+
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                items(QuickBalancePresets) { (amountStr, label) ->
+                                    val isSelected = state.initialBalance == amountStr
+                                    Surface(
+                                        modifier = Modifier.clickable {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            viewModel.onEvent(AddWalletEvent.BalanceChanged(amountStr))
+                                        },
+                                        shape = RoundedCornerShape(10.dp),
+                                        color = if (isSelected) AppColors.Primary.copy(alpha = 0.2f) else AppColors.Background,
+                                        border = BorderStroke(
+                                            1.dp,
+                                            if (isSelected) AppColors.Primary else AppColors.Outline.copy(alpha = 0.6f)
+                                        )
+                                    ) {
+                                        Text(
+                                            text = label,
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium,
+                                            color = if (isSelected) AppColors.Primary else AppColors.TextMuted
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -277,10 +355,37 @@ class AddWalletScreen : Screen {
             Text(
                 text = text,
                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                color = if (selected) Color.White else AppColors.TextMain,
+                color = if (selected) Color(0xFF090D16) else AppColors.TextMain,
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.labelMedium
             )
         }
     }
 }
+
+private data class WalletPreset(
+    val name: String,
+    val type: WalletType
+)
+
+private val QuickWalletPresets = listOf(
+    WalletPreset("BCA", WalletType.BANK),
+    WalletPreset("Mandiri", WalletType.BANK),
+    WalletPreset("BNI", WalletType.BANK),
+    WalletPreset("BRI", WalletType.BANK),
+    WalletPreset("Bank Jago", WalletType.BANK),
+    WalletPreset("GoPay", WalletType.EWALLET),
+    WalletPreset("OVO", WalletType.EWALLET),
+    WalletPreset("DANA", WalletType.EWALLET),
+    WalletPreset("ShopeePay", WalletType.EWALLET),
+    WalletPreset("Dompet Tunai", WalletType.CASH)
+)
+
+private val QuickBalancePresets = listOf(
+    "0" to "Rp 0",
+    "500000" to "Rp 500rb",
+    "1000000" to "Rp 1 jt",
+    "2500000" to "Rp 2,5 jt",
+    "5000000" to "Rp 5 jt",
+    "10000000" to "Rp 10 jt"
+)

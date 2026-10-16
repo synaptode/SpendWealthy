@@ -118,11 +118,84 @@ class AddBudgetScreen : Screen {
 
                 item {
                     FormSection(title = "Batas Pengeluaran Bulanan", icon = Icons.Default.Payments) {
-                        AppAmountInput(
-                            value = state.amount,
-                            onValueChange = { viewModel.onEvent(AddBudgetEvent.AmountChanged(it)) },
-                            label = "Limit Maksimal (Rp)"
-                        )
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            AppAmountInput(
+                                value = state.amount,
+                                onValueChange = { viewModel.onEvent(AddBudgetEvent.AmountChanged(it)) },
+                                label = "Limit Maksimal (Rp)"
+                            )
+
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                items(QuickLimitPresets) { (amountStr, label) ->
+                                    val isSelected = state.amount == amountStr
+                                    Surface(
+                                        modifier = Modifier.clickable {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            viewModel.onEvent(AddBudgetEvent.AmountChanged(amountStr))
+                                        },
+                                        shape = RoundedCornerShape(10.dp),
+                                        color = if (isSelected) AppColors.Primary.copy(alpha = 0.2f) else AppColors.Background,
+                                        border = BorderStroke(
+                                            1.dp,
+                                            if (isSelected) AppColors.Primary else AppColors.Outline.copy(alpha = 0.6f)
+                                        )
+                                    ) {
+                                        Text(
+                                            text = label,
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium,
+                                            color = if (isSelected) AppColors.Primary else AppColors.TextMuted
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        color = AppColors.Primary.copy(alpha = 0.05f),
+                        border = BorderStroke(1.dp, AppColors.Primary.copy(alpha = 0.2f))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(AppColors.Primary.copy(alpha = 0.15f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Payments,
+                                    contentDescription = null,
+                                    tint = AppColors.Primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            Column {
+                                Text(
+                                    text = "Rekomendasi Alokasi 50/30/20",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = AppColors.TextMain
+                                )
+                                Text(
+                                    text = "Batasi pengeluaran kategori ini agar rasio tabungan bulanan tetap optimal di atas 20%.",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = AppColors.TextMuted
+                                )
+                            }
+                        }
                     }
                 }
 
@@ -256,10 +329,19 @@ class AddBudgetScreen : Screen {
             Text(
                 text = category.name,
                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                color = if (selected) Color.White else AppColors.TextMain,
+                color = if (selected) Color(0xFF090D16) else AppColors.TextMain,
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.labelMedium
             )
         }
     }
 }
+
+private val QuickLimitPresets = listOf(
+    "500000" to "Rp 500rb",
+    "1000000" to "Rp 1 jt",
+    "2000000" to "Rp 2 jt",
+    "3500000" to "Rp 3,5 jt",
+    "5000000" to "Rp 5 jt",
+    "10000000" to "Rp 10 jt"
+)

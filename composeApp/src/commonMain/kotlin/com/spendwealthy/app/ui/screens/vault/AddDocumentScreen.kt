@@ -129,7 +129,7 @@ class AddDocumentScreen : Screen {
                                     Icon(
                                         imageVector = Icons.Default.AutoAwesome,
                                         contentDescription = null,
-                                        tint = Color.White,
+                                        tint = Color(0xFF090D16),
                                         modifier = Modifier.size(18.dp)
                                     )
                                 }
@@ -151,6 +151,51 @@ class AddDocumentScreen : Screen {
                                         text = "Ekstraksi otomatis teks & tanggal kedaluwarsa",
                                         style = MaterialTheme.typography.labelSmall,
                                         color = AppColors.TextMuted
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "PRESET DOKUMEN CEPAT",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = AppColors.TextMuted,
+                            letterSpacing = 1.sp
+                        )
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(QuickDocumentPresets) { preset ->
+                                val isSelected = state.name == preset.name && state.type == preset.type
+                                Surface(
+                                    modifier = Modifier.clickable {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        viewModel.onEvent(AddDocumentEvent.NameChanged(preset.name))
+                                        viewModel.onEvent(AddDocumentEvent.TypeChanged(preset.type))
+                                    },
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = if (isSelected) AppColors.Primary else AppColors.SurfaceRaised,
+                                    border = BorderStroke(
+                                        1.dp,
+                                        if (isSelected) AppColors.Primary else AppColors.Outline
+                                    )
+                                ) {
+                                    Text(
+                                        text = preset.name,
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = if (isSelected) Color(0xFF090D16) else AppColors.TextMain
                                     )
                                 }
                             }
@@ -195,6 +240,41 @@ class AddDocumentScreen : Screen {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         viewModel.onEvent(AddDocumentEvent.TypeChanged(type))
                                     }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        color = AppColors.SurfaceRaised,
+                        border = BorderStroke(1.dp, AppColors.Outline)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Text(
+                                text = "🔒",
+                                fontSize = 18.sp
+                            )
+                            Column {
+                                Text(
+                                    text = "Enkripsi Perangkat AES-256 GCM",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = AppColors.TextMain
+                                )
+                                Text(
+                                    text = "Dokumen tersimpan aman 100% offline di perangkat Anda dan tidak dibagikan ke server publik manapun.",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = AppColors.TextMuted
                                 )
                             }
                         }
@@ -331,10 +411,26 @@ class AddDocumentScreen : Screen {
             Text(
                 text = text,
                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                color = if (selected) Color.White else AppColors.TextMain,
+                color = if (selected) Color(0xFF090D16) else AppColors.TextMain,
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.labelMedium
             )
         }
     }
 }
+
+private data class DocumentPreset(
+    val name: String,
+    val type: DocumentType
+)
+
+private val QuickDocumentPresets = listOf(
+    DocumentPreset("KTP Elektronik", DocumentType.IDENTITY),
+    DocumentPreset("SIM (A / C)", DocumentType.IDENTITY),
+    DocumentPreset("NPWP Pribadi", DocumentType.IDENTITY),
+    DocumentPreset("Paspor RI", DocumentType.IDENTITY),
+    DocumentPreset("Polis Asuransi", DocumentType.CONTRACT),
+    DocumentPreset("Kartu Garansi", DocumentType.WARRANTY),
+    DocumentPreset("Struk Pembelian", DocumentType.RECEIPT),
+    DocumentPreset("Faktur Pajak", DocumentType.INVOICE)
+)
