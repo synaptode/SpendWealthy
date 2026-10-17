@@ -120,12 +120,13 @@ class AddWalletScreen : Screen {
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             items(QuickWalletPresets) { preset ->
-                                val isSelected = state.name == preset.name && state.type == preset.type
+                                val isSelected = state.name == preset.name && state.type == preset.type && state.currency == preset.currency
                                 Surface(
                                     modifier = Modifier.clickable {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         viewModel.onEvent(AddWalletEvent.NameChanged(preset.name))
                                         viewModel.onEvent(AddWalletEvent.TypeChanged(preset.type))
+                                        viewModel.onEvent(AddWalletEvent.CurrencyChanged(preset.currency))
                                     },
                                     shape = RoundedCornerShape(12.dp),
                                     color = if (isSelected) AppColors.Primary else AppColors.SurfaceRaised,
@@ -189,12 +190,29 @@ class AddWalletScreen : Screen {
                 }
 
                 item {
+                    FormSection(title = "Mata Uang Akun", icon = Icons.Default.Payments) {
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(listOf("IDR", "USD", "EUR", "SGD", "JPY", "GBP", "AUD")) { curr ->
+                                ChoiceChip(
+                                    text = curr,
+                                    selected = state.currency == curr,
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        viewModel.onEvent(AddWalletEvent.CurrencyChanged(curr))
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                item {
                     FormSection(title = "Saldo Awal", icon = Icons.Default.Payments) {
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             AppAmountInput(
                                 value = state.initialBalance,
                                 onValueChange = { viewModel.onEvent(AddWalletEvent.BalanceChanged(it)) },
-                                label = "Nominal Saldo (Rp)",
+                                label = "Nominal Saldo (${state.currency})",
                                 showQuickPills = false
                             )
 
@@ -371,20 +389,23 @@ class AddWalletScreen : Screen {
 
 private data class WalletPreset(
     val name: String,
-    val type: WalletType
+    val type: WalletType,
+    val currency: String = "IDR"
 )
 
 private val QuickWalletPresets = listOf(
     WalletPreset("BCA", WalletType.BANK),
     WalletPreset("Mandiri", WalletType.BANK),
-    WalletPreset("BNI", WalletType.BANK),
-    WalletPreset("BRI", WalletType.BANK),
     WalletPreset("Bank Jago", WalletType.BANK),
     WalletPreset("GoPay", WalletType.EWALLET),
     WalletPreset("OVO", WalletType.EWALLET),
     WalletPreset("DANA", WalletType.EWALLET),
     WalletPreset("ShopeePay", WalletType.EWALLET),
-    WalletPreset("Dompet Tunai", WalletType.CASH)
+    WalletPreset("Dompet Tunai", WalletType.CASH),
+    WalletPreset("PayPal", WalletType.EWALLET, "USD"),
+    WalletPreset("Wise USD", WalletType.BANK, "USD"),
+    WalletPreset("Wise EUR", WalletType.BANK, "EUR"),
+    WalletPreset("Wise SGD", WalletType.BANK, "SGD")
 )
 
 private val QuickBalancePresets = listOf(

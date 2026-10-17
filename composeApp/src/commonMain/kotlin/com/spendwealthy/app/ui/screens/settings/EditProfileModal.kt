@@ -36,7 +36,7 @@ fun EditProfileModal(
     var selectedCurrency by remember { mutableStateOf(currentCurrency.ifBlank { "IDR" }) }
     val haptic = LocalHapticFeedback.current
 
-    val currencies = listOf("IDR", "USD", "EUR", "SGD")
+    val currencies = listOf("IDR", "USD", "EUR", "SGD", "JPY", "GBP", "AUD")
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -152,38 +152,43 @@ fun EditProfileModal(
                     fontWeight = FontWeight.Bold,
                     color = AppColors.TextMuted
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    currencies.forEach { curr ->
-                        val isSelected = selectedCurrency == curr
-                        Surface(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(14.dp))
-                                .clickable {
-                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                    selectedCurrency = curr
-                                },
-                            shape = RoundedCornerShape(14.dp),
-                            color = if (isSelected) AppColors.Primary.copy(alpha = 0.2f) else AppColors.SurfaceRaised,
-                            border = androidx.compose.foundation.BorderStroke(
-                                1.dp,
-                                if (isSelected) AppColors.Primary else AppColors.Outline
-                            )
-                        ) {
-                            Box(
-                                modifier = Modifier.padding(vertical = 12.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = curr,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium,
-                                    color = if (isSelected) AppColors.PrimaryDark else AppColors.TextMain
+                currencies.chunked(4).forEach { rowCurrencies ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        rowCurrencies.forEach { curr ->
+                            val isSelected = selectedCurrency == curr
+                            Surface(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(14.dp))
+                                    .clickable {
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        selectedCurrency = curr
+                                    },
+                                shape = RoundedCornerShape(14.dp),
+                                color = if (isSelected) AppColors.Primary.copy(alpha = 0.2f) else AppColors.SurfaceRaised,
+                                border = androidx.compose.foundation.BorderStroke(
+                                    1.dp,
+                                    if (isSelected) AppColors.Primary else AppColors.Outline
                                 )
+                            ) {
+                                Box(
+                                    modifier = Modifier.padding(vertical = 12.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = curr,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium,
+                                        color = if (isSelected) AppColors.PrimaryDark else AppColors.TextMain
+                                    )
+                                }
                             }
+                        }
+                        repeat(4 - rowCurrencies.size) {
+                            Spacer(modifier = Modifier.weight(1f))
                         }
                     }
                 }

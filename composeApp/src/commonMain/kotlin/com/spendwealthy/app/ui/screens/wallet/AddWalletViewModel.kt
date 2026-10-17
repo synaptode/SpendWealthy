@@ -23,6 +23,7 @@ import kotlinx.datetime.Clock as KtClock
 data class AddWalletState(
     val name: String = "",
     val type: WalletType = WalletType.CASH,
+    val currency: String = "IDR",
     val initialBalance: String = "0",
     val errorMessage: String? = null,
     val isLoading: Boolean = false
@@ -31,6 +32,7 @@ data class AddWalletState(
 sealed class AddWalletEvent : UiEvent {
     data class NameChanged(val name: String) : AddWalletEvent()
     data class TypeChanged(val type: WalletType) : AddWalletEvent()
+    data class CurrencyChanged(val currency: String) : AddWalletEvent()
     data class BalanceChanged(val balance: String) : AddWalletEvent()
     object SaveClicked : AddWalletEvent()
 }
@@ -55,6 +57,7 @@ class AddWalletViewModel(
         when (event) {
             is AddWalletEvent.NameChanged -> _uiState.value = _uiState.value.copy(name = event.name, errorMessage = null)
             is AddWalletEvent.TypeChanged -> _uiState.value = _uiState.value.copy(type = event.type, errorMessage = null)
+            is AddWalletEvent.CurrencyChanged -> _uiState.value = _uiState.value.copy(currency = event.currency, errorMessage = null)
             is AddWalletEvent.BalanceChanged -> _uiState.value = _uiState.value.copy(initialBalance = event.balance, errorMessage = null)
             AddWalletEvent.SaveClicked -> saveWallet()
         }
@@ -87,7 +90,7 @@ class AddWalletViewModel(
                 val wallet = Wallet(
                     id = "w_${now.toEpochMilliseconds()}",
                     name = state.name,
-                    balance = Money(state.initialBalance.toLongOrNull() ?: 0L, "IDR"),
+                    balance = Money(state.initialBalance.toLongOrNull() ?: 0L, state.currency),
                     type = state.type,
                     createdAt = now,
                     isArchived = false

@@ -145,4 +145,60 @@ object AppTypography {
     val Typography: Typography
         @Composable
         get() = getAppTypography()
+
+    @Composable
+    fun displayNumeric(
+        fontWeight: FontWeight = FontWeight.ExtraBold,
+        fontSize: androidx.compose.ui.unit.TextUnit = 32.sp,
+        color: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.Unspecified
+    ): TextStyle = TextStyle(
+        fontFamily = getPlusJakartaSansFamily(),
+        fontWeight = fontWeight,
+        fontSize = fontSize,
+        lineHeight = (fontSize.value * 1.2f).sp,
+        letterSpacing = (-0.5).sp,
+        color = color
+    )
+
+    @Composable
+    fun headlineNumeric(
+        fontWeight: FontWeight = FontWeight.Bold,
+        fontSize: androidx.compose.ui.unit.TextUnit = 24.sp,
+        color: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.Unspecified
+    ): TextStyle = TextStyle(
+        fontFamily = getPlusJakartaSansFamily(),
+        fontWeight = fontWeight,
+        fontSize = fontSize,
+        lineHeight = (fontSize.value * 1.25f).sp,
+        letterSpacing = (-0.3).sp,
+        color = color
+    )
+
+    @Composable
+    fun bodyNumeric(
+        fontWeight: FontWeight = FontWeight.SemiBold,
+        fontSize: androidx.compose.ui.unit.TextUnit = 16.sp,
+        color: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.Unspecified
+    ): TextStyle = TextStyle(
+        fontFamily = getPlusJakartaSansFamily(),
+        fontWeight = fontWeight,
+        fontSize = fontSize,
+        lineHeight = (fontSize.value * 1.35f).sp,
+        letterSpacing = 0.sp,
+        color = color
+    )
+
+    @Composable
+    fun labelNumeric(
+        fontWeight: FontWeight = FontWeight.Medium,
+        fontSize: androidx.compose.ui.unit.TextUnit = 12.sp,
+        color: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.Unspecified
+    ): TextStyle = TextStyle(
+        fontFamily = getPlusJakartaSansFamily(),
+        fontWeight = fontWeight,
+        fontSize = fontSize,
+        lineHeight = (fontSize.value * 1.3f).sp,
+        letterSpacing = 0.sp,
+        color = color
+    )
 }
