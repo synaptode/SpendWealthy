@@ -67,6 +67,7 @@ import com.spendwealthy.app.domain.model.Wallet
 import com.spendwealthy.app.ui.components.GoalCelebrationOverlay
 import com.spendwealthy.app.ui.components.MONTH_NAMES
 import com.spendwealthy.app.ui.components.MonthPickerModal
+import com.spendwealthy.app.ui.components.TransactionDetailModal
 import com.spendwealthy.app.ui.screens.bill.BillListScreen
 import com.spendwealthy.app.ui.screens.home.components.GoalContributionDialog
 import com.spendwealthy.app.ui.screens.report.ReportScreen
@@ -100,6 +101,7 @@ class HomeScreen : Screen {
         var selectedMonth by remember { mutableStateOf(8) }
         var showMonthPicker by remember { mutableStateOf(false) }
         val selectedMonthName = MONTH_NAMES.getOrNull(selectedMonth - 1) ?: "August"
+        var selectedTransaction by remember { mutableStateOf<Transaction?>(null) }
 
         LaunchedEffect(viewModel) {
             viewModel.effect.collect { effect ->
@@ -185,9 +187,20 @@ class HomeScreen : Screen {
                         isBalanceHidden = isBalanceHidden,
                         onViewAll = { rootNavigator.push(TransactionListScreen()) },
                         onAddFirst = { rootNavigator.push(AddTransactionScreen(TransactionType.EXPENSE)) },
+                        onTransactionClick = { tx -> selectedTransaction = tx },
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
                     )
                 }
+            }
+
+            // Transaction Detail Modal
+            val currentTx = selectedTransaction
+            if (currentTx != null) {
+                TransactionDetailModal(
+                    transaction = currentTx,
+                    onDelete = { id -> viewModel.deleteTransaction(id) },
+                    onDismiss = { selectedTransaction = null }
+                )
             }
 
             // Dialogs & Celebrations
@@ -990,6 +1003,7 @@ class HomeScreen : Screen {
         isBalanceHidden: Boolean,
         onViewAll: () -> Unit,
         onAddFirst: () -> Unit,
+        onTransactionClick: (Transaction) -> Unit,
         modifier: Modifier = Modifier
     ) {
         Column(modifier = modifier.fillMaxWidth()) {
@@ -1053,7 +1067,8 @@ class HomeScreen : Screen {
                                 timestamp = "${tx.date}",
                                 amount = if (isBalanceHidden) "•••••" else (if (isIncome) "+ " else "- ") + tx.amount.format(),
                                 category = tx.type.name.lowercase().replaceFirstChar { it.uppercase() },
-                                isPositive = isIncome
+                                isPositive = isIncome,
+                                onClick = { onTransactionClick(tx) }
                             )
                             if (index < transactions.take(5).size - 1) {
                                 Box(
@@ -1124,12 +1139,15 @@ class HomeScreen : Screen {
         timestamp: String,
         amount: String,
         category: String,
-        isPositive: Boolean
+        isPositive: Boolean,
+        onClick: () -> Unit = {}
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 12.dp),
+                .clip(RoundedCornerShape(12.dp))
+                .clickable(onClick = onClick)
+                .padding(vertical = 12.dp, horizontal = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {

@@ -146,6 +146,65 @@ class BudgetListScreen : Screen {
                         )
                     }
                 }
+
+                // Savings & Financial Goals Section
+                item {
+                    Spacer(Modifier.height(14.dp))
+                    SectionHeader(
+                        title = "Target Tabungan & Impian",
+                        badge = "3 Aktif",
+                        action = "+ Target Baru",
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            navigator.parent?.push(AddBudgetScreen())
+                        }
+                    )
+                }
+
+                item {
+                    SavingsGoalCard(
+                        title = "Dana Darurat (6 Bulan)",
+                        currentAmount = "Rp36.000.000",
+                        targetAmount = "Rp50.000.000",
+                        progress = 0.72f,
+                        icon = Icons.Default.Shield,
+                        accentColor = Color(0xFF10B981),
+                        badgeText = "72% Terkumpul",
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        }
+                    )
+                }
+
+                item {
+                    SavingsGoalCard(
+                        title = "Investasi Saham & ETF",
+                        currentAmount = "Rp18.500.000",
+                        targetAmount = "Rp25.000.000",
+                        progress = 0.74f,
+                        icon = Icons.AutoMirrored.Filled.TrendingUp,
+                        accentColor = Color(0xFFD97706),
+                        badgeText = "74% Terkumpul",
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        }
+                    )
+                }
+
+                item {
+                    SavingsGoalCard(
+                        title = "Liburan & Healing Akhir Tahun",
+                        currentAmount = "Rp8.000.000",
+                        targetAmount = "Rp12.000.000",
+                        progress = 0.66f,
+                        icon = Icons.Default.Savings,
+                        accentColor = Color(0xFF2563EB),
+                        badgeText = "66% Terkumpul",
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        }
+                    )
+                }
             }
         }
     }
@@ -654,6 +713,117 @@ class BudgetListScreen : Screen {
                     contentDescription = null,
                     tint = AppColors.TextMuted
                 )
+            }
+        }
+    }
+
+    @Composable
+    private fun SavingsGoalCard(
+        title: String,
+        currentAmount: String,
+        targetAmount: String,
+        progress: Float,
+        icon: ImageVector,
+        accentColor: Color,
+        badgeText: String,
+        onClick: () -> Unit
+    ) {
+        val animatedProgress by animateFloatAsState(
+            targetValue = progress,
+            animationSpec = tween(durationMillis = 650)
+        )
+
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 6.dp)
+                .clip(RoundedCornerShape(20.dp))
+                .clickable(onClick = onClick),
+            shape = RoundedCornerShape(20.dp),
+            color = AppColors.Surface,
+            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+        ) {
+            Column(
+                modifier = Modifier.padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(42.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(accentColor.copy(alpha = 0.12f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                tint = accentColor,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                text = title,
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = AppColors.TextMain
+                            )
+                            Text(
+                                text = "Target: $targetAmount",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = AppColors.TextMuted
+                            )
+                        }
+                    }
+
+                    Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            text = currentAmount,
+                            fontWeight = FontWeight.Black,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = AppColors.TextMain
+                        )
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = accentColor.copy(alpha = 0.15f)
+                        ) {
+                            Text(
+                                text = badgeText,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = accentColor,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                }
+
+                // High-End Progress Bar
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(8.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(AppColors.SurfaceRaised)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(animatedProgress)
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(accentColor)
+                    )
+                }
             }
         }
     }

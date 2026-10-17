@@ -610,6 +610,12 @@ class HomeViewModel(
         }
     }
 
+    fun deleteTransaction(id: String) {
+        screenModelScope.launch {
+            transactionRepository.deleteTransaction(id)
+        }
+    }
+
     private fun List<Budget>.combineAsTotal(): Budget? {
         if (isEmpty()) return null
         val first = first()

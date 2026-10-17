@@ -48,6 +48,9 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,6 +69,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.domain.model.Transaction
 import com.spendwealthy.app.domain.model.TransactionType
+import com.spendwealthy.app.ui.components.TransactionDetailModal
 import com.spendwealthy.app.ui.screens.transaction.AddTransactionScreen
 import com.spendwealthy.app.ui.theme.AppColors
 
@@ -81,6 +85,7 @@ class TransactionListScreen : Screen {
         val state by viewModel.uiState.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
         val haptic = LocalHapticFeedback.current
+        var selectedTransaction by remember { mutableStateOf<Transaction?>(null) }
 
         val totalIncome = state.filteredTransactions
             .filter { it.type == TransactionType.INCOME }
@@ -188,10 +193,24 @@ class TransactionListScreen : Screen {
                     ) { transaction ->
                         LedgerItem(
                             transaction = transaction,
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                selectedTransaction = transaction
+                            },
                             modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
                         )
                     }
                 }
+            }
+
+            // Transaction Detail Modal
+            val currentSelected = selectedTransaction
+            if (currentSelected != null) {
+                TransactionDetailModal(
+                    transaction = currentSelected,
+                    onDelete = { id -> viewModel.deleteTransaction(id) },
+                    onDismiss = { selectedTransaction = null }
+                )
             }
         }
     }
@@ -568,6 +587,7 @@ class TransactionListScreen : Screen {
     @Composable
     private fun LedgerItem(
         transaction: Transaction,
+        onClick: () -> Unit = {},
         modifier: Modifier = Modifier
     ) {
         val isIncome = transaction.type == TransactionType.INCOME
@@ -604,7 +624,10 @@ class TransactionListScreen : Screen {
         }
 
         Surface(
-            modifier = modifier.fillMaxWidth(),
+            modifier = modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(18.dp))
+                .clickable(onClick = onClick),
             shape = RoundedCornerShape(18.dp),
             color = AppColors.Surface,
             border = BorderStroke(1.dp, AppColors.Outline.copy(alpha = 0.6f))
