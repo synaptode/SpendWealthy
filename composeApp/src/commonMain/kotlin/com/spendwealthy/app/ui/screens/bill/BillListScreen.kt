@@ -609,9 +609,11 @@ class BillListScreen : Screen {
                         )
                         Text(
                             text = "Bayar ${bill.name} • ${bill.amount.formatWithSymbol()}",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFFB45309)
+                            style = AppTypography.labelNumeric(
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFFB45309)
+                            )
                         )
                     }
 

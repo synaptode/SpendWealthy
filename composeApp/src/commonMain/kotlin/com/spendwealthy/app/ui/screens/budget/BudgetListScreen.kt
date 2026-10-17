@@ -556,9 +556,11 @@ class BudgetListScreen : Screen {
                     ) {
                         Text(
                             text = badgeText,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White,
+                            style = AppTypography.labelNumeric(
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White
+                            ),
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
                     }

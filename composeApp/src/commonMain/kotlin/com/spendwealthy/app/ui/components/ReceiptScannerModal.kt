@@ -869,9 +869,11 @@ fun ReceiptScannerModal(
                         Spacer(Modifier.width(8.dp))
                         Text(
                             text = "Catat ${Money(parsedReceipt.amount, "IDR").formatWithSymbol()}",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = Color(0xFF111827)
+                            style = AppTypography.labelNumeric(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF111827)
+                            )
                         )
                     }
                 }
