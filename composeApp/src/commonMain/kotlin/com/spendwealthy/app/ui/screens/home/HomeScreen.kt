@@ -104,6 +104,9 @@ import com.spendwealthy.app.ui.screens.simulator.PurchaseSimulatorBottomSheet
 import com.spendwealthy.app.ui.screens.simulator.PurchaseSimulatorViewModel
 import com.spendwealthy.app.ui.screens.splitter.PaycheckSplitterBottomSheet
 import com.spendwealthy.app.ui.screens.splitter.PaycheckSplitterViewModel
+import com.spendwealthy.app.ui.screens.health.WealthScoreCard
+import com.spendwealthy.app.ui.screens.health.WealthScoreDetailBottomSheet
+import com.spendwealthy.app.ui.screens.health.WealthScoreViewModel
 import com.spendwealthy.app.ui.theme.AppColors
 import com.spendwealthy.app.ui.theme.AppTypography
 
@@ -131,6 +134,9 @@ class HomeScreen : Screen {
         var showMonthPicker by remember { mutableStateOf(false) }
         var showPurchaseSimulator by remember { mutableStateOf(false) }
         var showPaycheckSplitter by remember { mutableStateOf(false) }
+        var showWealthScoreDetail by remember { mutableStateOf(false) }
+        val wealthViewModel = koinScreenModel<WealthScoreViewModel>()
+        val wealthState by wealthViewModel.uiState.collectAsState()
         val selectedMonth = state.selectedMonth
         val selectedYear = state.selectedYear
         val selectedMonthName = if (selectedMonth != null && selectedYear != null) {
@@ -189,6 +195,13 @@ class HomeScreen : Screen {
             PaycheckSplitterBottomSheet(
                 viewModel = splitterViewModel,
                 onDismiss = { showPaycheckSplitter = false }
+            )
+        }
+
+        if (showWealthScoreDetail) {
+            WealthScoreDetailBottomSheet(
+                viewModel = wealthViewModel,
+                onDismiss = { showWealthScoreDetail = false }
             )
         }
 
@@ -262,6 +275,16 @@ class HomeScreen : Screen {
                         totalExpense = state.totalExpense,
                         isBalanceHidden = isBalanceHidden,
                         onViewDetails = { rootNavigator.push(ReportScreen(onBackClick = { if (rootNavigator.canPop) rootNavigator.pop() })) },
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
+                    )
+                }
+
+                // 3.1. Wealth Health Score & Streak Gamification Card
+                item {
+                    WealthScoreCard(
+                        wealthScore = wealthState.score,
+                        streak = wealthState.streak,
+                        onClick = { showWealthScoreDetail = true },
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
                     )
                 }

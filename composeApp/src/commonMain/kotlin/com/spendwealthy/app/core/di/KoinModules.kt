@@ -26,6 +26,7 @@ import com.spendwealthy.app.ui.screens.vault.AddDocumentViewModel
 import com.spendwealthy.app.ui.screens.family.FamilyViewModel
 import com.spendwealthy.app.ui.screens.simulator.PurchaseSimulatorViewModel
 import com.spendwealthy.app.ui.screens.splitter.PaycheckSplitterViewModel
+import com.spendwealthy.app.ui.screens.health.WealthScoreViewModel
 import com.spendwealthy.app.core.architecture.DefaultDispatcherProvider
 import com.spendwealthy.app.core.architecture.DispatcherProvider
 import org.koin.core.module.Module
@@ -160,6 +161,8 @@ val commonModule = module {
     single { PaycheckSplitterEngine() }
     factory { ExecutePaycheckSplitUseCase(get(), get()) }
     factory { PaycheckSplitterViewModel(get(), get(), get(), get(), get()) }
+    single { FinancialGamificationService() }
+    factory { WealthScoreViewModel(get(), get(), get(), get(), get(), get()) }
 }
 
 fun initKoin(config: (org.koin.dsl.KoinAppDeclaration)? = null) = org.koin.core.context.startKoin {
