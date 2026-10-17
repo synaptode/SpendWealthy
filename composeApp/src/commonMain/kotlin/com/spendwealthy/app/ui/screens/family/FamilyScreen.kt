@@ -29,6 +29,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -155,6 +156,10 @@ class FamilyScreen : Screen {
                         items(state.sharedGoals, key = { it.id }) { goal ->
                             SharedGoalCard(
                                 goal = goal,
+                                onClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    viewModel.onSelectGoalForDetail(goal)
+                                },
                                 onContributeClick = {
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     viewModel.onOpenContributeDialog(goal)
@@ -267,6 +272,17 @@ class FamilyScreen : Screen {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         viewModel.changeMemberRole(member.id, role)
                         selectedMemberForAction = null
+                    }
+                )
+            }
+
+            state.selectedGoalForDetail?.let { goal ->
+                FamilyGoalDetailModal(
+                    goal = goal,
+                    onDismiss = { viewModel.onDismissGoalDetail() },
+                    onContributeClick = {
+                        viewModel.onDismissGoalDetail()
+                        viewModel.onOpenContributeDialog(goal)
                     }
                 )
             }
@@ -680,6 +696,7 @@ class FamilyScreen : Screen {
     @Composable
     private fun SharedGoalCard(
         goal: FamilySavingsGoal,
+        onClick: () -> Unit,
         onContributeClick: () -> Unit
     ) {
         val progress = if (goal.targetAmount > 0) {
@@ -707,7 +724,10 @@ class FamilyScreen : Screen {
         val formattedTarget = Money(goal.targetAmount, "IDR").formatWithSymbol()
 
         Surface(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(20.dp))
+                .clickable(onClick = onClick),
             shape = RoundedCornerShape(20.dp),
             color = AppColors.Surface,
             border = BorderStroke(1.dp, AppColors.Outline)
@@ -723,6 +743,7 @@ class FamilyScreen : Screen {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(
+                        modifier = Modifier.weight(1f),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
@@ -757,16 +778,28 @@ class FamilyScreen : Screen {
                         }
                     }
 
-                    Surface(
-                        shape = RoundedCornerShape(10.dp),
-                        color = Color(0xFFFFDE43).copy(alpha = 0.35f)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Text(
-                            text = "$percentage%",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF111827),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFFFFDE43).copy(alpha = 0.35f)
+                        ) {
+                            Text(
+                                text = "$percentage%",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF111827),
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                            )
+                        }
+
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = "Detail Target",
+                            tint = AppColors.TextMuted,
+                            modifier = Modifier.size(16.dp)
                         )
                     }
                 }
@@ -1901,6 +1934,555 @@ class FamilyScreen : Screen {
                         tint = Color(0xFF111827),
                         modifier = Modifier.size(18.dp)
                     )
+                }
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun FamilyGoalDetailModal(
+        goal: FamilySavingsGoal,
+        onDismiss: () -> Unit,
+        onContributeClick: () -> Unit
+    ) {
+        val progress = if (goal.targetAmount > 0) {
+            (goal.currentAmount.toFloat() / goal.targetAmount.toFloat()).coerceIn(0f, 1f)
+        } else 0f
+        val percentage = (progress * 100).toInt()
+        val isCompleted = goal.currentAmount >= goal.targetAmount
+        val remainingAmount = if (goal.targetAmount > goal.currentAmount) goal.targetAmount - goal.currentAmount else 0L
+
+        val categoryIcon = when (goal.category) {
+            "Holiday" -> Icons.Default.FlightTakeoff
+            "Education" -> Icons.Default.School
+            "Emergency" -> Icons.Default.Shield
+            "Property" -> Icons.Default.Home
+            else -> Icons.Default.Savings
+        }
+
+        val categoryColor = when (goal.category) {
+            "Holiday" -> Color(0xFF3B82F6)
+            "Education" -> Color(0xFF8B5CF6)
+            "Emergency" -> Color(0xFF10B981)
+            "Property" -> Color(0xFFF59E0B)
+            else -> Color(0xFF111827)
+        }
+
+        val formattedCurrent = Money(goal.currentAmount, "IDR").formatWithSymbol()
+        val formattedTarget = Money(goal.targetAmount, "IDR").formatWithSymbol()
+        val formattedRemaining = Money(remainingAmount, "IDR").formatWithSymbol()
+
+        ModalBottomSheet(
+            onDismissRequest = onDismiss,
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+            containerColor = AppColors.Surface,
+            dragHandle = {
+                Box(
+                    modifier = Modifier
+                        .padding(vertical = 12.dp)
+                        .width(36.dp)
+                        .height(4.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFE5E7EB))
+                )
+            }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 540.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .imePadding()
+                    .navigationBarsPadding()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 36.dp),
+                verticalArrangement = Arrangement.spacedBy(18.dp)
+            ) {
+                // Header Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            text = "Detail Tabungan Bersama",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.TextMain
+                        )
+                        Text(
+                            text = if (isCompleted) "Target telah tercapai" else "Target jatuh tempo: ${goal.targetDate}",
+                            fontSize = 12.sp,
+                            color = if (isCompleted) Color(0xFF10B981) else AppColors.TextMuted,
+                            fontWeight = if (isCompleted) FontWeight.SemiBold else FontWeight.Normal
+                        )
+                    }
+
+                    Surface(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .clickable(onClick = onDismiss),
+                        shape = CircleShape,
+                        color = Color(0xFFF3F4F6)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Tutup",
+                                tint = AppColors.TextMuted,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                }
+
+                // Goal Card Summary
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    color = AppColors.SurfaceRaised,
+                    border = BorderStroke(1.dp, AppColors.Outline)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(18.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(
+                                modifier = Modifier.weight(1f),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(42.dp)
+                                        .clip(CircleShape)
+                                        .background(categoryColor.copy(alpha = 0.14f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = categoryIcon,
+                                        contentDescription = null,
+                                        tint = categoryColor,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                }
+
+                                Column {
+                                    Text(
+                                        text = goal.title,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = AppColors.TextMain
+                                    )
+                                    Text(
+                                        text = goal.category,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = AppColors.TextMuted
+                                    )
+                                }
+                            }
+
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = if (isCompleted) Color(0xFF10B981).copy(alpha = 0.15f) else Color(0xFFFFDE43).copy(alpha = 0.35f)
+                            ) {
+                                Text(
+                                    text = if (isCompleted) "Tercapai 100%" else "$percentage%",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isCompleted) Color(0xFF047857) else Color(0xFF111827),
+                                    modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+
+                        // Progress Bar
+                        val animatedProgress by animateFloatAsState(
+                            targetValue = progress,
+                            animationSpec = tween(500)
+                        )
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(8.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(Color(0xFFE5E7EB))
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(animatedProgress)
+                                    .height(8.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(categoryColor)
+                            )
+                        }
+
+                        // Numbers Breakdown
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Terkumpul",
+                                    fontSize = 11.sp,
+                                    color = AppColors.TextMuted
+                                )
+                                Text(
+                                    text = formattedCurrent,
+                                    style = AppTypography.titleNumeric(
+                                        fontSize = 17.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = AppColors.TextMain
+                                    )
+                                )
+                            }
+
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(
+                                    text = "Target Total",
+                                    fontSize = 11.sp,
+                                    color = AppColors.TextMuted
+                                )
+                                Text(
+                                    text = formattedTarget,
+                                    style = AppTypography.bodyNumeric(
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = AppColors.TextMain
+                                    )
+                                )
+                                if (!isCompleted) {
+                                    Text(
+                                        text = "Kurang $formattedRemaining",
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = Color(0xFFEF4444)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Member Contributions Breakdown
+                if (goal.contributions.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Porsi Kontribusi Anggota",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.TextMain
+                            )
+                            Text(
+                                text = "${goal.contributions.size} Anggota",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = AppColors.TextMuted
+                            )
+                        }
+
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            color = AppColors.Surface,
+                            border = BorderStroke(1.dp, AppColors.Outline)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(14.dp),
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                goal.contributions.forEachIndexed { index, c ->
+                                    val cPercent = if (goal.currentAmount > 0) {
+                                        ((c.amount.toFloat() / goal.currentAmount.toFloat()) * 100).toInt()
+                                    } else 0
+                                    val cFormatted = Money(c.amount, "IDR").formatWithSymbol()
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(28.dp)
+                                                    .clip(CircleShape)
+                                                    .background(AppColors.SurfaceRaised),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    text = c.memberName.take(1),
+                                                    fontSize = 12.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = AppColors.TextMain
+                                                )
+                                            }
+                                            Column {
+                                                Text(
+                                                    text = c.memberName,
+                                                    fontSize = 13.sp,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    color = AppColors.TextMain
+                                                )
+                                                Text(
+                                                    text = "$cPercent% dari total terkumpul",
+                                                    fontSize = 10.sp,
+                                                    color = AppColors.TextMuted
+                                                )
+                                            }
+                                        }
+
+                                        Text(
+                                            text = cFormatted,
+                                            style = AppTypography.bodyNumeric(
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = AppColors.TextMain
+                                            )
+                                        )
+                                    }
+
+                                    if (index < goal.contributions.lastIndex) {
+                                        HorizontalDivider(color = AppColors.Outline.copy(alpha = 0.6f))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Transaction History List
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Riwayat Setoran & Transaksi",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.TextMain
+                        )
+                        Text(
+                            text = "${goal.transactions.size} Transaksi",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = AppColors.TextMuted
+                        )
+                    }
+
+                    if (goal.transactions.isEmpty()) {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            color = AppColors.SurfaceRaised,
+                            border = BorderStroke(1.dp, AppColors.Outline)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 24.dp, horizontal = 16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Savings,
+                                    contentDescription = null,
+                                    tint = AppColors.TextMuted,
+                                    modifier = Modifier.size(28.dp)
+                                )
+                                Text(
+                                    text = "Belum Ada Riwayat Transaksi",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = AppColors.TextMain
+                                )
+                                Text(
+                                    text = "Setoran dana yang dilakukan anggota keluarga akan tercatat di sini secara otomatis.",
+                                    fontSize = 11.sp,
+                                    color = AppColors.TextMuted,
+                                    lineHeight = 15.sp,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                    } else {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            color = AppColors.Surface,
+                            border = BorderStroke(1.dp, AppColors.Outline)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(14.dp),
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                goal.transactions.forEachIndexed { index, tx ->
+                                    val formattedAmount = Money(tx.amount, "IDR").formatWithSymbol()
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.weight(1f),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(34.dp)
+                                                    .clip(CircleShape)
+                                                    .background(Color(0xFF10B981).copy(alpha = 0.12f)),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.ArrowDownward,
+                                                    contentDescription = null,
+                                                    tint = Color(0xFF10B981),
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                            }
+
+                                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                                Text(
+                                                    text = tx.memberName,
+                                                    fontSize = 13.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = AppColors.TextMain
+                                                )
+                                                if (tx.note.isNotBlank()) {
+                                                    Text(
+                                                        text = tx.note,
+                                                        fontSize = 11.sp,
+                                                        fontWeight = FontWeight.Normal,
+                                                        color = AppColors.TextMain,
+                                                        maxLines = 1,
+                                                        overflow = TextOverflow.Ellipsis
+                                                    )
+                                                }
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                                ) {
+                                                    Text(
+                                                        text = tx.date,
+                                                        fontSize = 10.sp,
+                                                        color = AppColors.TextMuted
+                                                    )
+                                                    Text(
+                                                        text = "•",
+                                                        fontSize = 10.sp,
+                                                        color = AppColors.TextMuted
+                                                    )
+                                                    Text(
+                                                        text = tx.sourceWallet,
+                                                        fontSize = 10.sp,
+                                                        fontWeight = FontWeight.Medium,
+                                                        color = AppColors.TextMuted
+                                                    )
+                                                }
+                                            }
+                                        }
+
+                                        Spacer(Modifier.width(8.dp))
+
+                                        Text(
+                                            text = "+$formattedAmount",
+                                            style = AppTypography.bodyNumeric(
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color(0xFF10B981)
+                                            )
+                                        )
+                                    }
+
+                                    if (index < goal.transactions.lastIndex) {
+                                        HorizontalDivider(color = AppColors.Outline.copy(alpha = 0.6f))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Action Buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable(onClick = onDismiss),
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color(0xFFF3F4F6)
+                    ) {
+                        Box(
+                            modifier = Modifier.padding(vertical = 12.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Tutup",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = AppColors.TextMain
+                            )
+                        }
+                    }
+
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable(onClick = onContributeClick),
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color(0xFFFFDE43)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(vertical = 12.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = null,
+                                tint = Color(0xFF111827),
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = "+ Setor Dana",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF111827)
+                            )
+                        }
+                    }
                 }
             }
         }

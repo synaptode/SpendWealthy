@@ -22,6 +22,15 @@ data class MemberContribution(
     val amount: Long
 )
 
+data class FamilyGoalTransaction(
+    val id: String,
+    val memberName: String,
+    val amount: Long,
+    val date: String,
+    val note: String,
+    val sourceWallet: String = "Rekening Bank"
+)
+
 data class FamilySavingsGoal(
     val id: String,
     val title: String,
@@ -29,7 +38,8 @@ data class FamilySavingsGoal(
     val currentAmount: Long,
     val targetDate: String,
     val category: String, // "Holiday", "Education", "Property", "Emergency"
-    val contributions: List<MemberContribution>
+    val contributions: List<MemberContribution>,
+    val transactions: List<FamilyGoalTransaction> = emptyList()
 )
 
 data class FamilyState(
@@ -41,6 +51,7 @@ data class FamilyState(
     val showContributeDialog: Boolean = false,
     val showCreateGoalDialog: Boolean = false,
     val selectedGoalForContribution: FamilySavingsGoal? = null,
+    val selectedGoalForDetail: FamilySavingsGoal? = null,
     val selectedTab: Int = 0, // 0: Target Bersama, 1: Anggota, 2: Aktivitas
     val totalSavingsAmount: Long = 0L,
     val totalTargetAmount: Long = 0L
@@ -84,6 +95,13 @@ class FamilyViewModel(
                     contributions = listOf(
                         MemberContribution("1", "Alex Pratama", 16_000_000L),
                         MemberContribution("2", "Sarah Pratama", 12_000_000L)
+                    ),
+                    transactions = listOf(
+                        FamilyGoalTransaction("tx_1_1", "Sarah Pratama", 2_000_000L, "17 Okt 2026, 14:30", "Setoran rutin tengah bulan", "Bank Jago"),
+                        FamilyGoalTransaction("tx_1_2", "Alex Pratama", 6_000_000L, "01 Okt 2026, 09:15", "Bonus kuartal Q3", "Rekening BCA"),
+                        FamilyGoalTransaction("tx_1_3", "Sarah Pratama", 5_000_000L, "25 Sep 2026, 18:20", "Alokasi gaji September", "Mandiri"),
+                        FamilyGoalTransaction("tx_1_4", "Alex Pratama", 10_000_000L, "01 Sep 2026, 10:00", "Setoran awal tiket pesawat & hotel", "Rekening BCA"),
+                        FamilyGoalTransaction("tx_1_5", "Sarah Pratama", 5_000_000L, "15 Agu 2026, 11:45", "Inisiasi tabungan liburan akhir tahun", "Bank Jago")
                     )
                 ),
                 FamilySavingsGoal(
@@ -96,6 +114,13 @@ class FamilyViewModel(
                     contributions = listOf(
                         MemberContribution("1", "Alex Pratama", 32_500_000L),
                         MemberContribution("2", "Sarah Pratama", 20_000_000L)
+                    ),
+                    transactions = listOf(
+                        FamilyGoalTransaction("tx_2_1", "Alex Pratama", 5_000_000L, "15 Okt 2026, 10:00", "Alokasi tabungan semester genap", "Rekening BCA"),
+                        FamilyGoalTransaction("tx_2_2", "Sarah Pratama", 10_000_000L, "28 Sep 2026, 16:30", "Tabungan biaya pendaftaran sekolah", "Mandiri"),
+                        FamilyGoalTransaction("tx_2_3", "Alex Pratama", 15_000_000L, "01 Sep 2026, 08:30", "Setoran dana pendidikan kuartal 3", "Rekening BCA"),
+                        FamilyGoalTransaction("tx_2_4", "Sarah Pratama", 10_000_000L, "15 Agu 2026, 12:00", "Gaji Sarah alokasi pendidikan", "Mandiri"),
+                        FamilyGoalTransaction("tx_2_5", "Alex Pratama", 12_500_000L, "01 Agu 2026, 09:00", "Inisiasi tabungan pendidikan anak", "Rekening BCA")
                     )
                 ),
                 FamilySavingsGoal(
@@ -108,6 +133,12 @@ class FamilyViewModel(
                     contributions = listOf(
                         MemberContribution("1", "Alex Pratama", 25_000_000L),
                         MemberContribution("2", "Sarah Pratama", 20_000_000L)
+                    ),
+                    transactions = listOf(
+                        FamilyGoalTransaction("tx_3_1", "Sarah Pratama", 10_000_000L, "05 Okt 2026, 13:10", "Top-up bantalan likuiditas keluarga", "Bank Jago"),
+                        FamilyGoalTransaction("tx_3_2", "Alex Pratama", 15_000_000L, "25 Sep 2026, 10:45", "Alokasi emergency safety buffer", "Rekening BCA"),
+                        FamilyGoalTransaction("tx_3_3", "Sarah Pratama", 10_000_000L, "01 Sep 2026, 15:20", "Setoran bulanan dana cadangan", "Mandiri"),
+                        FamilyGoalTransaction("tx_3_4", "Alex Pratama", 10_000_000L, "10 Agu 2026, 09:30", "Inisiasi dana darurat 6 bulan", "Rekening BCA")
                     )
                 )
             )
@@ -187,9 +218,26 @@ class FamilyViewModel(
         _uiState.update { it.copy(showContributeDialog = false, selectedGoalForContribution = null) }
     }
 
+    fun onSelectGoalForDetail(goal: FamilySavingsGoal) {
+        _uiState.update { it.copy(selectedGoalForDetail = goal) }
+    }
+
+    fun onDismissGoalDetail() {
+        _uiState.update { it.copy(selectedGoalForDetail = null) }
+    }
+
     fun submitContribution(goalId: String, memberName: String, amount: Long) {
         screenModelScope.launch {
             _uiState.update { state ->
+                val newTx = FamilyGoalTransaction(
+                    id = "tx_${Clock.System.now().toEpochMilliseconds()}",
+                    memberName = memberName,
+                    amount = amount,
+                    date = "Hari ini, 19:45",
+                    note = "Setoran langsung ke target",
+                    sourceWallet = "Rekening Tabungan"
+                )
+
                 val updatedGoals = state.sharedGoals.map { goal ->
                     if (goal.id == goalId) {
                         val newCurrent = goal.currentAmount + amount
@@ -202,7 +250,11 @@ class FamilyViewModel(
                         } else {
                             goal.contributions + MemberContribution("m_${Clock.System.now().epochSeconds}", memberName, amount)
                         }
-                        goal.copy(currentAmount = newCurrent, contributions = updatedContributions)
+                        goal.copy(
+                            currentAmount = newCurrent,
+                            contributions = updatedContributions,
+                            transactions = listOf(newTx) + goal.transactions
+                        )
                     } else {
                         goal
                     }
@@ -219,13 +271,15 @@ class FamilyViewModel(
                 )
 
                 val newTotalSavings = updatedGoals.sumOf { it.currentAmount }
+                val updatedDetailGoal = updatedGoals.find { it.id == state.selectedGoalForDetail?.id }
 
                 state.copy(
                     sharedGoals = updatedGoals,
                     activities = listOf(newActivity) + state.activities,
                     totalSavingsAmount = newTotalSavings,
                     showContributeDialog = false,
-                    selectedGoalForContribution = null
+                    selectedGoalForContribution = null,
+                    selectedGoalForDetail = updatedDetailGoal ?: state.selectedGoalForDetail
                 )
             }
         }
