@@ -52,7 +52,7 @@ fun SpendWealthyTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = AppTypography.Typography,
+        typography = getAppTypography(),
         content = content
     )
 }
