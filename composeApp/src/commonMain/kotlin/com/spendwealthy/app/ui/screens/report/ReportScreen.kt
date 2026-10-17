@@ -111,9 +111,12 @@ class ReportScreen(
                 selectedYear = state.selectedYear,
                 selectedMonth = state.selectedMonth,
                 onMonthSelected = { year, month ->
-                    viewModel.setMonth(year, month)
+                    if (year != null && month != null) {
+                        viewModel.setMonth(year, month)
+                    }
                 },
-                onDismiss = { showMonthPicker = false }
+                onDismiss = { showMonthPicker = false },
+                allowAll = false
             )
         }
 

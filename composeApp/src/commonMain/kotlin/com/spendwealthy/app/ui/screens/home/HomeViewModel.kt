@@ -32,6 +32,8 @@ data class BudgetAlertInfo(
 data class HomeState(
     val userName: String = "User",
     val userAvatarId: Int = 0,
+    val selectedYear: Int? = KtClock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).year,
+    val selectedMonth: Int? = KtClock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).monthNumber,
     val totalBalance: Money = Money.zero(),
     val totalIncome: Money = Money.zero(),
     val totalExpense: Money = Money.zero(),
@@ -83,6 +85,7 @@ data class HomeState(
 sealed class HomeEvent : UiEvent {
     object Refresh : HomeEvent()
     object TogglePrivacyMode : HomeEvent()
+    data class SelectPeriod(val year: Int?, val month: Int?) : HomeEvent()
     data class ContributeToGoal(val goalId: String, val walletId: String, val amount: Long) : HomeEvent()
     data class ExecuteOptimization(val recommendationId: String) : HomeEvent()
     data class ChangeResilienceScenario(val scenario: ResilienceScenario) : HomeEvent()
@@ -143,6 +146,10 @@ class HomeViewModel(
     val effect = _effect.receiveAsFlow()
 
     private val _selectedScenario = MutableStateFlow<ResilienceScenario>(ResilienceScenario.Standard)
+    private val _nowSystem = KtClock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+    private val _selectedPeriod = MutableStateFlow<Pair<Int?, Int?>>(
+        Pair(_nowSystem.year, _nowSystem.monthNumber)
+    )
 
     private var currentWallets: List<Wallet> = emptyList()
     private var currentTransactions: List<Transaction> = emptyList()
@@ -184,18 +191,32 @@ class HomeViewModel(
             }
         }
         screenModelScope.launch {
-            val now = KtClock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-            val range = monthRange(now.year, now.monthNumber)
-            transactionRepository.getTransactionsByDateRange(range.start, range.endInclusive).collect { transactions ->
-                currentTransactions = transactions
-                recomputeState()
+            _selectedPeriod.collectLatest { period ->
+                val (year, month) = period
+                if (year != null && month != null) {
+                    val range = monthRange(year, month)
+                    transactionRepository.getTransactionsByDateRange(range.start, range.endInclusive).collect { transactions ->
+                        currentTransactions = transactions
+                        recomputeState()
+                    }
+                } else {
+                    transactionRepository.getTransactions().collect { transactions ->
+                        currentTransactions = transactions
+                        recomputeState()
+                    }
+                }
             }
         }
         screenModelScope.launch {
-            val now = KtClock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-            budgetRepository.getBudgets(now.monthNumber, now.year).collect { budgets ->
-                currentBudgets = budgets
-                recomputeState()
+            _selectedPeriod.collectLatest { period ->
+                val (year, month) = period
+                val now = KtClock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+                val targetYear = year ?: now.year
+                val targetMonth = month ?: now.monthNumber
+                budgetRepository.getBudgets(targetMonth, targetYear).collect { budgets ->
+                    currentBudgets = budgets
+                    recomputeState()
+                }
             }
         }
         screenModelScope.launch {
@@ -226,7 +247,12 @@ class HomeViewModel(
 
     private fun recomputeState() {
         val now = KtClock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-        val range = monthRange(now.year, now.monthNumber)
+        val (year, month) = _selectedPeriod.value
+        val range = if (year != null && month != null) {
+            monthRange(year, month)
+        } else {
+            monthRange(now.year, now.monthNumber)
+        }
         val wallets = currentWallets
         val transactions = currentTransactions
         val budgets = currentBudgets
@@ -239,7 +265,13 @@ class HomeViewModel(
         val income = transactions.filter { it.type == TransactionType.INCOME }.sumOf { it.amount.amount }
         val expense = transactions.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount.amount }
         val unpaidBills = bills
-            .filter { it.isEnabled && it.dueDate >= range.start && it.dueDate <= range.endInclusive }
+            .filter {
+                if (year != null && month != null) {
+                    it.isEnabled && it.dueDate >= range.start && it.dueDate <= range.endInclusive
+                } else {
+                    it.isEnabled
+                }
+            }
             .sortedBy { it.dueDate }
         val totalBudget = budgets.firstOrNull { it.categoryId == null } ?: budgets.combineAsTotal()
         val budgetUsage = if (totalBudget?.limit?.amount != null && totalBudget.limit.amount > 0L) {
@@ -408,27 +440,34 @@ class HomeViewModel(
             isShieldActive = shieldStatus.isActive
         )
 
-        val transactionsWithFamily = transactions.toMutableList().apply {
-            add(0, Transaction(
-                id = "ft1",
-                amount = Money(75000, "IDR"),
-                type = TransactionType.EXPENSE,
-                categoryId = "cat_food",
-                walletId = wallets.firstOrNull()?.id ?: "w1",
-                targetWalletId = null,
-                date = now,
-                note = "Family Pizza Night",
-                merchant = "Pizza Hut",
-                createdAt = KtClock.System.now(),
-                updatedAt = KtClock.System.now(),
-                familyId = "fam_1",
-                createdById = "2"
-            ))
+        val sortedTransactions = transactions.sortedByDescending { it.date }
+        val transactionsWithFamily = if (year == null || (year == now.year && month == now.monthNumber)) {
+            sortedTransactions.toMutableList().apply {
+                add(0, Transaction(
+                    id = "ft1",
+                    amount = Money(75000, "IDR"),
+                    type = TransactionType.EXPENSE,
+                    categoryId = "cat_food",
+                    walletId = wallets.firstOrNull()?.id ?: "w1",
+                    targetWalletId = null,
+                    date = now,
+                    note = "Family Pizza Night",
+                    merchant = "Pizza Hut",
+                    createdAt = KtClock.System.now(),
+                    updatedAt = KtClock.System.now(),
+                    familyId = "fam_1",
+                    createdById = "2"
+                ))
+            }
+        } else {
+            sortedTransactions
         }
 
         _uiState.update { current ->
             current.copy(
                 isLoading = false,
+                selectedYear = year,
+                selectedMonth = month,
                 wallets = wallets,
                 totalBalance = Money(totalBalance, "IDR"),
                 totalIncome = Money(income, "IDR"),
@@ -514,6 +553,10 @@ class HomeViewModel(
     }
 
 
+    fun onPeriodSelected(year: Int?, month: Int?) {
+        _selectedPeriod.value = Pair(year, month)
+    }
+
     fun onEvent(event: HomeEvent) {
         when (event) {
             HomeEvent.Refresh -> {
@@ -521,6 +564,9 @@ class HomeViewModel(
             }
             HomeEvent.TogglePrivacyMode -> {
                 togglePrivacyMode()
+            }
+            is HomeEvent.SelectPeriod -> {
+                onPeriodSelected(event.year, event.month)
             }
             is HomeEvent.ChangeResilienceScenario -> {
                 _selectedScenario.value = event.scenario

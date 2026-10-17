@@ -313,15 +313,15 @@ class TransactionListScreen : Screen {
 
             // Month Picker Modal
             if (showMonthPicker) {
-                val now = KtClock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
                 MonthPickerModal(
-                    selectedYear = state.selectedYear ?: now.year,
-                    selectedMonth = state.selectedMonth ?: now.monthNumber,
+                    selectedYear = state.selectedYear,
+                    selectedMonth = state.selectedMonth,
                     onMonthSelected = { year, month ->
                         viewModel.onPeriodSelected(year, month)
                         showMonthPicker = false
                     },
-                    onDismiss = { showMonthPicker = false }
+                    onDismiss = { showMonthPicker = false },
+                    allowAll = true
                 )
             }
         }

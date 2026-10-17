@@ -12,6 +12,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -25,6 +27,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spendwealthy.app.ui.theme.AppColors
+import kotlinx.datetime.Clock as KtClock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 val MONTH_NAMES = listOf(
     "January", "February", "March", "April", "May", "June",
@@ -34,13 +39,17 @@ val MONTH_NAMES = listOf(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MonthPickerModal(
-    selectedYear: Int,
-    selectedMonth: Int, // 1..12
-    onMonthSelected: (year: Int, month: Int) -> Unit,
-    onDismiss: () -> Unit
+    selectedYear: Int?,
+    selectedMonth: Int?, // 1..12 or null for All
+    onMonthSelected: (year: Int?, month: Int?) -> Unit,
+    onDismiss: () -> Unit,
+    allowAll: Boolean = true
 ) {
     val haptic = LocalHapticFeedback.current
-    var currentYear by remember { mutableStateOf(selectedYear) }
+    val currentSystemYear = remember {
+        KtClock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).year
+    }
+    var currentYear by remember { mutableStateOf(selectedYear ?: currentSystemYear) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -101,7 +110,80 @@ fun MonthPickerModal(
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Option: All Periods / Tanpa Filter
+            if (allowAll) {
+                val isAllSelected = selectedMonth == null
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = if (isAllSelected) Color(0xFF111827) else Color(0xFFF9FAFB),
+                    border = BorderStroke(
+                        1.dp,
+                        if (isAllSelected) Color(0xFF111827) else Color(0xFFE5E7EB)
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .clickable {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onMonthSelected(null, null)
+                            onDismiss()
+                        }
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 13.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CalendarMonth,
+                                contentDescription = null,
+                                tint = if (isAllSelected) Color.White else Color(0xFF4B5563),
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Column {
+                                Text(
+                                    text = "Semua Periode (All)",
+                                    fontSize = 14.sp,
+                                    fontWeight = if (isAllSelected) FontWeight.Bold else FontWeight.SemiBold,
+                                    color = if (isAllSelected) Color.White else Color(0xFF111827)
+                                )
+                                Text(
+                                    text = "Tampilkan seluruh transaksi tanpa filter bulan",
+                                    fontSize = 11.sp,
+                                    color = if (isAllSelected) Color(0xFF9CA3AF) else Color(0xFF6B7280)
+                                )
+                            }
+                        }
+
+                        if (isAllSelected) {
+                            Surface(
+                                shape = CircleShape,
+                                color = AppColors.Primary,
+                                modifier = Modifier.size(22.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+            }
 
             // Year Stepper Bar (< 2026 >)
             Surface(

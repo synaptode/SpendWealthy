@@ -124,10 +124,15 @@ class HomeScreen : Screen {
         var selectedGoalForContribution by remember { mutableStateOf<Goal?>(null) }
         var achievedGoalForCelebration by remember { mutableStateOf<Goal?>(null) }
         val now = remember { kotlinx.datetime.Clock.System.now().toLocalDateTime(kotlinx.datetime.TimeZone.currentSystemDefault()) }
-        var selectedYear by remember { mutableStateOf(now.year) }
-        var selectedMonth by remember { mutableStateOf(now.monthNumber) }
         var showMonthPicker by remember { mutableStateOf(false) }
-        val selectedMonthName = MONTH_NAMES.getOrNull(selectedMonth - 1) ?: "Oktober"
+        val selectedMonth = state.selectedMonth
+        val selectedYear = state.selectedYear
+        val selectedMonthName = if (selectedMonth != null && selectedYear != null) {
+            val name = MONTH_NAMES.getOrNull(selectedMonth - 1) ?: "Oktober"
+            if (selectedYear == now.year) name else "$name $selectedYear"
+        } else {
+            "Semua"
+        }
         var selectedTransaction by remember { mutableStateOf<Transaction?>(null) }
 
         LaunchedEffect(viewModel) {
@@ -141,13 +146,14 @@ class HomeScreen : Screen {
 
         if (showMonthPicker) {
             MonthPickerModal(
-                selectedYear = selectedYear,
-                selectedMonth = selectedMonth,
+                selectedYear = state.selectedYear,
+                selectedMonth = state.selectedMonth,
                 onMonthSelected = { year, month ->
-                    selectedYear = year
-                    selectedMonth = month
+                    viewModel.onPeriodSelected(year, month)
+                    showMonthPicker = false
                 },
-                onDismiss = { showMonthPicker = false }
+                onDismiss = { showMonthPicker = false },
+                allowAll = true
             )
         }
 
