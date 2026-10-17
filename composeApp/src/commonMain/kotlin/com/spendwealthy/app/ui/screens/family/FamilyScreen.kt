@@ -1333,6 +1333,18 @@ class FamilyScreen : Screen {
                         shape = RoundedCornerShape(12.dp)
                     )
 
+                    val parsedAmount = amountText.toLongOrNull() ?: 0L
+                    if (parsedAmount > 0) {
+                        Text(
+                            text = Money(parsedAmount, "IDR").formatWithSymbol(),
+                            style = AppTypography.bodyNumeric(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.Accent
+                            )
+                        )
+                    }
+
                     // Quick Nominal Pills
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -1340,13 +1352,14 @@ class FamilyScreen : Screen {
                     ) {
                         listOf(500_000L, 1_000_000L, 2_500_000L, 5_000_000L).forEach { pillAmount ->
                             val label = if (pillAmount >= 1_000_000L) "${pillAmount / 1_000_000L} Jt" else "${pillAmount / 1_000L} Rb"
+                            val isSelected = amountText == pillAmount.toString()
                             Surface(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clip(RoundedCornerShape(8.dp))
                                     .clickable { amountText = pillAmount.toString() },
                                 shape = RoundedCornerShape(8.dp),
-                                color = Color(0xFFF3F4F6)
+                                color = if (isSelected) Color(0xFF111827) else Color(0xFFF3F4F6)
                             ) {
                                 Box(
                                     modifier = Modifier.padding(vertical = 6.dp),
@@ -1354,9 +1367,11 @@ class FamilyScreen : Screen {
                                 ) {
                                     Text(
                                         text = label,
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = AppColors.TextMain
+                                        style = AppTypography.labelNumeric(
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (isSelected) Color.White else AppColors.TextMain
+                                        )
                                     )
                                 }
                             }
@@ -1528,7 +1543,7 @@ class FamilyScreen : Screen {
                 }
 
                 // Target Nominal
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text("Target Nominal (Rp)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMuted)
                     OutlinedTextField(
                         value = targetAmountText,
@@ -1538,6 +1553,51 @@ class FamilyScreen : Screen {
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         shape = RoundedCornerShape(12.dp)
                     )
+
+                    val parsedTarget = targetAmountText.toLongOrNull() ?: 0L
+                    if (parsedTarget > 0) {
+                        Text(
+                            text = Money(parsedTarget, "IDR").formatWithSymbol(),
+                            style = AppTypography.bodyNumeric(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.Accent
+                            )
+                        )
+                    }
+
+                    // Quick Nominal Pills
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        listOf(10_000_000L, 25_000_000L, 50_000_000L, 100_000_000L).forEach { pillAmount ->
+                            val label = "${pillAmount / 1_000_000L} Jt"
+                            val isSelected = targetAmountText == pillAmount.toString()
+                            Surface(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable { targetAmountText = pillAmount.toString() },
+                                shape = RoundedCornerShape(8.dp),
+                                color = if (isSelected) Color(0xFF111827) else Color(0xFFF3F4F6)
+                            ) {
+                                Box(
+                                    modifier = Modifier.padding(vertical = 6.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = label,
+                                        style = AppTypography.labelNumeric(
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (isSelected) Color.White else AppColors.TextMain
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // Target Waktu
