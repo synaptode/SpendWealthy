@@ -2,6 +2,7 @@ package com.spendwealthy.app.ui.screens.report
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,8 +28,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -41,7 +48,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -65,6 +74,7 @@ class ReportScreen : Screen {
         val state by viewModel.uiState.collectAsState()
         val snackbarHostState = remember { SnackbarHostState() }
         val haptic = LocalHapticFeedback.current
+        var selectedTab by remember { mutableStateOf(1) } // 0: Income, 1: Expense (Default Expense to match Reference 4)
 
         LaunchedEffect(viewModel) {
             viewModel.effect.collect { effect ->
@@ -85,9 +95,10 @@ class ReportScreen : Screen {
                     .padding(padding)
                     .background(AppColors.Background)
                     .windowInsetsPadding(WindowInsets.statusBars),
-                contentPadding = PaddingValues(start = 24.dp, top = 12.dp, end = 24.dp, bottom = 140.dp),
+                contentPadding = PaddingValues(start = 20.dp, top = 12.dp, end = 20.dp, bottom = 140.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // 1. Header (Matching Reference 4: "Statistics" + Month Selector Pill)
                 item {
                     ReportHeader(
                         onExport = {
@@ -98,44 +109,56 @@ class ReportScreen : Screen {
                     )
                 }
 
-                item { CashflowOverviewCard(state) }
+                // 2. Income / Expense Pill Tab Toggle (Matching Reference 4)
+                item {
+                    IncomeExpenseToggle(
+                        selectedTab = selectedTab,
+                        onTabSelected = {
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            selectedTab = it
+                        }
+                    )
+                }
 
-                item { FinancialInsightBanner(state.insight) }
-
-                if (state.categorySummaries.isNotEmpty()) {
-                    item {
-                        SectionTitle("Komposisi Pengeluaran")
-                    }
-                    item {
-                        Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(22.dp),
-                            color = AppColors.Surface,
-                            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+                // 3. Segmented Donut Chart Card (Matching Reference 4: Total Expense + Donut + % remaining)
+                item {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(24.dp),
+                        color = AppColors.Surface,
+                        border = BorderStroke(1.dp, AppColors.Outline)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 24.dp, horizontal = 16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 20.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
+                            if (state.categorySummaries.isNotEmpty()) {
                                 CategoryPieChart(
                                     data = state.categorySummaries.map {
                                         PieChartData(it.amount.amount.toFloat(), it.color, it.categoryName)
                                     }
                                 )
+                            } else {
+                                EmptyReportState()
                             }
                         }
                     }
                 }
 
-                item {
-                    SectionTitle("Rincian per Kategori")
-                }
+                // 4. Cashflow Overview Card (Clean Light Minimalist Card)
+                item { CashflowOverviewCard(state) }
 
-                if (state.categorySummaries.isEmpty()) {
-                    item { EmptyReportState() }
-                } else {
+                // 5. Financial Insight Banner
+                item { FinancialInsightBanner(state.insight) }
+
+                // 6. Category Breakdown List
+                if (state.categorySummaries.isNotEmpty()) {
+                    item {
+                        SectionTitle("Rincian per Kategori")
+                    }
                     items(state.categorySummaries, key = { it.categoryId ?: it.categoryName }) { summary ->
                         CategorySpendingRow(summary)
                     }
@@ -146,51 +169,139 @@ class ReportScreen : Screen {
 
     @Composable
     private fun ReportHeader(onExport: () -> Unit, loading: Boolean) {
+        val haptic = LocalHapticFeedback.current
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 6.dp),
+                .padding(bottom = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Text(
-                    text = "Laporan & Analitik",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = AppColors.TextMain
-                )
-                Text(
-                    text = "Arus kas & pola pengeluaran bulanan",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = AppColors.TextMuted
-                )
-            }
+            Text(
+                text = "Statistics",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = AppColors.TextMain
+            )
 
-            Surface(
-                modifier = Modifier
-                    .size(42.dp)
-                    .clip(CircleShape)
-                    .clickable(enabled = !loading, onClick = onExport),
-                shape = CircleShape,
-                color = AppColors.Surface,
-                border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    if (loading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            color = AppColors.Primary,
-                            strokeWidth = 2.dp
+                // Month Selector Pill (Matching Reference 4)
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = AppColors.Surface,
+                    border = BorderStroke(1.dp, AppColors.Outline),
+                    modifier = Modifier.clickable {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = "August",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = AppColors.TextMain
                         )
-                    } else {
                         Icon(
-                            imageVector = Icons.Default.FileDownload,
-                            contentDescription = "Ekspor CSV",
-                            tint = AppColors.TextMain,
-                            modifier = Modifier.size(18.dp)
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = "Pilih Bulan",
+                            tint = AppColors.TextMuted,
+                            modifier = Modifier.size(16.dp)
                         )
                     }
+                }
+
+                // CSV Export Action
+                Surface(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(CircleShape)
+                        .clickable(enabled = !loading, onClick = onExport),
+                    shape = CircleShape,
+                    color = AppColors.Surface,
+                    border = BorderStroke(1.dp, AppColors.Outline)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        if (loading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                color = AppColors.Primary,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.FileDownload,
+                                contentDescription = "Ekspor CSV",
+                                tint = AppColors.TextMain,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Income / Expense Pill Tab Toggle matching Reference 4.
+     */
+    @Composable
+    private fun IncomeExpenseToggle(
+        selectedTab: Int,
+        onTabSelected: (Int) -> Unit
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            color = Color(0xFFF3F4F6)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                // Income Tab
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(if (selectedTab == 0) Color(0xFF111827) else Color.Transparent)
+                        .clickable { onTabSelected(0) }
+                        .padding(vertical = 10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Income",
+                        fontSize = 13.sp,
+                        fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Medium,
+                        color = if (selectedTab == 0) Color.White else AppColors.TextMuted
+                    )
+                }
+
+                // Expense Tab (Active in Ref 4)
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(if (selectedTab == 1) Color(0xFF111827) else Color.Transparent)
+                        .clickable { onTabSelected(1) }
+                        .padding(vertical = 10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Expense",
+                        fontSize = 13.sp,
+                        fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Medium,
+                        color = if (selectedTab == 1) Color.White else AppColors.TextMuted
+                    )
                 }
             }
         }
@@ -203,80 +314,72 @@ class ReportScreen : Screen {
 
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            color = AppColors.SurfaceRaised,
-            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+            shape = RoundedCornerShape(22.dp),
+            color = AppColors.Surface,
+            border = BorderStroke(1.dp, AppColors.Outline)
         ) {
-            Box(
+            Column(
                 modifier = Modifier
-                    .background(
-                        androidx.compose.ui.graphics.Brush.linearGradient(
-                            listOf(
-                                Color(0xFF1E293B),
-                                Color(0xFF0F172A)
-                            )
-                        )
-                    )
-                    .padding(22.dp)
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(8.dp)
-                                    .clip(CircleShape)
-                                    .background(AppColors.Accent)
-                            )
-                            Text(
-                                text = "RINGKASAN ARUS KAS",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = AppColors.TextMuted,
-                                letterSpacing = 0.5.sp
-                            )
-                        }
-                        Surface(
-                            shape = RoundedCornerShape(10.dp),
-                            color = savingRateColor.copy(alpha = 0.15f),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, savingRateColor.copy(alpha = 0.3f))
-                        ) {
-                            Text(
-                                text = "Rasio Tabungan: $savingRatePercent%",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = savingRateColor,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                            )
-                        }
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(AppColors.Accent)
+                        )
+                        Text(
+                            text = "RINGKASAN ARUS KAS",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.TextMuted,
+                            letterSpacing = 0.5.sp
+                        )
                     }
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = savingRateColor.copy(alpha = 0.12f),
+                        border = BorderStroke(1.dp, savingRateColor.copy(alpha = 0.25f))
+                    ) {
+                        Text(
+                            text = "Rasio Tabungan: $savingRatePercent%",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = savingRateColor,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        )
+                    }
+                }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        CashflowStatBox(
-                            title = "Pemasukan",
-                            amount = state.totalIncome.format(),
-                            icon = Icons.AutoMirrored.Filled.TrendingUp,
-                            tint = AppColors.Success,
-                            modifier = Modifier.weight(1f)
-                        )
-                        CashflowStatBox(
-                            title = "Pengeluaran",
-                            amount = state.totalExpense.format(),
-                            icon = Icons.AutoMirrored.Filled.TrendingDown,
-                            tint = AppColors.Danger,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    CashflowStatBox(
+                        title = "Pemasukan",
+                        amount = state.totalIncome.format(),
+                        icon = Icons.AutoMirrored.Filled.TrendingUp,
+                        tint = AppColors.Success,
+                        modifier = Modifier.weight(1f)
+                    )
+                    CashflowStatBox(
+                        title = "Pengeluaran",
+                        amount = state.totalExpense.format(),
+                        icon = Icons.AutoMirrored.Filled.TrendingDown,
+                        tint = AppColors.Danger,
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
         }
@@ -389,52 +492,83 @@ class ReportScreen : Screen {
             animationSpec = tween(500)
         )
 
+        // Dynamic vector icon matching Reference 4 categories
+        val icon = when {
+            summary.categoryName.contains("bisnis", ignoreCase = true) ||
+            summary.categoryName.contains("business", ignoreCase = true) ||
+            summary.categoryName.contains("kerja", ignoreCase = true) -> Icons.Default.Business
+
+            summary.categoryName.contains("makan", ignoreCase = true) ||
+            summary.categoryName.contains("food", ignoreCase = true) ||
+            summary.categoryName.contains("resto", ignoreCase = true) -> Icons.Default.Restaurant
+
+            summary.categoryName.contains("edukasi", ignoreCase = true) ||
+            summary.categoryName.contains("pendidikan", ignoreCase = true) ||
+            summary.categoryName.contains("education", ignoreCase = true) ||
+            summary.categoryName.contains("kursus", ignoreCase = true) -> Icons.Default.School
+
+            summary.categoryName.contains("belanja", ignoreCase = true) ||
+            summary.categoryName.contains("shop", ignoreCase = true) -> Icons.Default.ShoppingCart
+
+            else -> Icons.Default.Category
+        }
+
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(18.dp),
             color = AppColors.Surface,
-            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+            border = BorderStroke(1.dp, AppColors.Outline)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                         Box(
                             modifier = Modifier
-                                .size(10.dp)
+                                .size(38.dp)
                                 .clip(CircleShape)
-                                .background(summary.color)
-                        )
-                        Spacer(Modifier.width(10.dp))
-                        Text(
-                            text = summary.categoryName,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = AppColors.TextMain
-                        )
+                                .background(summary.color.copy(alpha = 0.15f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                tint = summary.color,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+
+                        Column {
+                            Text(
+                                text = summary.categoryName,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.TextMain
+                            )
+                            Text(
+                                text = "$percentageInt% of total expense",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = AppColors.TextMuted
+                            )
+                        }
                     }
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = summary.amount.format(),
-                            fontWeight = FontWeight.ExtraBold,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = AppColors.TextMain
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            text = "$percentageInt%",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = AppColors.TextMuted
-                        )
-                    }
+                    Text(
+                        text = summary.amount.format(),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = AppColors.TextMain
+                    )
                 }
 
                 Box(
@@ -442,7 +576,7 @@ class ReportScreen : Screen {
                         .fillMaxWidth()
                         .height(6.dp)
                         .clip(RoundedCornerShape(3.dp))
-                        .background(AppColors.SurfaceRaised)
+                        .background(Color(0xFFF3F4F6))
                 ) {
                     Box(
                         modifier = Modifier

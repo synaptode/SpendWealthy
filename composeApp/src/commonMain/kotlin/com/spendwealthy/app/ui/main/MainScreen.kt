@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -64,6 +65,7 @@ import cafe.adriel.voyager.navigator.tab.TabNavigator
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import com.spendwealthy.app.ui.screens.budget.BudgetListScreen
 import com.spendwealthy.app.ui.screens.home.HomeScreen
+import com.spendwealthy.app.ui.screens.report.ReportScreen
 import com.spendwealthy.app.ui.screens.transaction.AddTransactionScreen
 import com.spendwealthy.app.ui.screens.transaction.list.TransactionListScreen
 import com.spendwealthy.app.ui.screens.vault.VaultScreen
@@ -145,7 +147,7 @@ class MainScreen : Screen {
                     }
 
                     DockPillItem(BudgetTab, Icons.Default.AccountBalanceWallet, "Budget")
-                    DockPillItem(VaultTab, Icons.Default.Lock, "Vault")
+                    DockPillItem(ReportTab, Icons.Default.PieChart, "Stats")
                 }
             }
         }
@@ -216,4 +218,10 @@ internal object VaultTab : Tab {
     override val options: TabOptions
         @Composable get() = TabOptions(index = 3u, title = "Brankas", icon = null)
     @Composable override fun Content() = VaultScreen().Content()
+}
+
+internal object ReportTab : Tab {
+    override val options: TabOptions
+        @Composable get() = TabOptions(index = 4u, title = "Statistics", icon = null)
+    @Composable override fun Content() = ReportScreen().Content()
 }

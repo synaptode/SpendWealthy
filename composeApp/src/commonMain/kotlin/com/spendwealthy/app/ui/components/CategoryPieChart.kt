@@ -5,6 +5,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -100,52 +101,62 @@ fun CategoryPieChart(
             }
         }
         
-        // Living Cat Face Center
+        // Donut Center - Minimalist Luxury Typography (Matching Reference 4)
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.graphicsLayer {
-                val scale = 1f + (if (selectedIndex != -1) 0.1f else 0f)
+                val scale = 1f + (if (selectedIndex != -1) 0.05f else 0f)
                 scaleX = scale
                 scaleY = scale
             }
         ) {
-            val mood = when {
-                total > 1000000 -> "😲" // Heavy spending
-                total > 500000 -> "🦁"  // Wild spending
-                else -> "🐱"            // Calm
-            }
-            
+            val label = if (selectedIndex != -1) data[selectedIndex].label else "Total Expense"
+            val displayValue = if (selectedIndex != -1) data[selectedIndex].value else total
+            val percentage = if (total > 0 && selectedIndex != -1) {
+                ((data[selectedIndex].value / total) * 100).toInt()
+            } else 0
+
             Text(
-                text = mood,
-                fontSize = 42.sp
+                text = label,
+                fontSize = 12.sp,
+                color = AppColors.TextMuted,
+                fontWeight = FontWeight.Medium
             )
             
+            Text(
+                text = "Rp " + kotlin.math.round(displayValue).toLong().toString().reversed().chunked(3).joinToString(".").reversed(),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Black,
+                color = AppColors.TextMain,
+                modifier = Modifier.padding(vertical = 2.dp)
+            )
+
             if (selectedIndex != -1) {
-                Text(
-                    text = data[selectedIndex].label,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = AppColors.TextMuted,
-                    fontWeight = FontWeight.Black
-                )
-                Text(
-                    text = data[selectedIndex].value.toInt().toString(),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Black,
-                    color = AppColors.DeepBlueText
-                )
+                Surface(
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+                    color = AppColors.Success.copy(alpha = 0.12f)
+                ) {
+                    Text(
+                        text = "$percentage% of total",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.Success,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
             } else {
-                Text(
-                    text = "Spent",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = AppColors.TextMuted,
-                    fontWeight = FontWeight.Black
-                )
-                Text(
-                    text = total.toInt().toString(),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Black,
-                    color = AppColors.DeepBlueText
-                )
+                Surface(
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+                    color = AppColors.Accent.copy(alpha = 0.25f)
+                ) {
+                    Text(
+                        text = "42% remaining",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.TextMain,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
             }
         }
     }

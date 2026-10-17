@@ -28,10 +28,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Paid
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Subscriptions
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
@@ -100,7 +107,25 @@ class TransactionListScreen : Screen {
                     )
                 }
 
-                // 2. Search Bar
+                // 2. Summary Card (Matching Reference 2 - Clean Minimalist Light Card)
+                item {
+                    SummaryCard(
+                        income = Money(totalIncome, "IDR").format(),
+                        expense = Money(totalExpense, "IDR").format(),
+                        net = Money(netCashflow, "IDR").format(),
+                        isSurplus = netCashflow >= 0,
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
+                    )
+                }
+
+                // 3. Quick Action Buttons (Matching Reference 2: Send, Receive, Swap, Deposit)
+                item {
+                    QuickActionsRow(
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)
+                    )
+                }
+
+                // 4. Search Bar
                 item {
                     SearchBar(
                         query = state.searchQuery,
@@ -109,18 +134,7 @@ class TransactionListScreen : Screen {
                     )
                 }
 
-                // 3. Cashflow Summary Card
-                item {
-                    SummaryCard(
-                        income = Money(totalIncome, "IDR").format(),
-                        expense = Money(totalExpense, "IDR").format(),
-                        net = Money(netCashflow, "IDR").format(),
-                        isSurplus = netCashflow >= 0,
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
-                    )
-                }
-
-                // 4. Category Filter Chips
+                // 5. Category Filter Chips
                 item {
                     CategoryFilterRow(
                         categories = state.categories,
@@ -133,7 +147,7 @@ class TransactionListScreen : Screen {
                     )
                 }
 
-                // 5. Transaction Count Indicator
+                // 6. Transaction Count Indicator
                 item {
                     Row(
                         modifier = Modifier
@@ -299,125 +313,204 @@ class TransactionListScreen : Screen {
         Surface(
             modifier = modifier.fillMaxWidth(),
             shape = RoundedCornerShape(22.dp),
-            color = AppColors.SurfaceRaised,
+            color = AppColors.Surface,
             border = BorderStroke(1.dp, AppColors.Outline)
         ) {
-            Box(
+            Column(
                 modifier = Modifier
-                    .background(
-                        androidx.compose.ui.graphics.Brush.linearGradient(
-                            listOf(
-                                Color(0xFF1E293B),
-                                Color(0xFF0F172A)
-                            )
-                        )
-                    )
-                    .padding(20.dp)
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(8.dp)
-                                    .clip(CircleShape)
-                                    .background(if (isSurplus) AppColors.Accent else AppColors.Danger)
-                            )
-                            Text(
-                                text = "ARUS KAS BERSIH (NET)",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = AppColors.TextMuted,
-                                letterSpacing = 1.sp
-                            )
-                        }
-
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = (if (isSurplus) AppColors.Success else AppColors.Danger).copy(alpha = 0.15f),
-                            border = BorderStroke(1.dp, (if (isSurplus) AppColors.Success else AppColors.Danger).copy(alpha = 0.3f))
-                        ) {
-                            Text(
-                                text = if (isSurplus) "Surplus Arus Kas" else "Defisit Arus Kas",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = if (isSurplus) AppColors.Success else AppColors.Danger,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(if (isSurplus) AppColors.Success else AppColors.Danger)
+                        )
+                        Text(
+                            text = "ARUS KAS BERSIH (NET)",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.TextMuted,
+                            letterSpacing = 0.5.sp
+                        )
                     }
 
-                    Text(
-                        text = (if (isSurplus) "+ " else "") + net,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Black,
-                        color = if (isSurplus) AppColors.Success else AppColors.Danger
-                    )
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(1.dp)
-                            .background(Color.White.copy(alpha = 0.06f))
-                    )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = (if (isSurplus) AppColors.Success else AppColors.Danger).copy(alpha = 0.12f),
+                        border = BorderStroke(1.dp, (if (isSurplus) AppColors.Success else AppColors.Danger).copy(alpha = 0.25f))
                     ) {
-                        Column {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.ArrowDownward,
-                                    contentDescription = null,
-                                    tint = AppColors.Success,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                                Text("Pemasukan", fontSize = 12.sp, color = AppColors.TextMuted)
-                            }
-                            Text(
-                                text = income,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = AppColors.TextMain,
-                                modifier = Modifier.padding(top = 2.dp)
-                            )
-                        }
+                        Text(
+                            text = if (isSurplus) "Surplus Arus Kas" else "Defisit Arus Kas",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isSurplus) AppColors.Success else AppColors.Danger,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
 
-                        Column(horizontalAlignment = Alignment.End) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.ArrowUpward,
-                                    contentDescription = null,
-                                    tint = AppColors.Danger,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                                Text("Pengeluaran", fontSize = 12.sp, color = AppColors.TextMuted)
-                            }
-                            Text(
-                                text = expense,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = AppColors.TextMain,
-                                modifier = Modifier.padding(top = 2.dp)
+                Text(
+                    text = (if (isSurplus) "+ " else "") + net,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Black,
+                    color = AppColors.TextMain
+                )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(AppColors.Outline.copy(alpha = 0.6f))
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowDownward,
+                                contentDescription = null,
+                                tint = AppColors.Success,
+                                modifier = Modifier.size(14.dp)
                             )
+                            Text("Pemasukan", fontSize = 12.sp, color = AppColors.TextMuted)
                         }
+                        Text(
+                            text = income,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.Success,
+                            modifier = Modifier.padding(top = 2.dp)
+                        )
+                    }
+
+                    Column(horizontalAlignment = Alignment.End) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowUpward,
+                                contentDescription = null,
+                                tint = AppColors.Danger,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Text("Pengeluaran", fontSize = 12.sp, color = AppColors.TextMuted)
+                        }
+                        Text(
+                            text = expense,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.TextMain,
+                            modifier = Modifier.padding(top = 2.dp)
+                        )
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * 4 Circular Quick Action Buttons matching Reference 2:
+     * Send (Dark), Receive (Light), Swap (Light), Deposit (Yellow).
+     */
+    @Composable
+    private fun QuickActionsRow(modifier: Modifier = Modifier) {
+        val haptic = LocalHapticFeedback.current
+
+        Row(
+            modifier = modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // 1. Send Action
+            QuickActionItem(
+                label = "Send",
+                icon = Icons.Default.ArrowUpward,
+                backgroundColor = Color(0xFF111827),
+                iconColor = Color.White,
+                onClick = { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) }
+            )
+
+            // 2. Receive Action
+            QuickActionItem(
+                label = "Receive",
+                icon = Icons.Default.ArrowDownward,
+                backgroundColor = Color(0xFFF3F4F6),
+                iconColor = Color(0xFF111827),
+                onClick = { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) }
+            )
+
+            // 3. Swap Action
+            QuickActionItem(
+                label = "Swap",
+                icon = Icons.Default.SwapHoriz,
+                backgroundColor = Color(0xFFF3F4F6),
+                iconColor = Color(0xFF111827),
+                onClick = { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) }
+            )
+
+            // 4. Deposit Action
+            QuickActionItem(
+                label = "Deposit",
+                icon = Icons.Default.Add,
+                backgroundColor = Color(0xFFFFDE43),
+                iconColor = Color(0xFF111827),
+                onClick = { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) }
+            )
+        }
+    }
+
+    @Composable
+    private fun QuickActionItem(
+        label: String,
+        icon: androidx.compose.ui.graphics.vector.ImageVector,
+        backgroundColor: Color,
+        iconColor: Color,
+        onClick: () -> Unit
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.clickable(onClick = onClick)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .clip(CircleShape)
+                    .background(backgroundColor),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = label,
+                    tint = iconColor,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+            Text(
+                text = label,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = AppColors.TextMain
+            )
         }
     }
 
@@ -437,8 +530,8 @@ class TransactionListScreen : Screen {
                 val isSelected = category == selected
                 Surface(
                     shape = RoundedCornerShape(14.dp),
-                    color = if (isSelected) AppColors.Primary else AppColors.Surface,
-                    border = BorderStroke(1.dp, if (isSelected) AppColors.Primary else AppColors.Outline.copy(alpha = 0.5f)),
+                    color = if (isSelected) Color(0xFF111827) else AppColors.Surface,
+                    border = BorderStroke(1.dp, if (isSelected) Color(0xFF111827) else AppColors.Outline),
                     modifier = Modifier.clickable { onSelect(category) }
                 ) {
                     Text(
@@ -461,11 +554,41 @@ class TransactionListScreen : Screen {
         val isIncome = transaction.type == TransactionType.INCOME
         val isTransfer = transaction.type == TransactionType.TRANSFER
 
+        // Dynamic Lucide/Material vector icon resolution (zero emojis/symbols)
+        val vectorIcon = when {
+            isTransfer -> Icons.Default.SwapHoriz
+            isIncome -> Icons.Default.Paid
+            transaction.note.contains("makan", ignoreCase = true) ||
+            transaction.note.contains("food", ignoreCase = true) ||
+            transaction.merchant.contains("food", ignoreCase = true) ||
+            transaction.merchant.contains("restaurant", ignoreCase = true) ||
+            transaction.merchant.contains("kopi", ignoreCase = true) ||
+            transaction.merchant.contains("cafe", ignoreCase = true) -> Icons.Default.Restaurant
+
+            transaction.note.contains("transport", ignoreCase = true) ||
+            transaction.merchant.contains("uber", ignoreCase = true) ||
+            transaction.merchant.contains("gojek", ignoreCase = true) ||
+            transaction.merchant.contains("grab", ignoreCase = true) -> Icons.Default.DirectionsCar
+
+            transaction.note.contains("belanja", ignoreCase = true) ||
+            transaction.note.contains("shop", ignoreCase = true) ||
+            transaction.merchant.contains("market", ignoreCase = true) -> Icons.Default.ShoppingCart
+
+            transaction.note.contains("langganan", ignoreCase = true) ||
+            transaction.merchant.contains("netflix", ignoreCase = true) ||
+            transaction.merchant.contains("spotify", ignoreCase = true) -> Icons.Default.Subscriptions
+
+            transaction.merchant.contains("workspace", ignoreCase = true) ||
+            transaction.merchant.contains("office", ignoreCase = true) -> Icons.Default.Business
+
+            else -> Icons.AutoMirrored.Filled.ReceiptLong
+        }
+
         Surface(
             modifier = modifier.fillMaxWidth(),
             shape = RoundedCornerShape(18.dp),
             color = AppColors.Surface,
-            border = BorderStroke(1.dp, AppColors.Outline.copy(alpha = 0.45f))
+            border = BorderStroke(1.dp, AppColors.Outline.copy(alpha = 0.6f))
         ) {
             Row(
                 modifier = Modifier
@@ -481,30 +604,25 @@ class TransactionListScreen : Screen {
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(40.dp)
+                            .size(42.dp)
                             .clip(CircleShape)
                             .background(
                                 when {
-                                    isIncome -> AppColors.Success.copy(alpha = 0.15f)
-                                    isTransfer -> AppColors.Secondary.copy(alpha = 0.15f)
-                                    else -> AppColors.Outline.copy(alpha = 0.45f)
+                                    isIncome -> AppColors.Success.copy(alpha = 0.12f)
+                                    isTransfer -> Color(0xFFF3F4F6)
+                                    else -> Color(0xFFF3F4F6)
                                 }
                             ),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = when {
-                                isIncome -> Icons.AutoMirrored.Filled.TrendingUp
-                                isTransfer -> Icons.Default.SwapHoriz
-                                else -> Icons.AutoMirrored.Filled.ReceiptLong
-                            },
+                            imageVector = vectorIcon,
                             contentDescription = null,
                             tint = when {
                                 isIncome -> AppColors.Success
-                                isTransfer -> AppColors.Secondary
-                                else -> AppColors.TextMain
+                                else -> Color(0xFF111827)
                             },
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                     }
 
@@ -515,7 +633,7 @@ class TransactionListScreen : Screen {
                                     "Transaksi ${transaction.type.name.lowercase().replaceFirstChar { it.uppercase() }}"
                                 }
                             },
-                            fontSize = 13.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = AppColors.TextMain,
                             maxLines = 1,
@@ -535,7 +653,7 @@ class TransactionListScreen : Screen {
                     fontWeight = FontWeight.Bold,
                     color = when {
                         isIncome -> AppColors.Success
-                        isTransfer -> AppColors.Secondary
+                        isTransfer -> AppColors.TextMain
                         else -> AppColors.TextMain
                     }
                 )
