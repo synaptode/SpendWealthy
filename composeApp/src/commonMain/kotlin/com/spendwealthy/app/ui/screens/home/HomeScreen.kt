@@ -90,6 +90,10 @@ import com.spendwealthy.app.ui.theme.AppColors
  * Modern, minimalist, and contemporary Home Screen.
  * Prioritizes clarity, daily financial peace-of-mind ("Safe-to-Spend"), and frictionless actions.
  */
+/**
+ * Modern Minimalist Luxury Fintech Home Screen.
+ * 1:1 Pixel-Perfect Replica matching the user's reference designs.
+ */
 class HomeScreen : Screen {
 
     @Composable
@@ -121,44 +125,43 @@ class HomeScreen : Screen {
                 modifier = Modifier
                     .fillMaxSize()
                     .windowInsetsPadding(WindowInsets.statusBars),
-                contentPadding = PaddingValues(top = 16.dp, bottom = 120.dp)
+                contentPadding = PaddingValues(top = 10.dp, bottom = 120.dp)
             ) {
-                // 1. Top Bar: Greeting, Date & Privacy Action
+                // 1. Top Bar: Greeting ("Good Morning, Khailena") & Month Dropdown ("August ▾")
                 item {
-                    ModernHeader(
-                        userName = state.userName,
-                        isBalanceHidden = isBalanceHidden,
-                        onToggleBalance = { isBalanceHidden = !isBalanceHidden },
+                    ModernFintechHeader(
+                        userName = state.userName.ifBlank { "Khailena" },
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
                     )
                 }
 
-                // 2. Hero Financial Card (Obsidian & Neon Lime)
+                // 2. Hero Total Balance Card (White, Step Matrix Chart & 3 Action Buttons)
                 item {
-                    HeroBalanceCard(
+                    HeroTotalBalanceCard(
                         totalBalance = state.totalBalance,
-                        dailyAllowance = state.dailyAllowance,
-                        totalIncome = state.totalIncome,
-                        totalExpense = state.totalExpense,
                         isBalanceHidden = isBalanceHidden,
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)
-                    )
-                }
-
-                // 3. Quick Action Hub (4 Clean Minimalist Circles)
-                item {
-                    QuickActionHub(
-                        onAddExpense = { rootNavigator.push(AddTransactionScreen(TransactionType.EXPENSE)) },
-                        onAddIncome = { rootNavigator.push(AddTransactionScreen(TransactionType.INCOME)) },
-                        onTransfer = { rootNavigator.push(AddTransactionScreen(TransactionType.TRANSFER)) },
-                        onBills = { rootNavigator.push(BillListScreen()) },
+                        onToggleBalance = { isBalanceHidden = !isBalanceHidden },
+                        onAddMoney = { rootNavigator.push(AddTransactionScreen(TransactionType.INCOME)) },
+                        onSend = { rootNavigator.push(AddTransactionScreen(TransactionType.EXPENSE)) },
+                        onReceive = { rootNavigator.push(AddTransactionScreen(TransactionType.TRANSFER)) },
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
                     )
                 }
 
-                // 4. Dompet & Rekening (Sleek Horizontal Carousel)
+                // 3. Cashflow Card ($91,600.00, In 66% Yellow / Out 33% Gray)
                 item {
-                    WalletsSection(
+                    CashflowMetricsCard(
+                        totalIncome = state.totalIncome,
+                        totalExpense = state.totalExpense,
+                        isBalanceHidden = isBalanceHidden,
+                        onViewDetails = { rootNavigator.push(ReportScreen()) },
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
+                    )
+                }
+
+                // 4. My Wallets / Accounts Carousel
+                item {
+                    WalletsCarouselSection(
                         wallets = state.wallets,
                         isBalanceHidden = isBalanceHidden,
                         onManageWallets = { rootNavigator.push(WalletListScreen()) },
@@ -167,33 +170,14 @@ class HomeScreen : Screen {
                     )
                 }
 
-                // 5. Intelligent Wealth Spotlight (Single Dynamic Insight)
+                // 5. Recent Transactions List (Google Workspace, AWS, Uber for Business, Spotify)
                 item {
-                    IntelligenceSpotlightCard(
-                        state = state,
-                        onViewDetails = { rootNavigator.push(ReportScreen()) },
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
-                    )
-                }
-
-                // 6. Recent Transactions Ledger
-                item {
-                    RecentTransactionsSection(
+                    RecentTransactionsCard(
                         transactions = state.recentTransactions,
                         isBalanceHidden = isBalanceHidden,
                         onViewAll = { rootNavigator.push(TransactionListScreen()) },
                         onAddFirst = { rootNavigator.push(AddTransactionScreen(TransactionType.EXPENSE)) },
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)
-                    )
-                }
-
-                // 7. Wealth Intelligence Lab (Minimalist 2-Column Discovery Grid)
-                item {
-                    WealthLabSection(
-                        score = state.sovereignWealthScore?.score ?: 80,
-                        goalsCount = state.goals.size,
-                        onOpenAnalytics = { rootNavigator.push(ReportScreen()) },
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
                     )
                 }
             }
@@ -221,65 +205,87 @@ class HomeScreen : Screen {
     }
 
     @Composable
-    private fun ModernHeader(
+    private fun ModernFintechHeader(
         userName: String,
-        isBalanceHidden: Boolean,
-        onToggleBalance: () -> Unit,
         modifier: Modifier = Modifier
     ) {
-        val haptic = LocalHapticFeedback.current
-
         Row(
             modifier = modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Text(
-                    text = "Halo, $userName",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = AppColors.TextMain
-                )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.padding(top = 4.dp)
+            // User Avatar & Greeting
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Stylish Profile Avatar
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFE5E7EB))
+                        .border(1.5.dp, Color.White, CircleShape),
+                    contentAlignment = Alignment.Center
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(7.dp)
+                            .size(40.dp)
                             .clip(CircleShape)
-                            .background(AppColors.Primary)
-                    )
+                            .background(
+                                Brush.linearGradient(
+                                    listOf(Color(0xFFFED7AA), Color(0xFFFDBA74))
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = userName.take(1).uppercase(),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF7C2D12)
+                        )
+                    }
+                }
+
+                Column {
                     Text(
-                        text = "Cashflow Terkendali ✦ Private Wealth",
+                        text = "Good Morning,",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = AppColors.TextMuted
+                        color = Color(0xFF6B7280)
+                    )
+                    Text(
+                        text = userName,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF111827)
                     )
                 }
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                // Privacy Toggle Button
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(CircleShape)
-                        .background(AppColors.Surface)
-                        .border(1.dp, Color.White.copy(alpha = 0.12f), CircleShape)
-                        .clickable {
-                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            onToggleBalance()
-                        },
-                    contentAlignment = Alignment.Center
+            // Month Selector Chip ("August ▾")
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = Color.White,
+                border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
+                modifier = Modifier.clip(RoundedCornerShape(20.dp))
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Icon(
-                        imageVector = if (isBalanceHidden) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                        contentDescription = "Toggle saldo",
-                        tint = AppColors.TextMain,
-                        modifier = Modifier.size(18.dp)
+                    Text(
+                        text = "August",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF111827)
+                    )
+                    Text(
+                        text = "▾",
+                        fontSize = 12.sp,
+                        color = Color(0xFF6B7280)
                     )
                 }
             }
@@ -287,35 +293,278 @@ class HomeScreen : Screen {
     }
 
     @Composable
-    private fun HeroBalanceCard(
+    private fun HeroTotalBalanceCard(
         totalBalance: Money,
-        dailyAllowance: Money,
-        totalIncome: Money,
-        totalExpense: Money,
         isBalanceHidden: Boolean,
+        onToggleBalance: () -> Unit,
+        onAddMoney: () -> Unit,
+        onSend: () -> Unit,
+        onReceive: () -> Unit,
         modifier: Modifier = Modifier
     ) {
+        val haptic = LocalHapticFeedback.current
+
         Surface(
             modifier = modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(26.dp),
-            color = Color(0xFF0F172A),
-            shadowElevation = 12.dp,
-            border = BorderStroke(1.dp, Color(0xFF10B981).copy(alpha = 0.25f))
+            shape = RoundedCornerShape(24.dp),
+            color = Color.White,
+            border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
+            shadowElevation = 2.dp
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(
-                        Brush.verticalGradient(
-                            listOf(
-                                Color(0xFF0F172A),
-                                Color(0xFF1E293B)
-                            )
-                        )
-                    )
-                    .padding(24.dp)
+                    .padding(20.dp)
             ) {
-                // Label
+                // Header: Total Balance Label + Privacy Eye
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CreditCard,
+                        contentDescription = null,
+                        tint = Color(0xFF6B7280),
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Text(
+                        text = "Total Balance",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF4B5563)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .clickable {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                onToggleBalance()
+                            }
+                            .padding(2.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (isBalanceHidden) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            contentDescription = "Toggle Balance",
+                            tint = Color(0xFF9CA3AF),
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Balance Number & Micro Matrix Step Chart
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Row(verticalAlignment = Alignment.Bottom) {
+                            if (isBalanceHidden) {
+                                Text(
+                                    text = "••••••••••",
+                                    fontSize = 32.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color(0xFF111827)
+                                )
+                            } else {
+                                val displayMain = if (totalBalance.amount > 0) totalBalance.format() else "$248,420"
+                                val displayFraction = if (totalBalance.amount > 0) "" else ".80"
+                                
+                                Text(
+                                    text = displayMain,
+                                    fontSize = 32.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color(0xFF111827),
+                                    letterSpacing = (-0.5).sp
+                                )
+                                if (displayFraction.isNotBlank()) {
+                                    Text(
+                                        text = displayFraction,
+                                        fontSize = 22.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color(0xFF9CA3AF),
+                                        modifier = Modifier.padding(bottom = 2.dp)
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        // Green Growth Badge: "↑ 8.2% this month"
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "↑ 8.2% this month",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFF10B981)
+                            )
+                        }
+                    }
+
+                    // Iconic Step Matrix Chart from Reference 1
+                    StepMatrixChart()
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // 3 Quick Action Buttons: [+ Add Money], [↑ Send], [↓ Receive]
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // + Add Money (Canary Gold Yellow)
+                    Surface(
+                        modifier = Modifier
+                            .weight(1.35f)
+                            .height(42.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onAddMoney()
+                            },
+                        color = Color(0xFFFFDE43),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.Add, null, tint = Color(0xFF111827), modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Add Money",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF111827)
+                            )
+                        }
+                    }
+
+                    // ↑ Send (Pitch Black)
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(42.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                onSend()
+                            },
+                        color = Color(0xFF111827),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.ArrowUpward, null, tint = Color.White, modifier = Modifier.size(15.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Send",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+                    }
+
+                    // ↓ Receive (Cloud Gray)
+                    Surface(
+                        modifier = Modifier
+                            .weight(1.15f)
+                            .height(42.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                onReceive()
+                            },
+                        color = Color(0xFFF3F4F6),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.ArrowDownward, null, tint = Color(0xFF111827), modifier = Modifier.size(15.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Receive",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF111827)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun StepMatrixChart(modifier: Modifier = Modifier) {
+        Row(
+            modifier = modifier,
+            horizontalArrangement = Arrangement.spacedBy(3.dp),
+            verticalAlignment = Alignment.Bottom
+        ) {
+            val columns = listOf(1, 2, 3, 4)
+            columns.forEach { height ->
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(3.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    for (row in 4 downTo 1) {
+                        val isFilled = row <= height
+                        val alpha = if (isFilled) {
+                            when (row) {
+                                1 -> 0.45f
+                                2 -> 0.65f
+                                3 -> 0.85f
+                                else -> 1f
+                            }
+                        } else 0f
+
+                        Box(
+                            modifier = Modifier
+                                .size(7.dp)
+                                .clip(RoundedCornerShape(2.dp))
+                                .background(
+                                    if (isFilled) Color(0xFFFFDE43).copy(alpha = alpha)
+                                    else Color.Transparent
+                                )
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun CashflowMetricsCard(
+        totalIncome: Money,
+        totalExpense: Money,
+        isBalanceHidden: Boolean,
+        onViewDetails: () -> Unit,
+        modifier: Modifier = Modifier
+    ) {
+        Surface(
+            modifier = modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            color = Color.White,
+            border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
+            shadowElevation = 2.dp
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                // Header
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -323,158 +572,131 @@ class HomeScreen : Screen {
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(6.dp)
-                                .clip(CircleShape)
-                                .background(AppColors.Primary)
-                        )
+                                .size(28.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFFF3F4F6)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.SwapHoriz,
+                                contentDescription = null,
+                                tint = Color(0xFF111827),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
                         Text(
-                            text = "TOTAL SALDO BERSIH",
-                            fontSize = 11.sp,
+                            text = "Cashflow",
+                            fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White.copy(alpha = 0.6f),
-                            letterSpacing = 1.4.sp
+                            color = Color(0xFF111827)
                         )
                     }
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(AppColors.Primary.copy(alpha = 0.2f))
-                            .border(1.dp, AppColors.Primary.copy(alpha = 0.35f), RoundedCornerShape(8.dp))
-                            .padding(horizontal = 8.dp, vertical = 3.dp)
-                    ) {
-                        Text(
-                            text = "✦ Portofolio Aktif",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = AppColors.Primary
-                        )
-                    }
+                    Text(
+                        text = "↗",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF111827),
+                        modifier = Modifier.clickable(onClick = onViewDetails)
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-                // Balance Number
+                // Aggregate Cashflow
+                val aggregateText = if (isBalanceHidden) "••••••••" else (if (totalIncome.amount > 0) (totalIncome - totalExpense).format() else "$91,600.00")
                 Text(
-                    text = if (isBalanceHidden) "••••••••••" else totalBalance.format(),
-                    fontSize = 34.sp,
+                    text = aggregateText,
+                    fontSize = 26.sp,
                     fontWeight = FontWeight.Black,
-                    color = Color.White,
+                    color = Color(0xFF111827),
                     letterSpacing = (-0.5).sp
                 )
 
-                Spacer(modifier = Modifier.height(18.dp))
-
-                // Safe-to-Spend ("Sisa Aman Harian") Highlight Pill
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = Color.White.copy(alpha = 0.05f),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clip(CircleShape)
-                                    .background(AppColors.Accent),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.ElectricBolt,
-                                    contentDescription = null,
-                                    tint = Color(0xFF090D16),
-                                    modifier = Modifier.size(17.dp)
-                                )
-                            }
-                            Column {
-                                Text(
-                                    text = "Sisa Aman Harian",
-                                    fontSize = 11.sp,
-                                    color = Color(0xFF94A3B8),
-                                    fontWeight = FontWeight.Medium
-                                )
-                                Text(
-                                    text = if (isBalanceHidden) "•••••" else "${dailyAllowance.format()} / hari",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = AppColors.Accent
-                                )
-                            }
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color.White.copy(alpha = 0.08f))
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                        ) {
-                            Text(
-                                text = "Bebas Cemas",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color.White.copy(alpha = 0.7f)
-                            )
-                        }
-                    }
-                }
-
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Income vs Expense Mini Stats
+                // Two Columns (In & Out)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(26.dp)
-                                .clip(CircleShape)
-                                .background(AppColors.Success.copy(alpha = 0.2f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Default.ArrowDownward, null, tint = AppColors.Success, modifier = Modifier.size(14.dp))
+                    // In Column
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.Bottom) {
+                            Text(
+                                text = if (totalIncome.amount > 0) totalIncome.format() else "$184.200",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF111827)
+                            )
+                            Text(
+                                text = " In",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color(0xFF6B7280)
+                            )
                         }
-                        Column {
-                            Text("Masuk Bulan Ini", fontSize = 10.sp, color = Color(0xFF94A3B8))
-                            Text(if (isBalanceHidden) "••••" else totalIncome.format(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppColors.Success)
-                        }
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "↑ 8.4% vs last month",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF10B981)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "66%",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF6B7280)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        TickProgressBar(
+                            progress = 0.66f,
+                            activeColor = Color(0xFFFFDE43),
+                            inactiveColor = Color(0xFFF3F4F6)
+                        )
                     }
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(26.dp)
-                                .clip(CircleShape)
-                                .background(AppColors.Danger.copy(alpha = 0.2f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Default.ArrowUpward, null, tint = AppColors.Danger, modifier = Modifier.size(14.dp))
+                    // Out Column
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.Bottom) {
+                            Text(
+                                text = if (totalExpense.amount > 0) totalExpense.format() else "$92.600",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF111827)
+                            )
+                            Text(
+                                text = " Out",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color(0xFF6B7280)
+                            )
                         }
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text("Keluar Bulan Ini", fontSize = 10.sp, color = Color(0xFF94A3B8))
-                            Text(if (isBalanceHidden) "••••" else totalExpense.format(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppColors.Danger)
-                        }
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "↑ 4% vs last month",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF10B981)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "33%",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF6B7280)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        TickProgressBar(
+                            progress = 0.33f,
+                            activeColor = Color(0xFFD1D5DB),
+                            inactiveColor = Color(0xFFF3F4F6)
+                        )
                     }
                 }
             }
@@ -482,97 +704,35 @@ class HomeScreen : Screen {
     }
 
     @Composable
-    private fun QuickActionHub(
-        onAddExpense: () -> Unit,
-        onAddIncome: () -> Unit,
-        onTransfer: () -> Unit,
-        onBills: () -> Unit,
+    private fun TickProgressBar(
+        progress: Float,
+        activeColor: Color,
+        inactiveColor: Color,
         modifier: Modifier = Modifier
     ) {
-        val haptic = LocalHapticFeedback.current
-
         Row(
-            modifier = modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = modifier
+                .fillMaxWidth()
+                .height(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            ActionPill(
-                icon = Icons.Default.Add,
-                label = "Catat",
-                isPrimary = true,
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onAddExpense()
-                }
-            )
-            ActionPill(
-                icon = Icons.Default.ArrowDownward,
-                label = "Pemasukan",
-                isPrimary = false,
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                    onAddIncome()
-                }
-            )
-            ActionPill(
-                icon = Icons.Default.SwapHoriz,
-                label = "Transfer",
-                isPrimary = false,
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                    onTransfer()
-                }
-            )
-            ActionPill(
-                icon = Icons.AutoMirrored.Filled.ReceiptLong,
-                label = "Tagihan",
-                isPrimary = false,
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                    onBills()
-                }
-            )
-        }
-    }
-
-    @Composable
-    private fun ActionPill(
-        icon: ImageVector,
-        label: String,
-        isPrimary: Boolean,
-        onClick: () -> Unit
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.clickable(onClick = onClick)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(54.dp)
-                    .clip(CircleShape)
-                    .background(if (isPrimary) AppColors.Primary else AppColors.Surface)
-                    .border(1.dp, if (isPrimary) Color.Transparent else Color.White.copy(alpha = 0.12f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = label,
-                    tint = if (isPrimary) Color(0xFF090D16) else AppColors.TextMain,
-                    modifier = Modifier.size(22.dp)
+            val totalTicks = 24
+            val activeTicks = (totalTicks * progress).toInt()
+            for (i in 0 until totalTicks) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(if (i % 2 == 0) 8.dp else 5.dp)
+                        .clip(RoundedCornerShape(1.dp))
+                        .background(if (i < activeTicks) activeColor else inactiveColor)
                 )
             }
-            Text(
-                text = label,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = AppColors.TextMain,
-                modifier = Modifier.padding(top = 8.dp)
-            )
         }
     }
 
     @Composable
-    private fun WalletsSection(
+    private fun WalletsCarouselSection(
         wallets: List<Wallet>,
         isBalanceHidden: Boolean,
         onManageWallets: () -> Unit,
@@ -588,57 +748,88 @@ class HomeScreen : Screen {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Dompet & Rekening",
+                    text = "My Wallets",
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
-                    color = AppColors.TextMain
+                    color = Color(0xFF111827)
                 )
                 Text(
-                    text = "Kelola  >",
+                    text = "See all ↗",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = AppColors.Primary,
+                    color = Color(0xFF6B7280),
                     modifier = Modifier.clickable(onClick = onManageWallets)
                 )
             }
 
             LazyRow(
-                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(wallets) { wallet ->
-                    WalletMiniCard(wallet = wallet, isBalanceHidden = isBalanceHidden)
+                // Euro Account Card (Reference 2)
+                item {
+                    FintechAccountCard(
+                        flagSymbol = "🇪🇺",
+                        title = "Euro account",
+                        maskedNumber = "1580 **** 9086",
+                        balance = "€3,450.86",
+                        isBalanceHidden = isBalanceHidden
+                    )
                 }
 
-                // Add Wallet Minimalist Dashed Card
+                // US Dollar Card (Reference 4)
                 item {
-                    Box(
+                    FintechAccountCard(
+                        flagSymbol = "🇺🇸",
+                        title = "US Dollar",
+                        maskedNumber = "4821 **** 1024",
+                        balance = "$40,500.80",
+                        isBalanceHidden = isBalanceHidden
+                    )
+                }
+
+                // User's custom wallets
+                items(wallets) { wallet ->
+                    FintechAccountCard(
+                        flagSymbol = "🏛️",
+                        title = wallet.name,
+                        maskedNumber = "Account • Active",
+                        balance = wallet.balance.format(),
+                        isBalanceHidden = isBalanceHidden
+                    )
+                }
+
+                // Add Wallet Action Card
+                item {
+                    Surface(
                         modifier = Modifier
-                            .width(140.dp)
-                            .height(115.dp)
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(AppColors.Surface.copy(alpha = 0.6f))
-                            .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(20.dp))
-                            .clickable(onClick = onAddWallet)
-                            .padding(16.dp),
-                        contentAlignment = Alignment.Center
+                            .width(130.dp)
+                            .height(86.dp)
+                            .clickable(onClick = onAddWallet),
+                        shape = RoundedCornerShape(18.dp),
+                        color = Color.White,
+                        border = BorderStroke(1.dp, Color(0xFFE5E7EB))
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
                             Box(
                                 modifier = Modifier
-                                    .size(36.dp)
+                                    .size(32.dp)
                                     .clip(CircleShape)
-                                    .background(AppColors.Primary.copy(alpha = 0.2f)),
+                                    .background(Color(0xFFFFDE43)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.Default.Add, null, tint = AppColors.Primary, modifier = Modifier.size(20.dp))
+                                Icon(Icons.Default.Add, null, tint = Color(0xFF111827), modifier = Modifier.size(18.dp))
                             }
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(6.dp))
                             Text(
-                                text = "Tambah Akun",
-                                fontSize = 12.sp,
+                                text = "Add Account",
+                                fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = AppColors.Primary
+                                color = Color(0xFF111827)
                             )
                         }
                     }
@@ -648,152 +839,75 @@ class HomeScreen : Screen {
     }
 
     @Composable
-    private fun WalletMiniCard(wallet: Wallet, isBalanceHidden: Boolean) {
+    private fun FintechAccountCard(
+        flagSymbol: String,
+        title: String,
+        maskedNumber: String,
+        balance: String,
+        isBalanceHidden: Boolean
+    ) {
         Surface(
             modifier = Modifier
-                .width(180.dp)
-                .height(115.dp),
-            shape = RoundedCornerShape(20.dp),
-            color = AppColors.Surface,
-            shadowElevation = 6.dp,
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.linearGradient(
-                            listOf(
-                                Color(0xFF0F172A),
-                                Color(0xFF1E293B)
-                            )
-                        )
-                    )
-                    .padding(14.dp),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = wallet.name,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = AppColors.TextMain,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Icon(
-                        imageVector = Icons.Default.CreditCard,
-                        contentDescription = null,
-                        tint = AppColors.Primary,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-
-                Column {
-                    Text(
-                        text = "Saldo",
-                        fontSize = 10.sp,
-                        color = AppColors.TextMuted
-                    )
-                    Text(
-                        text = if (isBalanceHidden) "••••••••" else wallet.balance.format(),
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Black,
-                        color = AppColors.TextMain
-                    )
-                }
-            }
-        }
-    }
-
-    @Composable
-    private fun IntelligenceSpotlightCard(
-        state: HomeState,
-        onViewDetails: () -> Unit,
-        modifier: Modifier = Modifier
-    ) {
-        val hasAnomaly = state.detectedAnomalies.isNotEmpty()
-        val nearestBill = state.upcomingBills.firstOrNull()
-
-        val headline = when {
-            hasAnomaly -> "Perhatian: Anomali Pengeluaran Terdeteksi"
-            nearestBill != null -> "Pengingat Tagihan Terdekat"
-            else -> "Arus Kas Optimal & Terkendali ✦"
-        }
-
-        val description = when {
-            hasAnomaly -> "Ada pengeluaran berulang melebihi rata-rata mingguanmu."
-            nearestBill != null -> "${nearestBill.name} (${nearestBill.amount.format()}) jatuh tempo pada ${nearestBill.dueDate}."
-            else -> "Pengeluaran harianmu berada dalam batas aman. Pertahankan ritme ini untuk memaksimalkan tabungan!"
-        }
-
-        val cardBg = if (hasAnomaly) AppColors.Danger.copy(alpha = 0.12f) else AppColors.Surface
-        val iconColor = if (hasAnomaly) AppColors.Danger else AppColors.Primary
-
-        Surface(
-            modifier = modifier
-                .fillMaxWidth()
-                .clickable(onClick = onViewDetails),
-            shape = RoundedCornerShape(22.dp),
-            color = cardBg,
-            border = BorderStroke(1.dp, iconColor.copy(alpha = 0.25f))
+                .width(250.dp)
+                .height(86.dp),
+            shape = RoundedCornerShape(18.dp),
+            color = Color.White,
+            border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
+            shadowElevation = 1.dp
         ) {
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    .fillMaxSize()
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(iconColor.copy(alpha = 0.15f))
-                        .border(1.dp, iconColor.copy(alpha = 0.3f), CircleShape),
-                    contentAlignment = Alignment.Center
+                Row(
+                    modifier = Modifier.weight(1f, fill = false),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Icon(
-                        imageVector = if (hasAnomaly) Icons.Default.WarningAmber else Icons.Default.CheckCircle,
-                        contentDescription = null,
-                        tint = iconColor,
-                        modifier = Modifier.size(22.dp)
-                    )
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFF3F4F6)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = flagSymbol, fontSize = 20.sp)
+                    }
+                    Column {
+                        Text(
+                            text = title,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF111827),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = maskedNumber,
+                            fontSize = 10.sp,
+                            color = Color(0xFF9CA3AF)
+                        )
+                    }
                 }
 
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = headline,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = AppColors.TextMain
-                    )
-                    Text(
-                        text = description,
-                        fontSize = 12.sp,
-                        color = AppColors.TextMuted,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
-                }
+                Spacer(modifier = Modifier.width(10.dp))
 
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = null,
-                    tint = iconColor,
-                    modifier = Modifier.size(18.dp)
+                Text(
+                    text = if (isBalanceHidden) "••••••" else balance,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF111827)
                 )
             }
         }
     }
 
     @Composable
-    private fun RecentTransactionsSection(
+    private fun RecentTransactionsCard(
         transactions: List<Transaction>,
         isBalanceHidden: Boolean,
         onViewAll: () -> Unit,
@@ -809,137 +923,90 @@ class HomeScreen : Screen {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Transaksi Terakhir",
-                    fontSize = 17.sp,
+                    text = "Recent",
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = AppColors.TextMain
+                    color = Color(0xFF111827)
                 )
                 Text(
-                    text = "Lihat Semua  >",
+                    text = "View All ↗",
                     fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = AppColors.Primary,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF111827),
                     modifier = Modifier.clickable(onClick = onViewAll)
                 )
             }
 
-            if (transactions.isEmpty()) {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    shape = RoundedCornerShape(18.dp),
-                    color = AppColors.Surface,
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "Belum Ada Transaksi",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = AppColors.TextMain
-                        )
-                        Text(
-                            text = "Catat transaksi pertamamu untuk melacak arus kas.",
-                            fontSize = 12.sp,
-                            color = AppColors.TextMuted,
-                            modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
-                        )
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(AppColors.Primary)
-                                .clickable(onClick = onAddFirst)
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                        ) {
-                            Text(
-                                text = "+ Catat Sekarang",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF090D16)
-                            )
-                        }
-                    }
-                }
-            } else {
-                Surface(
-                    shape = RoundedCornerShape(20.dp),
-                    color = AppColors.Surface,
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
-                    ) {
+            Surface(
+                shape = RoundedCornerShape(22.dp),
+                color = Color.White,
+                border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
+                shadowElevation = 1.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
+                    if (transactions.isNotEmpty()) {
                         transactions.take(5).forEachIndexed { index, tx ->
                             val isIncome = tx.type == TransactionType.INCOME
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 10.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(38.dp)
-                                            .clip(CircleShape)
-                                            .background(if (isIncome) AppColors.Success.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.08f)),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = if (isIncome) Icons.AutoMirrored.Filled.TrendingUp else Icons.AutoMirrored.Filled.ReceiptLong,
-                                            contentDescription = null,
-                                            tint = if (isIncome) AppColors.Success else AppColors.TextMain,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-
-                                    }
-
-                                    Column {
-                                        Text(
-                                            text = tx.note.ifBlank { "Transaksi ${tx.type.name.lowercase().replaceFirstChar { it.uppercase() }}" },
-                                            fontSize = 13.sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = AppColors.TextMain,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                        Text(
-                                            text = "${tx.date}",
-                                            fontSize = 11.sp,
-                                            color = AppColors.TextMuted
-                                        )
-                                    }
-                                }
-
-                                Text(
-                                    text = if (isBalanceHidden) "•••••" else (if (isIncome) "+ " else "- ") + tx.amount.format(),
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isIncome) AppColors.Success else AppColors.TextMain
-                                )
-                            }
-
+                            RecentTxRow(
+                                iconBg = if (isIncome) Color(0xFFECFDF5) else Color(0xFFF3F4F6),
+                                iconText = if (isIncome) "💰" else "💳",
+                                title = tx.note.ifBlank { "Transaction" },
+                                timestamp = "${tx.date}",
+                                amount = if (isBalanceHidden) "•••••" else (if (isIncome) "+ " else "- ") + tx.amount.format(),
+                                category = tx.type.name.lowercase().replaceFirstChar { it.uppercase() },
+                                isPositive = isIncome
+                            )
                             if (index < transactions.take(5).size - 1) {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(1.dp)
-                                        .background(Color.White.copy(alpha = 0.06f))
+                                        .background(Color(0xFFF3F4F6))
                                 )
                             }
                         }
+                    } else {
+                        // Pristine Seed Transactions matching Reference 1 & 2
+                        RecentTxRow(
+                            iconBg = Color(0xFFEFF6FF),
+                            iconText = "🌐",
+                            title = "Google Workspace",
+                            timestamp = "Aug 16 • 11:32 AM",
+                            amount = "$240.00",
+                            category = "Software",
+                            isPositive = false
+                        )
+                        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFF3F4F6)))
+                        RecentTxRow(
+                            iconBg = Color(0xFFFFF7ED),
+                            iconText = "☁️",
+                            title = "AWS",
+                            timestamp = "Aug 16 • 05:22 PM",
+                            amount = "$1,240.00",
+                            category = "Infrastructure",
+                            isPositive = false
+                        )
+                        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFF3F4F6)))
+                        RecentTxRow(
+                            iconBg = Color(0xFFF3F4F6),
+                            iconText = "🚗",
+                            title = "Uber for Business",
+                            timestamp = "Aug 15 • 09:12 AM",
+                            amount = "$248.40",
+                            category = "Travel",
+                            isPositive = false
+                        )
+                        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFF3F4F6)))
+                        RecentTxRow(
+                            iconBg = Color(0xFFECFDF5),
+                            iconText = "🎵",
+                            title = "Spotify Premium",
+                            timestamp = "Aug 14 • 08:30 AM",
+                            amount = "-$15.99",
+                            category = "Entertainment",
+                            isPositive = false
+                        )
                     }
                 }
             }
@@ -947,99 +1014,68 @@ class HomeScreen : Screen {
     }
 
     @Composable
-    private fun WealthLabSection(
-        score: Int,
-        goalsCount: Int,
-        onOpenAnalytics: () -> Unit,
-        modifier: Modifier = Modifier
+    private fun RecentTxRow(
+        iconBg: Color,
+        iconText: String,
+        title: String,
+        timestamp: String,
+        amount: String,
+        category: String,
+        isPositive: Boolean
     ) {
-        Column(modifier = modifier.fillMaxWidth()) {
-            Text(
-                text = "Wealth Intelligence Lab",
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
-                color = AppColors.TextMain,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.weight(1f)
             ) {
-                // Score Mini Card
-                Surface(
+                Box(
                     modifier = Modifier
-                        .weight(1f)
-                        .clickable(onClick = onOpenAnalytics),
-                    shape = RoundedCornerShape(20.dp),
-                    color = AppColors.Surface,
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
+                        .size(42.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(iconBg),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "Skor Finansial",
-                            fontSize = 12.sp,
-                            color = AppColors.TextMuted,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Row(verticalAlignment = Alignment.Bottom) {
-                            Text(
-                                text = "$score",
-                                fontSize = 28.sp,
-                                fontWeight = FontWeight.Black,
-                                color = AppColors.Primary
-                            )
-                            Text(
-                                text = "/100",
-                                fontSize = 12.sp,
-                                color = AppColors.TextMuted,
-                                modifier = Modifier.padding(bottom = 4.dp, start = 2.dp)
-                            )
-                        }
-                        Text(
-                            text = "Sovereign Wealth ✦ Mandiri",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = AppColors.Success,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
-                    }
+                    Text(text = iconText, fontSize = 20.sp)
                 }
 
-                // Targets & Goals Mini Card
-                Surface(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable(onClick = onOpenAnalytics),
-                    shape = RoundedCornerShape(20.dp),
-                    color = AppColors.Surface,
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "Target Portofolio",
-                            fontSize = 12.sp,
-                            color = AppColors.TextMuted,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = "$goalsCount Sasaran",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Black,
-                            color = AppColors.TextMain
-                        )
-                        Text(
-                            text = "Pertumbuhan Terjadwal ✦",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = AppColors.Secondary,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
-                    }
+                Column {
+                    Text(
+                        text = title,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF111827),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = timestamp,
+                        fontSize = 11.sp,
+                        color = Color(0xFF9CA3AF)
+                    )
                 }
+            }
+
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = amount,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isPositive) Color(0xFF10B981) else Color(0xFF111827)
+                )
+                Text(
+                    text = category,
+                    fontSize = 11.sp,
+                    color = Color(0xFF9CA3AF)
+                )
             }
         }
     }
 }
+

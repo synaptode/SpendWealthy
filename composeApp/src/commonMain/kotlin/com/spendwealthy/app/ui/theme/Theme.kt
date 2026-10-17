@@ -45,7 +45,7 @@ private val DarkColorScheme = darkColorScheme(
 
 @Composable
 fun SpendWealthyTheme(
-    darkTheme: Boolean = true,
+    darkTheme: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme

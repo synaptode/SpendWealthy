@@ -4,6 +4,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -100,145 +101,94 @@ class MainScreen : Screen {
     @Composable
     private fun FloatingBottomDock(rootNavigator: Navigator) {
         val haptic = LocalHapticFeedback.current
+        val tabNavigator = LocalTabNavigator.current
 
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 12.dp),
+                .padding(bottom = 14.dp),
             contentAlignment = Alignment.BottomCenter
         ) {
             Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(68.dp),
-                shape = RoundedCornerShape(34.dp),
-                color = Color(0xFF0F172A).copy(alpha = 0.95f),
-                shadowElevation = 16.dp,
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.12f))
+                shape = RoundedCornerShape(32.dp),
+                color = Color(0xFF111827),
+                shadowElevation = 20.dp,
+                border = BorderStroke(1.dp, Color(0xFF1F2937).copy(alpha = 0.8f))
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    DockItem(HomeTab, Icons.Default.Home, "Beranda")
-                    DockItem(TransactionTab, Icons.AutoMirrored.Filled.ReceiptLong, "Transaksi")
+                    DockPillItem(HomeTab, Icons.Default.Home, "Home")
+                    DockPillItem(TransactionTab, Icons.AutoMirrored.Filled.ReceiptLong, "Activity")
+                    
+                    // Quick Action Button (+ Add)
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFFFDE43))
+                            .clickable {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                rootNavigator.push(AddTransactionScreen())
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Catat Transaksi",
+                            tint = Color(0xFF111827),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
 
-                    // Integrated Center Quick Action (Catat Cepat)
-                    CenterFab(
-                        onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            rootNavigator.push(AddTransactionScreen())
-                        }
-                    )
-
-                    DockItem(BudgetTab, Icons.Default.AccountBalanceWallet, "Anggaran")
-                    DockItem(VaultTab, Icons.Default.Lock, "Brankas")
+                    DockPillItem(BudgetTab, Icons.Default.AccountBalanceWallet, "Budget")
+                    DockPillItem(VaultTab, Icons.Default.Lock, "Vault")
                 }
             }
         }
     }
 
     @Composable
-    private fun RowScope.DockItem(tab: Tab, icon: ImageVector, label: String) {
+    private fun DockPillItem(tab: Tab, icon: ImageVector, label: String) {
         val tabNavigator = LocalTabNavigator.current
         val isSelected = tabNavigator.current == tab
         val haptic = LocalHapticFeedback.current
 
-        val scale by animateFloatAsState(
-            targetValue = if (isSelected) 1.05f else 1f,
-            animationSpec = spring(dampingRatio = Spring.DampingRatioHighBouncy)
-        )
-
-        val tintColor by animateColorAsState(
-            targetValue = if (isSelected) AppColors.Primary else AppColors.TextMuted
-        )
-
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .clip(RoundedCornerShape(20.dp))
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onClick = {
-                        if (!isSelected) {
-                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            tabNavigator.current = tab
-                        }
-                    }
-                )
-                .padding(vertical = 4.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = label,
-                tint = tintColor,
-                modifier = Modifier
-                    .size(22.dp)
-                    .scale(scale)
-            )
-
-            Text(
-                text = label,
-                fontSize = 11.sp,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                color = tintColor,
-                modifier = Modifier.padding(top = 3.dp)
-            )
-
-            // Sleek active micro-indicator dot
-            Box(
-                modifier = Modifier
-                    .padding(top = 2.dp)
-                    .size(4.dp)
-                    .clip(CircleShape)
-                    .background(if (isSelected) AppColors.Primary else Color.Transparent)
-            )
-        }
-    }
-
-    @Composable
-    private fun CenterFab(onClick: () -> Unit) {
-        val interactionSource = remember { MutableInteractionSource() }
-        val isPressed by interactionSource.collectIsPressedAsState()
-
-        val scale by animateFloatAsState(
-            targetValue = if (isPressed) 0.88f else 1f,
-            animationSpec = spring(stiffness = Spring.StiffnessMedium, dampingRatio = Spring.DampingRatioHighBouncy)
-        )
-
         Box(
             modifier = Modifier
-                .padding(horizontal = 6.dp)
-                .size(50.dp)
-                .scale(scale)
-                .shadow(12.dp, CircleShape)
-                .clip(CircleShape)
-                .background(
-                    Brush.linearGradient(
-                        listOf(Color(0xFF10B981), Color(0xFF059669))
-                    )
-                )
-                .border(1.5.dp, Color(0xFFDEFF37).copy(alpha = 0.8f), CircleShape)
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null,
-                    onClick = onClick
-                ),
+                .clip(RoundedCornerShape(22.dp))
+                .background(if (isSelected) Color.White else Color.Transparent)
+                .clickable {
+                    if (!isSelected) {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        tabNavigator.current = tab
+                    }
+                }
+                .padding(horizontal = if (isSelected) 14.dp else 10.dp, vertical = 8.dp),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Catat Transaksi",
-                tint = Color(0xFF090D16),
-                modifier = Modifier.size(26.dp)
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = label,
+                    tint = if (isSelected) Color(0xFF111827) else Color.White.copy(alpha = 0.65f),
+                    modifier = Modifier.size(19.dp)
+                )
+                if (isSelected) {
+                    Text(
+                        text = label,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF111827)
+                    )
+                }
+            }
         }
     }
 }
