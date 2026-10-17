@@ -193,7 +193,8 @@ class AddWalletScreen : Screen {
                             AppAmountInput(
                                 value = state.initialBalance,
                                 onValueChange = { viewModel.onEvent(AddWalletEvent.BalanceChanged(it)) },
-                                label = "Nominal Saldo (Rp)"
+                                label = "Nominal Saldo (Rp)",
+                                showQuickPills = false
                             )
 
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

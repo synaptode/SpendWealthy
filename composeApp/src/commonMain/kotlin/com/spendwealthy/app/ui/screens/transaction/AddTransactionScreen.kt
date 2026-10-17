@@ -40,8 +40,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Notes
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.SwapHoriz
@@ -58,6 +60,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import com.spendwealthy.app.domain.model.Money
+import com.spendwealthy.app.ui.components.IndonesianThousandVisualTransformation
+import com.spendwealthy.app.ui.components.ReceiptScannerModal
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -101,7 +108,10 @@ class AddTransactionScreen(
         val state by viewModel.uiState.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
         val snackbarHostState = remember { SnackbarHostState() }
+        val scope = rememberCoroutineScope()
+        val haptic = LocalHapticFeedback.current
         var showAmountPad by remember { mutableStateOf(true) }
+        var showReceiptScanner by remember { mutableStateOf(false) }
 
         LaunchedEffect(initialType) {
             viewModel.onEvent(AddTransactionEvent.TypeChanged(initialType))
@@ -135,6 +145,88 @@ class AddTransactionScreen(
                 ) {
                     item { AddTransactionHeader(onClose = { navigator.pop() }) }
                     item { TypeSelector(state.type) { viewModel.onEvent(AddTransactionEvent.TypeChanged(it)) } }
+                    if (state.type == TransactionType.EXPENSE) {
+                        item {
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .clickable {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        showReceiptScanner = true
+                                    },
+                                shape = RoundedCornerShape(16.dp),
+                                color = Color(0xFFFFDE43).copy(alpha = 0.12f),
+                                border = BorderStroke(1.dp, Color(0xFFFFDE43).copy(alpha = 0.35f))
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(34.dp)
+                                                .clip(CircleShape)
+                                                .background(Color(0xFFFFDE43)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
+                                                contentDescription = null,
+                                                tint = Color(0xFF111827),
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+                                        Column {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                            ) {
+                                                Text(
+                                                    text = "Pindai Struk dengan AI",
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 13.sp,
+                                                    color = Color(0xFF111827)
+                                                )
+                                                Surface(
+                                                    shape = RoundedCornerShape(6.dp),
+                                                    color = Color(0xFF10B981).copy(alpha = 0.15f)
+                                                ) {
+                                                    Text(
+                                                        text = "OCR",
+                                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                                        fontSize = 10.sp,
+                                                        fontWeight = FontWeight.ExtraBold,
+                                                        color = Color(0xFF059669)
+                                                    )
+                                                }
+                                            }
+                                            Text(
+                                                text = "Isi nominal & kategori otomatis dari foto struk",
+                                                fontSize = 11.sp,
+                                                color = AppColors.TextMuted
+                                            )
+                                        }
+                                    }
+
+                                    Icon(
+                                        imageVector = Icons.Default.ChevronRight,
+                                        contentDescription = null,
+                                        tint = AppColors.TextMuted,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
                     item {
                         AmountSection(
                             amount = state.amount,
@@ -240,6 +332,27 @@ class AddTransactionScreen(
                             )
                         }
                     }
+                }
+
+                // Interactive OCR Receipt Scanner Modal
+                if (showReceiptScanner) {
+                    ReceiptScannerModal(
+                        onReceiptScanned = { receipt ->
+                            viewModel.onEvent(AddTransactionEvent.AmountChanged(receipt.amount.toString()))
+                            viewModel.onEvent(AddTransactionEvent.NoteChanged(receipt.note))
+                            val category = state.categories.find {
+                                it.name.contains(receipt.suggestedCategoryName, ignoreCase = true)
+                            } ?: state.categories.firstOrNull()
+                            category?.let {
+                                viewModel.onEvent(AddTransactionEvent.CategorySelected(it))
+                            }
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Struk ${receipt.merchantName} (${Money(receipt.amount, "IDR").format()}) berhasil diekstraksi!")
+                            }
+                            showReceiptScanner = false
+                        },
+                        onDismiss = { showReceiptScanner = false }
+                    )
                 }
             }
         }
@@ -422,6 +535,7 @@ class AddTransactionScreen(
                             value = amount,
                             onValueChange = { input -> onAmountChange(input.filter { it.isDigit() }) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            visualTransformation = remember { IndonesianThousandVisualTransformation() },
                             singleLine = true,
                             textStyle = TextStyle(
                                 color = if (amount.isBlank()) AppColors.TextMuted else AppColors.TextMain,

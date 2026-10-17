@@ -41,12 +41,12 @@ fun GoalContributionDialog(
         AppGlassCard(backgroundColor = AppColors.Surface) {
             Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("Add to Goal", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
+                    Text("Nabung ke Impian", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
                     Icon(Icons.Default.Close, null, modifier = Modifier.clickable(onClick = onDismiss))
                 }
                 
                 Text(
-                    text = "How much would you like to contribute to ${goal.name}?",
+                    text = "Berapa nominal yang ingin kamu tabung untuk ${goal.name}?",
                     style = MaterialTheme.typography.bodyMedium,
                     color = AppColors.TextMuted
                 )
@@ -54,11 +54,11 @@ fun GoalContributionDialog(
                 AppAmountInput(
                     value = amount,
                     onValueChange = { amount = it },
-                    label = "Amount"
+                    label = "Nominal Tabungan (Rp)"
                 )
                 
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("From Wallet", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                    Text("Sumber Dompet", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         items(wallets) { wallet ->
                             WalletChip(
@@ -71,7 +71,7 @@ fun GoalContributionDialog(
                 }
                 
                 AppButton(
-                    text = "Contribute",
+                    text = "Simpan Tabungan",
                     onClick = { 
                         val amt = amount.toLongOrNull() ?: 0L
                         selectedWallet?.let { onContribute(it, amt) }

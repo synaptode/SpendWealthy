@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.spendwealthy.app.ui.theme.AppColors
@@ -33,6 +34,7 @@ fun AppTextField(
     leadingIcon: ImageVector? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
     singleLine: Boolean = true,
     error: String? = null
 ) {
@@ -60,6 +62,7 @@ fun AppTextField(
             modifier = Modifier.fillMaxWidth(),
             singleLine = singleLine,
             keyboardOptions = keyboardOptions,
+            visualTransformation = visualTransformation,
             textStyle = MaterialTheme.typography.bodyLarge.copy(
                 color = AppColors.TextMain,
                 fontWeight = FontWeight.SemiBold

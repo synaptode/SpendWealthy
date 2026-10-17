@@ -122,7 +122,8 @@ class AddBudgetScreen : Screen {
                             AppAmountInput(
                                 value = state.amount,
                                 onValueChange = { viewModel.onEvent(AddBudgetEvent.AmountChanged(it)) },
-                                label = "Limit Maksimal (Rp)"
+                                label = "Limit Maksimal (Rp)",
+                                showQuickPills = false
                             )
 
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
