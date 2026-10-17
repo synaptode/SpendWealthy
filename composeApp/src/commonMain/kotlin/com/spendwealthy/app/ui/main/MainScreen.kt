@@ -1,6 +1,10 @@
 package com.spendwealthy.app.ui.main
 
-import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.AnimatedContent
+import com.spendwealthy.app.ui.components.MotionSpecs
+import com.spendwealthy.app.ui.components.bouncyClickable
+import com.spendwealthy.app.ui.components.tactilePress
+
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -102,7 +106,14 @@ class MainScreen : Screen {
                             .fillMaxSize()
                             .widthIn(max = 680.dp)
                     ) {
-                        CurrentTab()
+                        val tabNavigator = LocalTabNavigator.current
+                        AnimatedContent(
+                            targetState = tabNavigator.current,
+                            transitionSpec = { MotionSpecs.TabTransition },
+                            label = "TabTransitionAnimation"
+                        ) { targetTab ->
+                            targetTab.Content()
+                        }
                     }
                 }
             }
@@ -141,14 +152,16 @@ class MainScreen : Screen {
                     DockPillItem(HomeTab, Icons.Default.Home, "Home")
                     DockPillItem(TransactionTab, Icons.AutoMirrored.Filled.ReceiptLong, "Activity")
                     
-                    // Quick Action Button (+ Add)
+                    // Quick Action Button (+ Add) with tactile bounce
                     Box(
                         modifier = Modifier
                             .size(46.dp)
                             .clip(CircleShape)
                             .background(Color(0xFFFFDE43))
-                            .clickable {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            .bouncyClickable(
+                                pressedScale = 0.88f,
+                                hapticType = HapticFeedbackType.LongPress
+                            ) {
                                 rootNavigator.push(AddTransactionScreen())
                             },
                         contentAlignment = Alignment.Center
@@ -178,7 +191,10 @@ class MainScreen : Screen {
             modifier = Modifier
                 .clip(RoundedCornerShape(22.dp))
                 .background(if (isSelected) Color.White else Color.Transparent)
-                .clickable {
+                .bouncyClickable(
+                    pressedScale = 0.92f,
+                    hapticType = null
+                ) {
                     if (!isSelected) {
                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                         tabNavigator.current = tab

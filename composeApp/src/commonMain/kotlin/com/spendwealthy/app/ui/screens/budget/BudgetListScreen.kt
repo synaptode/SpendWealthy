@@ -6,6 +6,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import com.spendwealthy.app.ui.components.bouncyClickable
+import com.spendwealthy.app.ui.components.tactilePress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -418,7 +420,11 @@ class BudgetListScreen : Screen {
                 .clip(RoundedCornerShape(22.dp))
                 .background(gradient)
                 .border(1.dp, Color.White.copy(alpha = 0.12f), RoundedCornerShape(22.dp))
-                .clickable(onClick = onClick)
+                .bouncyClickable(
+                    pressedScale = 0.96f,
+                    hapticType = HapticFeedbackType.LongPress,
+                    onClick = onClick
+                )
                 .padding(20.dp)
         ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
@@ -563,7 +569,11 @@ class BudgetListScreen : Screen {
         Surface(
             modifier = modifier
                 .clip(RoundedCornerShape(16.dp))
-                .clickable(onClick = onClick),
+                .bouncyClickable(
+                    pressedScale = 0.93f,
+                    hapticType = HapticFeedbackType.LongPress,
+                    onClick = onClick
+                ),
             shape = RoundedCornerShape(16.dp),
             color = AppColors.Surface,
             border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
@@ -682,7 +692,8 @@ class BudgetListScreen : Screen {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 6.dp),
+                .padding(horizontal = 16.dp, vertical = 6.dp)
+                .tactilePress(pressedScale = 0.97f),
             shape = RoundedCornerShape(20.dp),
             color = AppColors.Surface,
             border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)

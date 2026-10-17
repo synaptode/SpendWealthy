@@ -1,8 +1,21 @@
 package com.spendwealthy.app.ui.screens.home
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.derivedStateOf
+import com.spendwealthy.app.ui.components.MotionSpecs
+import com.spendwealthy.app.ui.components.bouncyClickable
+import com.spendwealthy.app.ui.components.tactilePress
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -136,12 +149,26 @@ class HomeScreen : Screen {
             )
         }
 
+        val listState = rememberLazyListState()
+        val scrollOffset by remember {
+            derivedStateOf {
+                if (listState.firstVisibleItemIndex == 0) {
+                    listState.firstVisibleItemScrollOffset.toFloat()
+                } else {
+                    400f
+                }
+            }
+        }
+        val headerParallaxY = (scrollOffset * 0.35f).coerceAtMost(40f)
+        val headerAlpha = (1f - (scrollOffset / 240f)).coerceIn(0.2f, 1f)
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(AppColors.Background)
         ) {
             LazyColumn(
+                state = listState,
                 modifier = Modifier
                     .fillMaxSize()
                     .windowInsetsPadding(WindowInsets.statusBars),
@@ -154,7 +181,12 @@ class HomeScreen : Screen {
                         selectedMonthName = selectedMonthName,
                         onMonthClick = { showMonthPicker = true },
                         onProfileClick = { rootNavigator.push(SettingsScreen()) },
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+                        modifier = Modifier
+                            .padding(horizontal = 20.dp, vertical = 8.dp)
+                            .graphicsLayer {
+                                translationY = headerParallaxY
+                                alpha = headerAlpha
+                            }
                     )
                 }
 
@@ -296,12 +328,13 @@ class HomeScreen : Screen {
                 // Stylish Profile Avatar (Clickable to Settings)
                 Box(
                     modifier = Modifier
+                        .bouncyClickable(
+                            pressedScale = 0.90f,
+                            hapticType = HapticFeedbackType.LongPress,
+                            onClick = onProfileClick
+                        )
                         .size(42.dp)
                         .clip(CircleShape)
-                        .clickable {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onProfileClick()
-                        }
                         .background(Color(0xFFE5E7EB))
                         .border(1.5.dp, Color.White, CircleShape),
                     contentAlignment = Alignment.Center
@@ -353,10 +386,11 @@ class HomeScreen : Screen {
                 border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
                 modifier = Modifier
                     .clip(RoundedCornerShape(20.dp))
-                    .clickable {
-                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        onMonthClick()
-                    }
+                    .bouncyClickable(
+                        pressedScale = 0.93f,
+                        hapticType = HapticFeedbackType.TextHandleMove,
+                        onClick = onMonthClick
+                    )
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
@@ -424,10 +458,11 @@ class HomeScreen : Screen {
                     Box(
                         modifier = Modifier
                             .clip(CircleShape)
-                            .clickable {
-                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                onToggleBalance()
-                            }
+                            .bouncyClickable(
+                                pressedScale = 0.85f,
+                                hapticType = HapticFeedbackType.TextHandleMove,
+                                onClick = onToggleBalance
+                            )
                             .padding(2.dp)
                     ) {
                         Icon(
@@ -448,44 +483,58 @@ class HomeScreen : Screen {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp)) {
-                        Row(verticalAlignment = Alignment.Bottom) {
-                            if (isBalanceHidden) {
-                                Text(
-                                    text = "••••••••••",
-                                    fontSize = 28.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = Color(0xFF111827),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            } else {
-                                val displayMain = if (totalBalance.amount > 0) totalBalance.format() else "$248,420"
-                                val displayFraction = if (totalBalance.amount > 0) "" else ".80"
-                                val balanceFontSize = when {
-                                    displayMain.length > 15 -> 22.sp
-                                    displayMain.length > 12 -> 25.sp
-                                    displayMain.length > 9 -> 28.sp
-                                    else -> 32.sp
+                        AnimatedContent(
+                            targetState = isBalanceHidden,
+                            transitionSpec = {
+                                if (targetState) {
+                                    (slideInVertically(animationSpec = tween(220)) { height -> -height / 3 } + fadeIn(tween(220)))
+                                        .togetherWith(slideOutVertically(animationSpec = tween(180)) { height -> height / 3 } + fadeOut(tween(180)))
+                                } else {
+                                    (slideInVertically(animationSpec = tween(220)) { height -> height / 3 } + fadeIn(tween(220)))
+                                        .togetherWith(slideOutVertically(animationSpec = tween(180)) { height -> -height / 3 } + fadeOut(tween(180)))
                                 }
-                                
-                                Text(
-                                    text = displayMain,
-                                    fontSize = balanceFontSize,
-                                    fontWeight = FontWeight.Black,
-                                    color = Color(0xFF111827),
-                                    letterSpacing = (-0.5).sp,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                                if (displayFraction.isNotBlank()) {
+                            },
+                            label = "HeroBalancePrivacyAnimation"
+                        ) { hidden ->
+                            Row(verticalAlignment = Alignment.Bottom) {
+                                if (hidden) {
                                     Text(
-                                        text = displayFraction,
-                                        fontSize = (balanceFontSize.value * 0.7f).sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = Color(0xFF9CA3AF),
-                                        modifier = Modifier.padding(bottom = 2.dp),
-                                        maxLines = 1
+                                        text = "••••••••••",
+                                        fontSize = 28.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = Color(0xFF111827),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
+                                } else {
+                                    val displayMain = if (totalBalance.amount > 0) totalBalance.format() else "$248,420"
+                                    val displayFraction = if (totalBalance.amount > 0) "" else ".80"
+                                    val balanceFontSize = when {
+                                        displayMain.length > 15 -> 22.sp
+                                        displayMain.length > 12 -> 25.sp
+                                        displayMain.length > 9 -> 28.sp
+                                        else -> 32.sp
+                                    }
+                                    
+                                    Text(
+                                        text = displayMain,
+                                        fontSize = balanceFontSize,
+                                        fontWeight = FontWeight.Black,
+                                        color = Color(0xFF111827),
+                                        letterSpacing = (-0.5).sp,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    if (displayFraction.isNotBlank()) {
+                                        Text(
+                                            text = displayFraction,
+                                            fontSize = (balanceFontSize.value * 0.7f).sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = Color(0xFF9CA3AF),
+                                            modifier = Modifier.padding(bottom = 2.dp),
+                                            maxLines = 1
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -529,10 +578,11 @@ class HomeScreen : Screen {
                             .weight(1.3f)
                             .height(42.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .clickable {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                onAddMoney()
-                            },
+                            .bouncyClickable(
+                                pressedScale = 0.92f,
+                                hapticType = HapticFeedbackType.LongPress,
+                                onClick = onAddMoney
+                            ),
                         color = Color(0xFFFFDE43),
                         shape = RoundedCornerShape(12.dp)
                     ) {
@@ -561,10 +611,11 @@ class HomeScreen : Screen {
                             .weight(1f)
                             .height(42.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .clickable {
-                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                onSend()
-                            },
+                            .bouncyClickable(
+                                pressedScale = 0.92f,
+                                hapticType = HapticFeedbackType.TextHandleMove,
+                                onClick = onSend
+                            ),
                         color = Color(0xFF111827),
                         shape = RoundedCornerShape(12.dp)
                     ) {
@@ -593,10 +644,11 @@ class HomeScreen : Screen {
                             .weight(1.1f)
                             .height(42.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .clickable {
-                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                onReceive()
-                            },
+                            .bouncyClickable(
+                                pressedScale = 0.92f,
+                                hapticType = HapticFeedbackType.TextHandleMove,
+                                onClick = onReceive
+                            ),
                         color = Color(0xFFF3F4F6),
                         shape = RoundedCornerShape(12.dp)
                     ) {
@@ -625,19 +677,35 @@ class HomeScreen : Screen {
 
     @Composable
     private fun StepMatrixChart(modifier: Modifier = Modifier) {
+        var animateWave by remember { mutableStateOf(false) }
+        LaunchedEffect(Unit) {
+            animateWave = true
+        }
+
         Row(
             modifier = modifier,
             horizontalArrangement = Arrangement.spacedBy(3.dp),
             verticalAlignment = Alignment.Bottom
         ) {
             val columns = listOf(1, 2, 3, 4)
-            columns.forEach { height ->
+            columns.forEachIndexed { colIdx, height ->
+                val columnProgress by animateFloatAsState(
+                    targetValue = if (animateWave) 1f else 0.25f,
+                    animationSpec = tween(
+                        durationMillis = 650,
+                        delayMillis = colIdx * 70,
+                        easing = FastOutSlowInEasing
+                    ),
+                    label = "MatrixColumnProgress_$colIdx"
+                )
+
                 Column(
                     verticalArrangement = Arrangement.spacedBy(3.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    val activeRows = (height * columnProgress).toInt().coerceAtLeast(1)
                     for (row in 4 downTo 1) {
-                        val isFilled = row <= height
+                        val isFilled = row <= activeRows
                         val alpha = if (isFilled) {
                             when (row) {
                                 1 -> 0.45f
@@ -866,6 +934,12 @@ class HomeScreen : Screen {
         inactiveColor: Color,
         modifier: Modifier = Modifier
     ) {
+        val animatedProgress by animateFloatAsState(
+            targetValue = progress.coerceIn(0f, 1f),
+            animationSpec = tween(durationMillis = 850, easing = FastOutSlowInEasing),
+            label = "TickProgressAnimation"
+        )
+
         Row(
             modifier = modifier
                 .fillMaxWidth()
@@ -874,7 +948,7 @@ class HomeScreen : Screen {
             verticalAlignment = Alignment.CenterVertically
         ) {
             val totalTicks = 24
-            val activeTicks = (totalTicks * progress).toInt()
+            val activeTicks = (totalTicks * animatedProgress).toInt()
             for (i in 0 until totalTicks) {
                 Box(
                     modifier = Modifier
@@ -912,7 +986,11 @@ class HomeScreen : Screen {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(3.dp),
-                    modifier = Modifier.clickable(onClick = onManageWallets)
+                    modifier = Modifier.bouncyClickable(
+                        pressedScale = 0.94f,
+                        hapticType = HapticFeedbackType.TextHandleMove,
+                        onClick = onManageWallets
+                    )
                 ) {
                     Text(
                         text = "See all",
@@ -978,7 +1056,11 @@ class HomeScreen : Screen {
                         modifier = Modifier
                             .width(130.dp)
                             .height(86.dp)
-                            .clickable(onClick = onAddWallet),
+                            .bouncyClickable(
+                                pressedScale = 0.94f,
+                                hapticType = HapticFeedbackType.TextHandleMove,
+                                onClick = onAddWallet
+                            ),
                         shape = RoundedCornerShape(18.dp),
                         color = Color.White,
                         border = BorderStroke(1.dp, Color(0xFFE5E7EB))
@@ -1024,7 +1106,8 @@ class HomeScreen : Screen {
         Surface(
             modifier = Modifier
                 .width(250.dp)
-                .height(86.dp),
+                .height(86.dp)
+                .tactilePress(pressedScale = 0.96f),
             shape = RoundedCornerShape(18.dp),
             color = Color.White,
             border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
@@ -1235,7 +1318,11 @@ class HomeScreen : Screen {
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
-                .clickable(onClick = onClick)
+                .bouncyClickable(
+                    pressedScale = 0.97f,
+                    hapticType = HapticFeedbackType.TextHandleMove,
+                    onClick = onClick
+                )
                 .padding(vertical = 12.dp, horizontal = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically

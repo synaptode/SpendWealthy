@@ -4,6 +4,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import com.spendwealthy.app.ui.components.bouncyClickable
+import com.spendwealthy.app.ui.components.tactilePress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -657,7 +659,11 @@ class TransactionListScreen : Screen {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = Modifier.clickable(onClick = onClick)
+            modifier = Modifier.bouncyClickable(
+                pressedScale = 0.90f,
+                hapticType = HapticFeedbackType.LongPress,
+                onClick = onClick
+            )
         ) {
             Box(
                 modifier = Modifier
@@ -757,7 +763,11 @@ class TransactionListScreen : Screen {
             modifier = modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(18.dp))
-                .clickable(onClick = onClick),
+                .bouncyClickable(
+                    pressedScale = 0.97f,
+                    hapticType = HapticFeedbackType.TextHandleMove,
+                    onClick = onClick
+                ),
             shape = RoundedCornerShape(18.dp),
             color = AppColors.Surface,
             border = BorderStroke(1.dp, AppColors.Outline.copy(alpha = 0.6f))
