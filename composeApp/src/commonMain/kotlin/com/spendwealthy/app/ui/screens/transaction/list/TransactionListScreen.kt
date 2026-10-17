@@ -241,7 +241,16 @@ class TransactionListScreen : Screen {
                     }
                 }
 
-                // 5. Category Filter Chips
+                // 5. Transaction Type Filter Row
+                item {
+                    TransactionTypeFilterRow(
+                        selectedType = state.selectedType,
+                        onSelectType = { viewModel.onTypeSelected(it) },
+                        modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
+                    )
+                }
+
+                // 6. Category Filter Chips
                 item {
                     CategoryFilterRow(
                         categories = state.categories,
@@ -250,7 +259,7 @@ class TransactionListScreen : Screen {
                             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                             viewModel.onCategorySelectedByName(it)
                         },
-                        modifier = Modifier.padding(vertical = 8.dp)
+                        modifier = Modifier.padding(vertical = 4.dp)
                     )
                 }
 
@@ -576,6 +585,50 @@ class TransactionListScreen : Screen {
                             overflow = TextOverflow.Ellipsis
                         )
                     }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun TransactionTypeFilterRow(
+        selectedType: TransactionType?,
+        onSelectType: (TransactionType?) -> Unit,
+        modifier: Modifier = Modifier
+    ) {
+        val haptic = LocalHapticFeedback.current
+        val typeOptions = listOf(
+            null to "Semua Tipe",
+            TransactionType.EXPENSE to "Pengeluaran 🔴",
+            TransactionType.INCOME to "Pemasukan 🟢",
+            TransactionType.TRANSFER to "Transfer 🔄"
+        )
+
+        LazyRow(
+            modifier = modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(typeOptions) { (type, label) ->
+                val isSelected = selectedType == type
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = if (isSelected) AppColors.Primary else AppColors.SurfaceRaised,
+                    border = BorderStroke(1.dp, if (isSelected) AppColors.Primary else AppColors.Outline),
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable {
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            onSelectType(type)
+                        }
+                ) {
+                    Text(
+                        text = label,
+                        fontSize = 12.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                        color = if (isSelected) AppColors.OnPrimary else AppColors.TextMuted,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp)
+                    )
                 }
             }
         }

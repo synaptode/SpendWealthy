@@ -4,6 +4,7 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.spendwealthy.app.core.architecture.UiState
 import com.spendwealthy.app.domain.model.Transaction
+import com.spendwealthy.app.domain.model.TransactionType
 import com.spendwealthy.app.domain.repository.CategoryRepository
 import com.spendwealthy.app.domain.repository.TransactionRepository
 import com.spendwealthy.app.domain.usecase.DeleteTransactionUseCase
@@ -30,6 +31,7 @@ data class TransactionListState(
     val filteredTransactions: List<Transaction> = emptyList(),
     val categoryFilterItems: List<CategoryFilterItem> = listOf(CategoryFilterItem(null, "Semua")),
     val selectedCategoryId: String? = null,
+    val selectedType: TransactionType? = null,
     val selectedYear: Int? = null,
     val selectedMonth: Int? = null,
     val searchQuery: String = "",
@@ -80,6 +82,7 @@ class TransactionListViewModel(
                         query = current.searchQuery,
                         categoryId = current.selectedCategoryId,
                         categoryItems = categoryItems,
+                        type = current.selectedType,
                         year = current.selectedYear,
                         month = current.selectedMonth
                     ),
@@ -98,6 +101,7 @@ class TransactionListViewModel(
                 query = query,
                 categoryId = current.selectedCategoryId,
                 categoryItems = current.categoryFilterItems,
+                type = current.selectedType,
                 year = current.selectedYear,
                 month = current.selectedMonth
             )
@@ -113,6 +117,23 @@ class TransactionListViewModel(
                 query = current.searchQuery,
                 categoryId = categoryId,
                 categoryItems = current.categoryFilterItems,
+                type = current.selectedType,
+                year = current.selectedYear,
+                month = current.selectedMonth
+            )
+        )
+    }
+
+    fun onTypeSelected(type: TransactionType?) {
+        val current = _uiState.value
+        _uiState.value = current.copy(
+            selectedType = type,
+            filteredTransactions = filterTransactions(
+                transactions = current.transactions,
+                query = current.searchQuery,
+                categoryId = current.selectedCategoryId,
+                categoryItems = current.categoryFilterItems,
+                type = type,
                 year = current.selectedYear,
                 month = current.selectedMonth
             )
@@ -135,6 +156,7 @@ class TransactionListViewModel(
                 query = current.searchQuery,
                 categoryId = current.selectedCategoryId,
                 categoryItems = current.categoryFilterItems,
+                type = current.selectedType,
                 year = year,
                 month = month
             )
@@ -150,6 +172,7 @@ class TransactionListViewModel(
         query: String,
         categoryId: String?,
         categoryItems: List<CategoryFilterItem>,
+        type: TransactionType?,
         year: Int?,
         month: Int?
     ): List<Transaction> {
@@ -163,10 +186,12 @@ class TransactionListViewModel(
                     transaction.categoryId == categoryId ||
                     (selectedCategoryName != null && transaction.note.contains(selectedCategoryName, ignoreCase = true))
 
+            val matchType = type == null || transaction.type == type
+
             val matchPeriod = (year == null || transaction.date.year == year) &&
                     (month == null || transaction.date.monthNumber == month)
 
-            matchQuery && matchCategory && matchPeriod
+            matchQuery && matchCategory && matchType && matchPeriod
         }
     }
 
