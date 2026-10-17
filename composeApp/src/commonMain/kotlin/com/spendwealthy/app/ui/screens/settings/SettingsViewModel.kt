@@ -18,6 +18,8 @@ import com.spendwealthy.app.domain.model.ThemeMode
 import com.spendwealthy.app.domain.gateway.FileShareGateway
 import com.spendwealthy.app.domain.gateway.GatewayResult
 import com.spendwealthy.app.domain.usecase.ExportMonthlyTransactionsCsvUseCase
+import com.spendwealthy.app.core.localization.AppLanguage
+import com.spendwealthy.app.core.localization.LocalizationManager
 import kotlinx.datetime.Clock as KtClock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -34,6 +36,7 @@ data class SettingsState(
     val userCurrency: String = "IDR",
     val avatarId: Int = 0,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val currentLanguage: AppLanguage = AppLanguage.INDONESIAN,
     val privacySummary: String = "Data utama disimpan lokal di perangkat.",
     val exportStatus: String? = null
 ) : UiState
@@ -45,7 +48,8 @@ class SettingsViewModel(
     private val transactionRepository: TransactionRepository,
     private val dataService: DataService,
     private val fileShareGateway: FileShareGateway? = null,
-    private val exportMonthlyTransactionsCsvUseCase: ExportMonthlyTransactionsCsvUseCase? = null
+    private val exportMonthlyTransactionsCsvUseCase: ExportMonthlyTransactionsCsvUseCase? = null,
+    private val localizationManager: LocalizationManager? = null
 ) : ScreenModel {
 
     private val _uiState = MutableStateFlow(SettingsState())
@@ -99,11 +103,32 @@ class SettingsViewModel(
                     userCurrency = currency,
                     avatarId = avatarId,
                     themeMode = themeMode,
+                    currentLanguage = _uiState.value.currentLanguage,
                     privacySummary = "SpendWealthy beroperasi offline-first: enkripsi AES-256 lokal dengan sinkronisasi opsional."
                 )
             }.collectLatest { state ->
-                _uiState.value = state
+                _uiState.update { current ->
+                    state.copy(currentLanguage = current.currentLanguage)
+                }
             }
+        }
+
+        screenModelScope.launch {
+            preferenceRepository.getString("app_language").collectLatest { code ->
+                val lang = AppLanguage.fromCode(code)
+                _uiState.update { it.copy(currentLanguage = lang) }
+            }
+        }
+    }
+
+    fun setLanguage(language: AppLanguage) {
+        screenModelScope.launch {
+            if (localizationManager != null) {
+                localizationManager.setLanguage(language)
+            } else {
+                preferenceRepository.setString("app_language", language.code)
+            }
+            _uiState.update { it.copy(currentLanguage = language) }
         }
     }
 

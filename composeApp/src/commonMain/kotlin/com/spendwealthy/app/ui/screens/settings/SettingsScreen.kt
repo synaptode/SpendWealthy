@@ -78,7 +78,11 @@ import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Language
 import com.spendwealthy.app.domain.model.ThemeMode
+import com.spendwealthy.app.core.localization.AppLanguage
+import com.spendwealthy.app.core.localization.LocalStrings
+import com.spendwealthy.app.ui.components.LanguageSelectionBottomSheet
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -100,9 +104,11 @@ class SettingsScreen : Screen {
         val state by viewModel.uiState.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
         val haptic = LocalHapticFeedback.current
+        val strings = LocalStrings.current
         var showSetPinModal by remember { mutableStateOf(false) }
         var showEditProfileModal by remember { mutableStateOf(false) }
         var showLogoutDialog by remember { mutableStateOf(false) }
+        var showLanguageModal by remember { mutableStateOf(false) }
 
         Box(
             modifier = Modifier
@@ -130,7 +136,7 @@ class SettingsScreen : Screen {
                             .padding(end = 12.dp)
                     ) {
                         Text(
-                            text = "Pengaturan & Keamanan",
+                            text = strings.settingsTitle,
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.ExtraBold,
                             color = AppColors.TextMain,
@@ -138,7 +144,7 @@ class SettingsScreen : Screen {
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = "Kelola akun, privasi data & preferensi",
+                            text = strings.settingsSubtitle,
                             style = MaterialTheme.typography.bodySmall,
                             color = AppColors.TextMuted,
                             maxLines = 1,
@@ -564,6 +570,174 @@ class SettingsScreen : Screen {
                         }
                     }
 
+                    // Bahasa & Wilayah (Language & Region) Section
+                    SettingSection(title = strings.languageSectionTitle) {
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = AppColors.Surface,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                                        Text(
+                                            text = strings.selectLanguage,
+                                            fontWeight = FontWeight.Bold,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = AppColors.TextMain
+                                        )
+                                        Text(
+                                            text = strings.languageSectionSubtitle,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = AppColors.TextMuted
+                                        )
+                                    }
+
+                                    Surface(
+                                        shape = RoundedCornerShape(12.dp),
+                                        color = AppColors.Primary.copy(alpha = 0.15f),
+                                        border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Primary.copy(alpha = 0.35f))
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            Text(
+                                                text = state.currentLanguage.flagEmoji,
+                                                fontSize = 14.sp
+                                            )
+                                            Text(
+                                                text = state.currentLanguage.nativeName,
+                                                style = MaterialTheme.typography.labelMedium,
+                                                fontWeight = FontWeight.Bold,
+                                                color = AppColors.TextMain
+                                            )
+                                        }
+                                    }
+                                }
+
+                                Spacer(Modifier.height(14.dp))
+
+                                // Quick Language Selector Grid (Top 4 Languages)
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    listOf(
+                                        AppLanguage.INDONESIAN,
+                                        AppLanguage.ENGLISH,
+                                        AppLanguage.MALAY,
+                                        AppLanguage.THAI
+                                    ).forEach { lang ->
+                                        val isSelected = state.currentLanguage == lang
+                                        Surface(
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .clip(RoundedCornerShape(12.dp))
+                                                .clickable {
+                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                    viewModel.setLanguage(lang)
+                                                },
+                                            shape = RoundedCornerShape(12.dp),
+                                            color = if (isSelected) AppColors.Primary.copy(alpha = 0.18f) else AppColors.SurfaceRaised,
+                                            border = androidx.compose.foundation.BorderStroke(
+                                                width = if (isSelected) 1.5.dp else 1.dp,
+                                                color = if (isSelected) AppColors.Primary else AppColors.Outline
+                                            )
+                                        ) {
+                                            Column(
+                                                modifier = Modifier.padding(vertical = 10.dp, horizontal = 4.dp),
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center
+                                            ) {
+                                                Text(text = lang.flagEmoji, fontSize = 18.sp)
+                                                Spacer(Modifier.height(4.dp))
+                                                Text(
+                                                    text = lang.displayName,
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                                    color = if (isSelected) AppColors.TextMain else AppColors.TextMuted,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Spacer(Modifier.height(8.dp))
+
+                                // Quick Language Selector Grid (Next 4 Languages: Mandarin, Japanese, Vietnamese, Arabic)
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    listOf(
+                                        AppLanguage.CHINESE,
+                                        AppLanguage.JAPANESE,
+                                        AppLanguage.VIETNAMESE,
+                                        AppLanguage.ARABIC
+                                    ).forEach { lang ->
+                                        val isSelected = state.currentLanguage == lang
+                                        Surface(
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .clip(RoundedCornerShape(12.dp))
+                                                .clickable {
+                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                    viewModel.setLanguage(lang)
+                                                },
+                                            shape = RoundedCornerShape(12.dp),
+                                            color = if (isSelected) AppColors.Primary.copy(alpha = 0.18f) else AppColors.SurfaceRaised,
+                                            border = androidx.compose.foundation.BorderStroke(
+                                                width = if (isSelected) 1.5.dp else 1.dp,
+                                                color = if (isSelected) AppColors.Primary else AppColors.Outline
+                                            )
+                                        ) {
+                                            Column(
+                                                modifier = Modifier.padding(vertical = 10.dp, horizontal = 4.dp),
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center
+                                            ) {
+                                                Text(text = lang.flagEmoji, fontSize = 18.sp)
+                                                Spacer(Modifier.height(4.dp))
+                                                Text(
+                                                    text = lang.displayName,
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                                    color = if (isSelected) AppColors.TextMain else AppColors.TextMuted,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Spacer(Modifier.height(10.dp))
+
+                                HorizontalDivider(color = AppColors.Outline)
+
+                                Spacer(Modifier.height(8.dp))
+
+                                SettingsRowItem(
+                                    title = strings.selectLanguage,
+                                    subtitle = "${state.currentLanguage.flagEmoji} ${state.currentLanguage.nativeName} (${state.currentLanguage.region})",
+                                    icon = Icons.Default.Language,
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        showLanguageModal = true
+                                    }
+                                )
+                            }
+                        }
+                    }
+
                     // Security Section
                     SettingSection(title = "Keamanan & Pengingat") {
                         Surface(
@@ -674,6 +848,16 @@ class SettingsScreen : Screen {
                     onSave = { name, currency ->
                         viewModel.updateProfile(name, currency)
                     }
+                )
+            }
+
+            if (showLanguageModal) {
+                LanguageSelectionBottomSheet(
+                    currentLanguage = state.currentLanguage,
+                    onLanguageSelected = { lang ->
+                        viewModel.setLanguage(lang)
+                    },
+                    onDismiss = { showLanguageModal = false }
                 )
             }
 

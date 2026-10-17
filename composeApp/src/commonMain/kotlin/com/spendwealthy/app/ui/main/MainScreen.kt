@@ -128,6 +128,7 @@ class MainScreen : Screen {
     ) {
         val haptic = LocalHapticFeedback.current
         val tabNavigator = LocalTabNavigator.current
+        val strings = com.spendwealthy.app.core.localization.LocalStrings.current
 
         Box(
             modifier = modifier
@@ -153,8 +154,8 @@ class MainScreen : Screen {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    DockPillItem(HomeTab, Icons.Default.Home, "Home")
-                    DockPillItem(FamilyTab, Icons.Default.Groups, "Keluarga")
+                    DockPillItem(HomeTab, Icons.Default.Home, strings.tabHome)
+                    DockPillItem(FamilyTab, Icons.Default.Groups, strings.tabFamily)
                     
                     // Quick Action Button (+ Add) with tactile bounce
                     Box(
@@ -178,8 +179,8 @@ class MainScreen : Screen {
                         )
                     }
 
-                    DockPillItem(BudgetTab, Icons.Default.AccountBalanceWallet, "Budget")
-                    DockPillItem(ReportTab, Icons.Default.PieChart, "Stats")
+                    DockPillItem(BudgetTab, Icons.Default.AccountBalanceWallet, strings.tabBudget)
+                    DockPillItem(ReportTab, Icons.Default.PieChart, strings.tabStats)
                 }
             }
         }

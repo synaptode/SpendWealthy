@@ -25,10 +25,18 @@ import com.spendwealthy.app.ui.components.InAppNotificationToast
 import com.spendwealthy.app.ui.theme.AppColors
 import androidx.compose.ui.unit.dp
 
+import com.spendwealthy.app.core.localization.LocalizationManager
+import com.spendwealthy.app.core.localization.LocalAppLanguage
+import com.spendwealthy.app.core.localization.LocalStrings
+import androidx.compose.runtime.CompositionLocalProvider
+
 @Composable
 fun App() {
     val viewModel = koinInject<AppViewModel>()
+    val localizationManager = koinInject<LocalizationManager>()
     val startupState = viewModel.startupState.collectAsState()
+    val currentLanguage by localizationManager.currentLanguage.collectAsState()
+    val currentStrings by localizationManager.currentStrings.collectAsState()
     val state = startupState.value
     val rootReady = remember { mutableStateOf(false) }
 
@@ -36,15 +44,19 @@ fun App() {
         rootReady.value = true
     }
 
-    SpendWealthyTheme(
-        darkTheme = when (viewModel.themeMode.collectAsState().value) {
-            com.spendwealthy.app.domain.model.ThemeMode.SYSTEM -> androidx.compose.foundation.isSystemInDarkTheme()
-            com.spendwealthy.app.domain.model.ThemeMode.DARK -> true
-            com.spendwealthy.app.domain.model.ThemeMode.LIGHT -> false
-        }
+    CompositionLocalProvider(
+        LocalAppLanguage provides currentLanguage,
+        LocalStrings provides currentStrings
     ) {
-        Surface(color = androidx.compose.material3.MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
-            Box(Modifier.fillMaxSize()) {
+        SpendWealthyTheme(
+            darkTheme = when (viewModel.themeMode.collectAsState().value) {
+                com.spendwealthy.app.domain.model.ThemeMode.SYSTEM -> androidx.compose.foundation.isSystemInDarkTheme()
+                com.spendwealthy.app.domain.model.ThemeMode.DARK -> true
+                com.spendwealthy.app.domain.model.ThemeMode.LIGHT -> false
+            }
+        ) {
+            Surface(color = androidx.compose.material3.MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
+                Box(Modifier.fillMaxSize()) {
                 when {
                     !rootReady.value || state == AppStartupState.Loading -> {
                         Column(
@@ -78,4 +90,5 @@ fun App() {
             }
         }
     }
+}
 }

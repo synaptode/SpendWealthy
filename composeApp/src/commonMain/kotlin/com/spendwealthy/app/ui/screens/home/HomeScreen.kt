@@ -684,6 +684,7 @@ class HomeScreen : Screen {
         modifier: Modifier = Modifier
     ) {
         val haptic = LocalHapticFeedback.current
+        val strings = com.spendwealthy.app.core.localization.LocalStrings.current
 
         LazyRow(
             modifier = modifier.fillMaxWidth(),
@@ -693,7 +694,7 @@ class HomeScreen : Screen {
             // 1. Send Action (Expense)
             item {
                 QuickActionItem(
-                    label = "Send",
+                    label = strings.quickActionSend,
                     icon = Icons.Default.ArrowUpward,
                     backgroundColor = Color(0xFF111827),
                     iconColor = Color.White,
@@ -707,7 +708,7 @@ class HomeScreen : Screen {
             // 2. Receive Action (Income)
             item {
                 QuickActionItem(
-                    label = "Receive",
+                    label = strings.quickActionReceive,
                     icon = Icons.Default.ArrowDownward,
                     backgroundColor = Color(0xFFF3F4F6),
                     iconColor = Color(0xFF111827),
@@ -721,7 +722,7 @@ class HomeScreen : Screen {
             // 3. Scan Struk (Smart OCR & SMS Parser)
             item {
                 QuickActionItem(
-                    label = "Scan",
+                    label = strings.quickActionScan,
                     icon = Icons.AutoMirrored.Filled.ReceiptLong,
                     backgroundColor = Color(0xFF10B981).copy(alpha = 0.15f),
                     iconColor = Color(0xFF059669),
@@ -735,7 +736,7 @@ class HomeScreen : Screen {
             // 4. Paycheck Splitter Action ("Bagi Gaji")
             item {
                 QuickActionItem(
-                    label = "Bagi Gaji",
+                    label = strings.quickActionSplitSalary,
                     icon = Icons.AutoMirrored.Filled.CallSplit,
                     backgroundColor = Color(0xFFFFDE43),
                     iconColor = Color(0xFF111827),
@@ -749,7 +750,7 @@ class HomeScreen : Screen {
             // 5. Purchase Simulator Action ("Boleh Beli?")
             item {
                 QuickActionItem(
-                    label = "Simulasi",
+                    label = strings.quickActionSimulate,
                     icon = Icons.Default.ShoppingBag,
                     backgroundColor = Color(0xFFF3F4F6),
                     iconColor = Color(0xFF111827),
@@ -763,7 +764,7 @@ class HomeScreen : Screen {
             // 6. Swap Action (Transfer)
             item {
                 QuickActionItem(
-                    label = "Swap",
+                    label = strings.quickActionSwap,
                     icon = Icons.Default.SwapHoriz,
                     backgroundColor = Color(0xFFF3F4F6),
                     iconColor = Color(0xFF111827),

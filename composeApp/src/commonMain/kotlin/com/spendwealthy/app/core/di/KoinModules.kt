@@ -31,6 +31,7 @@ import com.spendwealthy.app.core.architecture.DefaultDispatcherProvider
 import com.spendwealthy.app.core.architecture.DispatcherProvider
 import org.koin.core.module.Module
 import org.koin.dsl.module
+import com.spendwealthy.app.core.localization.LocalizationManager
 
 val commonModule = module {
     // Core Architecture & Concurrency
@@ -152,7 +153,8 @@ val commonModule = module {
     factory { BillListViewModel(get(), get(), get()) }
     factory { AddBillViewModel(get(), get(), get(), get()) }
     factory { ReportViewModel(get(), get(), get(), get(), get()) }
-    factory { SettingsViewModel(get(), get(), get(), get(), get(), getOrNull(), getOrNull()) }
+    single { LocalizationManager(get()) }
+    factory { SettingsViewModel(get(), get(), get(), get(), get(), getOrNull(), getOrNull(), getOrNull()) }
     factory { VaultViewModel(get(), get()) }
     factory { AddDocumentViewModel(get()) }
     factory { FamilyViewModel(get(), get()) }
