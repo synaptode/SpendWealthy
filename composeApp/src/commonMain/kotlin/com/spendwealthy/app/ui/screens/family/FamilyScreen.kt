@@ -318,69 +318,83 @@ class FamilyScreen : Screen {
                     .fillMaxWidth()
                     .widthIn(max = 680.dp)
                     .statusBarsPadding()
-                    .padding(horizontal = 20.dp, vertical = 10.dp),
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                if (canPop) {
-                    Surface(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .clickable(onClick = onBackClick),
-                        shape = CircleShape,
-                        color = AppColors.Surface,
-                        border = BorderStroke(1.dp, AppColors.Outline)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Kembali",
-                                tint = AppColors.TextMain,
-                                modifier = Modifier.size(18.dp)
-                            )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .padding(end = 10.dp)
+                ) {
+                    if (canPop) {
+                        Surface(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .clickable(onClick = onBackClick),
+                            shape = CircleShape,
+                            color = AppColors.Surface,
+                            border = BorderStroke(1.dp, AppColors.Outline)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Kembali",
+                                    tint = AppColors.TextMain,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
                         }
+                        Spacer(Modifier.width(12.dp))
                     }
-                } else {
-                    Spacer(Modifier.size(40.dp))
+
+                    Column(
+                        modifier = Modifier
+                            .weight(1f, fill = false)
+                            .padding(end = 10.dp)
+                    ) {
+                        Text(
+                            text = "Tabungan Keluarga",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = AppColors.TextMain,
+                            letterSpacing = (-0.5).sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = "Menabung bersama & pencapaian target kolaboratif",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = AppColors.TextMuted,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "Tabungan Keluarga",
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = AppColors.TextMain
-                )
-                Text(
-                    text = "Menabung Bersama & Kolaboratif",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = AppColors.TextMuted
-                )
-            }
-
-            Surface(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .clickable(onClick = onAddGoalClick),
-                shape = CircleShape,
-                color = AppColors.Surface,
-                border = BorderStroke(1.dp, AppColors.Outline)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Tambah Target",
-                        tint = AppColors.TextMain,
-                        modifier = Modifier.size(20.dp)
-                    )
+                Surface(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
+                        .clickable(onClick = onAddGoalClick),
+                    shape = CircleShape,
+                    color = AppColors.Primary,
+                    border = BorderStroke(1.dp, AppColors.Outline)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Tambah Target",
+                            tint = AppColors.CharcoalBlack,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
                 }
             }
         }
     }
-}
 
     @Composable
     private fun FamilyVaultHeroCard(

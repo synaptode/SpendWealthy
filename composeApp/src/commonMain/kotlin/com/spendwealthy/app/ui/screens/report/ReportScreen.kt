@@ -306,51 +306,101 @@ class ReportScreen(
     ) {
         val haptic = LocalHapticFeedback.current
 
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(bottom = 6.dp)
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp)
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                if (canGoBack) {
-                    Box(
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f, fill = false).padding(end = 10.dp)
+                ) {
+                    if (canGoBack) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(AppColors.Surface)
+                                .border(1.dp, AppColors.Outline.copy(alpha = 0.6f), CircleShape)
+                                .clickable {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    onBack()
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Kembali",
+                                tint = AppColors.TextMain,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        Spacer(Modifier.width(12.dp))
+                    }
+
+                    Column(
                         modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(AppColors.Surface)
-                            .border(1.dp, AppColors.Outline.copy(alpha = 0.6f), CircleShape)
-                            .clickable {
-                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                onBack()
-                            },
-                        contentAlignment = Alignment.Center
+                            .weight(1f, fill = false)
+                            .padding(end = 10.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Kembali",
-                            tint = AppColors.TextMain,
-                            modifier = Modifier.size(18.dp)
+                        Text(
+                            text = "Statistik & Analisis",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = AppColors.TextMain,
+                            letterSpacing = (-0.5).sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = "Visualisasi arus kas, rasio & ringkasan pos belanja",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = AppColors.TextMuted,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
-                    Spacer(Modifier.width(12.dp))
                 }
 
-                Text(
-                    text = "Statistik",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = AppColors.TextMain,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                // CSV / Report Export Action Button
+                Surface(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
+                        .clickable(enabled = !loading, onClick = onExport),
+                    shape = CircleShape,
+                    color = AppColors.Primary,
+                    border = BorderStroke(1.dp, AppColors.Outline)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        if (loading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                color = AppColors.CharcoalBlack,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.FileDownload,
+                                contentDescription = "Ekspor Laporan",
+                                tint = AppColors.CharcoalBlack,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                }
             }
 
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Filter Bar (Wallet Selector & Month Selector)
             Row(
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -365,9 +415,9 @@ class ReportScreen(
                     }
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.AccountBalanceWallet,
@@ -404,9 +454,9 @@ class ReportScreen(
                         }
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            horizontalArrangement = Arrangement.spacedBy(5.dp)
                         ) {
                             Text(
                                 text = selectedMonthName,
@@ -419,34 +469,6 @@ class ReportScreen(
                                 contentDescription = "Pilih Bulan",
                                 tint = AppColors.TextMuted,
                                 modifier = Modifier.size(14.dp)
-                            )
-                        }
-                    }
-                }
-
-                // CSV Export Action
-                Surface(
-                    modifier = Modifier
-                        .size(38.dp)
-                        .clip(CircleShape)
-                        .clickable(enabled = !loading, onClick = onExport),
-                    shape = CircleShape,
-                    color = AppColors.Surface,
-                    border = BorderStroke(1.dp, AppColors.Outline)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        if (loading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                color = AppColors.Primary,
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Icon(
-                                imageVector = Icons.Default.FileDownload,
-                                contentDescription = "Ekspor CSV",
-                                tint = AppColors.TextMain,
-                                modifier = Modifier.size(16.dp)
                             )
                         }
                     }
