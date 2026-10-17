@@ -694,8 +694,11 @@ class BillListScreen : Screen {
                                         }
                                         Text(
                                             text = walletBalanceStr,
-                                            fontSize = 12.sp,
-                                            color = AppColors.TextMuted
+                                            style = AppTypography.labelNumeric(
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                color = AppColors.TextMuted
+                                            )
                                         )
                                     }
                                 }

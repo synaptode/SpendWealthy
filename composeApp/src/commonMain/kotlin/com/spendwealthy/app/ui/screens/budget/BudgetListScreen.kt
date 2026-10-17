@@ -910,9 +910,11 @@ class BudgetListScreen : Screen {
                             )
                             Text(
                                 text = if (isOverbudget) "Melebihi plafon: ${viewModel.getExceeded(budget).formatWithSymbol()}" else "Sisa anggaran: $remaining",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = if (isOverbudget) FontWeight.Bold else FontWeight.Normal,
-                                color = if (isOverbudget) AppColors.Danger else AppColors.TextMuted,
+                                style = AppTypography.labelNumeric(
+                                    fontSize = 11.sp,
+                                    fontWeight = if (isOverbudget) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (isOverbudget) AppColors.Danger else AppColors.TextMuted
+                                ),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
