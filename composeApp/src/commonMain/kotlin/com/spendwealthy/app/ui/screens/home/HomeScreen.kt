@@ -97,7 +97,7 @@ class HomeScreen : Screen {
         val navigator = LocalNavigator.currentOrThrow
         val rootNavigator = navigator.parent ?: navigator
 
-        var isBalanceHidden by remember { mutableStateOf(false) }
+        val isBalanceHidden = state.isPrivacyMode
         var selectedGoalForContribution by remember { mutableStateOf<Goal?>(null) }
         var achievedGoalForCelebration by remember { mutableStateOf<Goal?>(null) }
         var selectedYear by remember { mutableStateOf(2026) }
@@ -154,7 +154,7 @@ class HomeScreen : Screen {
                     HeroTotalBalanceCard(
                         totalBalance = state.totalBalance,
                         isBalanceHidden = isBalanceHidden,
-                        onToggleBalance = { isBalanceHidden = !isBalanceHidden },
+                        onToggleBalance = { viewModel.togglePrivacyMode() },
                         onAddMoney = { rootNavigator.push(AddTransactionScreen(TransactionType.INCOME)) },
                         onSend = { rootNavigator.push(AddTransactionScreen(TransactionType.EXPENSE)) },
                         onReceive = { rootNavigator.push(AddTransactionScreen(TransactionType.TRANSFER)) },

@@ -66,11 +66,13 @@ data class HomeState(
     val stressTestResult: StressTestResult? = null,
     val liquidityReport: LiquidityReport? = null,
     val simulationImpact: ImpactReport? = null,
+    val isPrivacyMode: Boolean = false,
     val isLoading: Boolean = false
 ) : UiState
 
 sealed class HomeEvent : UiEvent {
     object Refresh : HomeEvent()
+    object TogglePrivacyMode : HomeEvent()
     data class ContributeToGoal(val goalId: String, val walletId: String, val amount: Long) : HomeEvent()
     data class ExecuteOptimization(val recommendationId: String) : HomeEvent()
     data class ChangeResilienceScenario(val scenario: ResilienceScenario) : HomeEvent()
@@ -150,6 +152,11 @@ class HomeViewModel(
         screenModelScope.launch {
             preferenceRepository.getInt("user_avatar_id").collect { avatarId ->
                 _uiState.update { it.copy(userAvatarId = avatarId) }
+            }
+        }
+        screenModelScope.launch {
+            preferenceRepository.getBoolean("privacy_mode_enabled").collect { privacy ->
+                _uiState.update { it.copy(isPrivacyMode = privacy) }
             }
         }
         screenModelScope.launch {
@@ -473,6 +480,9 @@ class HomeViewModel(
             HomeEvent.Refresh -> {
                 recomputeState()
             }
+            HomeEvent.TogglePrivacyMode -> {
+                togglePrivacyMode()
+            }
             is HomeEvent.ChangeResilienceScenario -> {
                 _selectedScenario.value = event.scenario
             }
@@ -489,6 +499,13 @@ class HomeViewModel(
             is HomeEvent.ContributeToGoal -> contributeToGoal(event)
             is HomeEvent.ExecuteOptimization -> executeOptimization(event)
             HomeEvent.SimulateMonthlyWrapup -> simulateMonthlyWrapup()
+        }
+    }
+
+    fun togglePrivacyMode() {
+        screenModelScope.launch {
+            val current = _uiState.value.isPrivacyMode
+            preferenceRepository.setBoolean("privacy_mode_enabled", !current)
         }
     }
 

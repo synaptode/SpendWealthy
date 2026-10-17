@@ -69,6 +69,12 @@ import com.spendwealthy.app.ui.screens.insight.PrideStatusScreen
 import com.spendwealthy.app.ui.screens.premium.PaywallScreen
 import com.spendwealthy.app.ui.theme.AppColors
 
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.spendwealthy.app.ui.screens.security.SetPinModal
+
 class SettingsScreen : Screen {
 
     @Composable
@@ -77,6 +83,7 @@ class SettingsScreen : Screen {
         val state by viewModel.uiState.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
         val haptic = LocalHapticFeedback.current
+        var showSetPinModal by remember { mutableStateOf(false) }
 
         Box(
             modifier = Modifier
@@ -262,13 +269,38 @@ class SettingsScreen : Screen {
                                 verticalArrangement = Arrangement.spacedBy(14.dp)
                             ) {
                                 SettingsSwitchItem(
-                                    title = "Kunci Biometrik (FaceID / Fingerprint)",
-                                    subtitle = "Wajibkan autentikasi saat membuka aplikasi",
+                                    title = "Mode Privasi (Sensor Saldo)",
+                                    subtitle = "Sembunyikan nominal saldo dan transaksi di layar utama",
+                                    icon = Icons.Default.VisibilityOff,
+                                    checked = state.privacyModeEnabled,
+                                    onCheckedChange = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        viewModel.setPrivacyModeEnabled(it)
+                                    }
+                                )
+
+                                HorizontalDivider(color = AppColors.Outline)
+
+                                SettingsSwitchItem(
+                                    title = "Kunci Aplikasi (Biometrik & PIN)",
+                                    subtitle = "Wajibkan Face ID / Touch ID / PIN saat membuka aplikasi",
                                     icon = Icons.Default.Fingerprint,
                                     checked = state.biometricEnabled,
                                     onCheckedChange = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         viewModel.setBiometricEnabled(it)
+                                    }
+                                )
+
+                                HorizontalDivider(color = AppColors.Outline)
+
+                                SettingsRowItem(
+                                    title = "Atur PIN Keamanan (6 Digit)",
+                                    subtitle = if (state.hasCustomPin) "PIN kustom aktif (Ketuk untuk ubah)" else "Gunakan PIN demo 123456 (Ketuk untuk atur PIN baru)",
+                                    icon = Icons.Default.Lock,
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        showSetPinModal = true
                                     }
                                 )
 
@@ -316,6 +348,15 @@ class SettingsScreen : Screen {
 
                     Spacer(Modifier.height(80.dp))
                 }
+            }
+
+            if (showSetPinModal) {
+                SetPinModal(
+                    onDismiss = { showSetPinModal = false },
+                    onPinSaved = { pin ->
+                        viewModel.setSecurityPin(pin)
+                    }
+                )
             }
         }
     }

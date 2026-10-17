@@ -69,6 +69,28 @@ class AppViewModelTest {
     }
 
     @Test
+    fun testStartupStateIsLockedWhenBiometricEnabledAndNotUnlocked() = runTest(testDispatcher) {
+        val useCase = RescheduleBillRemindersUseCase(fakeBillRepo, fakeNotificationScheduler)
+        val viewModel = AppViewModel(fakePreferenceRepo, useCase, notificationService)
+
+        fakePreferenceRepo.setBoolean("onboarding_completed", true)
+        fakePreferenceRepo.setBoolean("biometric_enabled", true)
+        advanceUntilIdle()
+
+        assertEquals(AppStartupState.Locked, viewModel.startupState.value)
+
+        // Unlock
+        viewModel.unlock()
+        advanceUntilIdle()
+        assertEquals(AppStartupState.Dashboard, viewModel.startupState.value)
+
+        // Lock again
+        viewModel.lock()
+        advanceUntilIdle()
+        assertEquals(AppStartupState.Locked, viewModel.startupState.value)
+    }
+
+    @Test
     fun testNotificationObservationAndAutoDismiss() = runTest(testDispatcher) {
         val useCase = RescheduleBillRemindersUseCase(fakeBillRepo, fakeNotificationScheduler)
         val viewModel = AppViewModel(fakePreferenceRepo, useCase, notificationService)

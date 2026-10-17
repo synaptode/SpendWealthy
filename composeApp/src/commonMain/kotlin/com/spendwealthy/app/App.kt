@@ -57,6 +57,11 @@ fun App() {
                     state == AppStartupState.Onboarding -> {
                         Navigator(OnboardingScreen())
                     }
+                    state == AppStartupState.Locked -> {
+                        com.spendwealthy.app.ui.screens.security.SecurityLockScreen(
+                            onUnlocked = { viewModel.unlock() }
+                        )
+                    }
                     state == AppStartupState.Dashboard -> {
                         Navigator(MainScreen())
                     }

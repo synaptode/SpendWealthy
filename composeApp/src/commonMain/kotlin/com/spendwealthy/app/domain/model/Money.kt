@@ -44,7 +44,8 @@ data class Money(
      * In a production app, this should probably use platform-specific formatters 
      * or a more robust common-main formatting logic.
      */
-    fun format(): String {
+    fun format(privacyMode: Boolean = false): String {
+        if (privacyMode) return "Rp ••••••"
         return when (currency) {
             "IDR" -> {
                 val formatted = amount.toString().reversed().chunked(3).joinToString(".").reversed()

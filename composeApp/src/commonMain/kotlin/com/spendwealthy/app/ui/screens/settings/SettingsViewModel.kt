@@ -16,6 +16,8 @@ import kotlinx.coroutines.launch
 data class SettingsState(
     val biometricEnabled: Boolean = false,
     val notificationsEnabled: Boolean = true,
+    val privacyModeEnabled: Boolean = false,
+    val hasCustomPin: Boolean = false,
     val entitlement: SubscriptionEntitlement = SubscriptionEntitlement(SubscriptionPlan.FREE, true),
     val userName: String = "User",
     val avatarId: Int = 0,
@@ -43,13 +45,25 @@ class SettingsViewModel(
             combine(
                 preferenceRepository.getBoolean(KEY_BIOMETRIC),
                 preferenceRepository.getBoolean(KEY_NOTIFICATIONS),
+                preferenceRepository.getBoolean(KEY_PRIVACY_MODE),
+                preferenceRepository.getString(KEY_SECURITY_PIN),
                 subscriptionRepository.getEntitlement(),
                 preferenceRepository.getString("user_name"),
                 preferenceRepository.getInt("user_avatar_id")
-            ) { biometric, notifications, entitlement, name, avatarId ->
+            ) { args: Array<Any?> ->
+                val biometric = args[0] as Boolean
+                val notifications = args[1] as Boolean
+                val privacyMode = args[2] as Boolean
+                val pin = args[3] as? String
+                val entitlement = args[4] as SubscriptionEntitlement
+                val name = args[5] as? String
+                val avatarId = args[6] as Int
+
                 SettingsState(
                     biometricEnabled = biometric,
                     notificationsEnabled = notifications,
+                    privacyModeEnabled = privacyMode,
+                    hasCustomPin = !pin.isNullOrBlank(),
                     entitlement = entitlement,
                     userName = name ?: "User",
                     avatarId = avatarId,
@@ -78,6 +92,20 @@ class SettingsViewModel(
         }
     }
 
+    fun setPrivacyModeEnabled(enabled: Boolean) {
+        screenModelScope.launch {
+            preferenceRepository.setBoolean(KEY_PRIVACY_MODE, enabled)
+        }
+    }
+
+    fun setSecurityPin(pin: String) {
+        screenModelScope.launch {
+            preferenceRepository.setString(KEY_SECURITY_PIN, pin)
+            // Auto enable biometric/pin lock when user explicitly configures a PIN
+            preferenceRepository.setBoolean(KEY_BIOMETRIC, true)
+        }
+    }
+
     fun setNotificationsEnabled(enabled: Boolean) {
         screenModelScope.launch {
             preferenceRepository.setBoolean(KEY_NOTIFICATIONS, enabled)
@@ -93,5 +121,7 @@ class SettingsViewModel(
     private companion object {
         const val KEY_BIOMETRIC = "biometric_enabled"
         const val KEY_NOTIFICATIONS = "notifications_enabled"
+        const val KEY_PRIVACY_MODE = "privacy_mode_enabled"
+        const val KEY_SECURITY_PIN = "user_security_pin"
     }
 }
