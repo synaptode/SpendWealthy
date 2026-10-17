@@ -94,8 +94,6 @@ import com.spendwealthy.app.ui.screens.report.ReportScreen
 import com.spendwealthy.app.ui.screens.transaction.AddTransactionScreen
 import com.spendwealthy.app.ui.screens.transaction.list.TransactionListScreen
 import com.spendwealthy.app.ui.screens.settings.SettingsScreen
-import com.spendwealthy.app.domain.model.FamilyMember
-import com.spendwealthy.app.ui.screens.family.FamilyScreen
 import com.spendwealthy.app.ui.screens.home.components.FamilyGovernanceCard
 import com.spendwealthy.app.domain.model.CurrencyConverter
 import com.spendwealthy.app.ui.screens.budget.BudgetListScreen
@@ -276,15 +274,6 @@ class HomeScreen : Screen {
                             modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
                         )
                     }
-                }
-
-                // 4.7. Family Shared Savings Hub Card
-                item {
-                    FamilyHubPreviewCard(
-                        familyMembers = state.familyMembers,
-                        onOpenFamily = { rootNavigator.push(FamilyScreen()) },
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
-                    )
                 }
 
                 // 5. Recent Transactions List (Google Workspace, AWS, Uber for Business, Spotify)
@@ -1790,101 +1779,5 @@ class HomeScreen : Screen {
     }
 }
 
-@Composable
-private fun FamilyHubPreviewCard(
-    familyMembers: List<FamilyMember>,
-    onOpenFamily: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val haptic = LocalHapticFeedback.current
-
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(22.dp))
-            .clickable {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                onOpenFamily()
-            },
-        shape = RoundedCornerShape(22.dp),
-        color = Color(0xFF111827),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
-    ) {
-        Row(
-            modifier = Modifier.padding(18.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
-                modifier = Modifier.weight(1f)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(46.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFFFFDE43).copy(alpha = 0.22f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Groups,
-                        contentDescription = null,
-                        tint = Color(0xFFFFDE43),
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            text = "Tabungan Keluarga",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                        Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = Color(0xFFFFDE43)
-                        ) {
-                            Text(
-                                text = "KOLABORATIF",
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Black,
-                                color = Color(0xFF111827),
-                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
-                            )
-                        }
-                    }
-                    Text(
-                        text = if (familyMembers.isNotEmpty()) "${familyMembers.size} Anggota • 3 Target Bersama" else "Nabung bareng keluarga & pasangan",
-                        fontSize = 12.sp,
-                        color = Color.White.copy(alpha = 0.65f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.TrendingUp,
-                    contentDescription = "Buka Tabungan Keluarga",
-                    tint = Color(0xFFFFDE43),
-                    modifier = Modifier.size(18.dp)
-                )
-            }
-        }
-    }
-}
 
 
