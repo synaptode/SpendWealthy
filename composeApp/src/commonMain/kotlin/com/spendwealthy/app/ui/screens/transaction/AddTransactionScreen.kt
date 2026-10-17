@@ -99,7 +99,8 @@ import com.spendwealthy.app.ui.theme.AppColors
  * Opens with immediate tactile keypad access, category shortcuts, and live currency formatting.
  */
 class AddTransactionScreen(
-    private val initialType: TransactionType = TransactionType.EXPENSE
+    private val initialType: TransactionType = TransactionType.EXPENSE,
+    private val initialWalletId: String? = null
 ) : Screen {
 
     @Composable
@@ -115,6 +116,12 @@ class AddTransactionScreen(
 
         LaunchedEffect(initialType) {
             viewModel.onEvent(AddTransactionEvent.TypeChanged(initialType))
+        }
+
+        LaunchedEffect(state.wallets, initialWalletId) {
+            if (initialWalletId != null && state.wallets.isNotEmpty()) {
+                viewModel.onEvent(AddTransactionEvent.SelectWalletById(initialWalletId))
+            }
         }
 
         LaunchedEffect(viewModel) {
