@@ -140,15 +140,7 @@ class TransactionListScreen : Screen {
                     )
                 }
 
-                // 3. Quick Action Buttons (Matching Reference 2: Send, Receive, Swap, Deposit)
-                item {
-                    QuickActionsRow(
-                        navigator = navigator,
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)
-                    )
-                }
-
-                // 4. Search Bar
+                // 3. Search Bar
                 item {
                     SearchBar(
                         query = state.searchQuery,
@@ -578,113 +570,6 @@ class TransactionListScreen : Screen {
                     }
                 }
             }
-        }
-    }
-
-    /**
-     * 4 Circular Quick Action Buttons matching Reference 2:
-     * Send (Dark), Receive (Light), Swap (Light), Deposit (Yellow).
-     */
-    @Composable
-    private fun QuickActionsRow(
-        navigator: Navigator,
-        modifier: Modifier = Modifier
-    ) {
-        val haptic = LocalHapticFeedback.current
-        val targetNavigator = navigator.parent ?: navigator
-
-        Row(
-            modifier = modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // 1. Send Action (Expense)
-            QuickActionItem(
-                label = "Send",
-                icon = Icons.Default.ArrowUpward,
-                backgroundColor = Color(0xFF111827),
-                iconColor = Color.White,
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    targetNavigator.push(AddTransactionScreen(TransactionType.EXPENSE))
-                }
-            )
-
-            // 2. Receive Action (Income)
-            QuickActionItem(
-                label = "Receive",
-                icon = Icons.Default.ArrowDownward,
-                backgroundColor = Color(0xFFF3F4F6),
-                iconColor = Color(0xFF111827),
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    targetNavigator.push(AddTransactionScreen(TransactionType.INCOME))
-                }
-            )
-
-            // 3. Swap Action (Transfer)
-            QuickActionItem(
-                label = "Swap",
-                icon = Icons.Default.SwapHoriz,
-                backgroundColor = Color(0xFFF3F4F6),
-                iconColor = Color(0xFF111827),
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    targetNavigator.push(AddTransactionScreen(TransactionType.TRANSFER))
-                }
-            )
-
-            // 4. Deposit Action (Income)
-            QuickActionItem(
-                label = "Deposit",
-                icon = Icons.Default.Add,
-                backgroundColor = Color(0xFFFFDE43),
-                iconColor = Color(0xFF111827),
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    targetNavigator.push(AddTransactionScreen(TransactionType.INCOME))
-                }
-            )
-        }
-    }
-
-    @Composable
-    private fun QuickActionItem(
-        label: String,
-        icon: androidx.compose.ui.graphics.vector.ImageVector,
-        backgroundColor: Color,
-        iconColor: Color,
-        onClick: () -> Unit
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = Modifier.bouncyClickable(
-                pressedScale = 0.90f,
-                hapticType = HapticFeedbackType.LongPress,
-                onClick = onClick
-            )
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(52.dp)
-                    .clip(CircleShape)
-                    .background(backgroundColor),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = label,
-                    tint = iconColor,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
-            Text(
-                text = label,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium,
-                color = AppColors.TextMain
-            )
         }
     }
 

@@ -190,16 +190,24 @@ class HomeScreen : Screen {
                     )
                 }
 
-                // 2. Hero Total Balance Card (White, Step Matrix Chart & 3 Action Buttons)
+                // 2. Hero Total Balance Card (White, Step Matrix Chart)
                 item {
                     HeroTotalBalanceCard(
                         totalBalance = state.totalBalance,
                         isBalanceHidden = isBalanceHidden,
                         onToggleBalance = { viewModel.togglePrivacyMode() },
-                        onAddMoney = { rootNavigator.push(AddTransactionScreen(TransactionType.INCOME)) },
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
+                    )
+                }
+
+                // 2.1 Quick Actions Row (Send, Receive, Swap, Deposit)
+                item {
+                    QuickActionsRow(
                         onSend = { rootNavigator.push(AddTransactionScreen(TransactionType.EXPENSE)) },
-                        onReceive = { rootNavigator.push(AddTransactionScreen(TransactionType.TRANSFER)) },
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
+                        onReceive = { rootNavigator.push(AddTransactionScreen(TransactionType.INCOME)) },
+                        onSwap = { rootNavigator.push(AddTransactionScreen(TransactionType.TRANSFER)) },
+                        onDeposit = { rootNavigator.push(AddTransactionScreen(TransactionType.INCOME)) },
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
                     )
                 }
 
@@ -419,9 +427,6 @@ class HomeScreen : Screen {
         totalBalance: Money,
         isBalanceHidden: Boolean,
         onToggleBalance: () -> Unit,
-        onAddMoney: () -> Unit,
-        onSend: () -> Unit,
-        onReceive: () -> Unit,
         modifier: Modifier = Modifier
     ) {
         val haptic = LocalHapticFeedback.current
@@ -564,114 +569,116 @@ class HomeScreen : Screen {
                     // Iconic Step Matrix Chart from Reference 1
                     StepMatrixChart()
                 }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // 3 Quick Action Buttons: [+ Add Money], [↑ Send], [↓ Receive]
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    // + Add Money (Canary Gold Yellow)
-                    Surface(
-                        modifier = Modifier
-                            .weight(1.3f)
-                            .height(42.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .bouncyClickable(
-                                pressedScale = 0.92f,
-                                hapticType = HapticFeedbackType.LongPress,
-                                onClick = onAddMoney
-                            ),
-                        color = Color(0xFFFFDE43),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxSize().padding(horizontal = 4.dp),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(Icons.Default.Add, null, tint = Color(0xFF111827), modifier = Modifier.size(15.dp))
-                            Spacer(modifier = Modifier.width(3.dp))
-                            Text(
-                                text = "Add Money",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF111827),
-                                maxLines = 1,
-                                softWrap = false,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
-
-                    // ↑ Send (Pitch Black)
-                    Surface(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(42.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .bouncyClickable(
-                                pressedScale = 0.92f,
-                                hapticType = HapticFeedbackType.TextHandleMove,
-                                onClick = onSend
-                            ),
-                        color = Color(0xFF111827),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxSize().padding(horizontal = 4.dp),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(Icons.Default.ArrowUpward, null, tint = Color.White, modifier = Modifier.size(14.dp))
-                            Spacer(modifier = Modifier.width(3.dp))
-                            Text(
-                                text = "Send",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                                maxLines = 1,
-                                softWrap = false,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
-
-                    // ↓ Receive (Cloud Gray)
-                    Surface(
-                        modifier = Modifier
-                            .weight(1.1f)
-                            .height(42.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .bouncyClickable(
-                                pressedScale = 0.92f,
-                                hapticType = HapticFeedbackType.TextHandleMove,
-                                onClick = onReceive
-                            ),
-                        color = Color(0xFFF3F4F6),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxSize().padding(horizontal = 4.dp),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(Icons.Default.ArrowDownward, null, tint = Color(0xFF111827), modifier = Modifier.size(14.dp))
-                            Spacer(modifier = Modifier.width(3.dp))
-                            Text(
-                                text = "Receive",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF111827),
-                                maxLines = 1,
-                                softWrap = false,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
-                }
             }
+        }
+    }
+
+    /**
+     * 4 Circular Quick Action Buttons matching Reference 2:
+     * Send (Dark), Receive (Light), Swap (Light), Deposit (Yellow).
+     */
+    @Composable
+    private fun QuickActionsRow(
+        onSend: () -> Unit,
+        onReceive: () -> Unit,
+        onSwap: () -> Unit,
+        onDeposit: () -> Unit,
+        modifier: Modifier = Modifier
+    ) {
+        val haptic = LocalHapticFeedback.current
+
+        Row(
+            modifier = modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // 1. Send Action (Expense)
+            QuickActionItem(
+                label = "Send",
+                icon = Icons.Default.ArrowUpward,
+                backgroundColor = Color(0xFF111827),
+                iconColor = Color.White,
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onSend()
+                }
+            )
+
+            // 2. Receive Action (Income)
+            QuickActionItem(
+                label = "Receive",
+                icon = Icons.Default.ArrowDownward,
+                backgroundColor = Color(0xFFF3F4F6),
+                iconColor = Color(0xFF111827),
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onReceive()
+                }
+            )
+
+            // 3. Swap Action (Transfer)
+            QuickActionItem(
+                label = "Swap",
+                icon = Icons.Default.SwapHoriz,
+                backgroundColor = Color(0xFFF3F4F6),
+                iconColor = Color(0xFF111827),
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onSwap()
+                }
+            )
+
+            // 4. Deposit Action (Income)
+            QuickActionItem(
+                label = "Deposit",
+                icon = Icons.Default.Add,
+                backgroundColor = Color(0xFFFFDE43),
+                iconColor = Color(0xFF111827),
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onDeposit()
+                }
+            )
+        }
+    }
+
+    @Composable
+    private fun QuickActionItem(
+        label: String,
+        icon: androidx.compose.ui.graphics.vector.ImageVector,
+        backgroundColor: Color,
+        iconColor: Color,
+        onClick: () -> Unit
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.bouncyClickable(
+                pressedScale = 0.90f,
+                hapticType = HapticFeedbackType.LongPress,
+                onClick = onClick
+            )
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .clip(CircleShape)
+                    .background(backgroundColor),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = label,
+                    tint = iconColor,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+            Text(
+                text = label,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF111827)
+            )
         }
     }
 
