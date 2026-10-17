@@ -47,6 +47,12 @@ class WalletDetailViewModel(
         _uiState.value = _uiState.value.copy(filterByFamily = !_uiState.value.filterByFamily)
     }
 
+    fun deleteTransaction(id: String) {
+        screenModelScope.launch {
+            transactionRepository.deleteTransaction(id)
+        }
+    }
+
     val filteredTransactions: StateFlow<List<Transaction>> = _uiState.map { state ->
         if (state.filterByFamily) {
             state.transactions.filter { it.familyId != null }

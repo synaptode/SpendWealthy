@@ -196,9 +196,9 @@ class WalletListScreen : Screen {
     private fun LiquiditySummaryCard(totalFormatted: String, walletCount: Int) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(22.dp),
-            color = AppColors.SurfaceRaised,
-            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+            shape = RoundedCornerShape(24.dp),
+            color = Color(0xFF111827),
+            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF1F2937))
         ) {
             Box(
                 modifier = Modifier
@@ -210,7 +210,7 @@ class WalletListScreen : Screen {
                             )
                         )
                     )
-                    .padding(20.dp)
+                    .padding(22.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -226,34 +226,33 @@ class WalletListScreen : Screen {
                                 modifier = Modifier
                                     .size(8.dp)
                                     .clip(CircleShape)
-                                    .background(AppColors.Accent)
+                                    .background(Color(0xFFFFDE43))
                             )
                             Text(
                                 text = "TOTAL SALDO LIKUID",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = AppColors.TextMuted,
+                                color = Color.White.copy(alpha = 0.7f),
                                 letterSpacing = 0.5.sp
                             )
                         }
                         Text(
                             text = totalFormatted,
                             style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Black,
-                            color = AppColors.TextMain
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color.White
                         )
                     }
 
                     Surface(
-                        shape = RoundedCornerShape(10.dp),
-                        color = AppColors.Primary.copy(alpha = 0.15f),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Primary.copy(alpha = 0.3f))
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color(0xFFFFDE43)
                     ) {
                         Text(
                             text = "$walletCount akun aktif",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.ExtraBold,
-                            color = AppColors.Primary,
+                            color = Color(0xFF111827),
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
                         )
                     }
@@ -277,6 +276,7 @@ class WalletListScreen : Screen {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
+                .clip(RoundedCornerShape(20.dp))
                 .clickable(onClick = onClick),
             shape = RoundedCornerShape(20.dp),
             color = AppColors.Surface,

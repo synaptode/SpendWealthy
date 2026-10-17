@@ -34,6 +34,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,6 +53,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.Transaction
 import com.spendwealthy.app.domain.model.TransactionType
 import com.spendwealthy.app.domain.model.WalletType
+import com.spendwealthy.app.ui.components.TransactionDetailModal
 import com.spendwealthy.app.ui.theme.AppColors
 import org.koin.core.parameter.parametersOf
 
@@ -62,6 +66,7 @@ data class WalletDetailScreen(val walletId: String) : Screen {
         val transactions by viewModel.filteredTransactions.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
         val haptic = LocalHapticFeedback.current
+        var selectedTransaction by remember { mutableStateOf<Transaction?>(null) }
 
         Box(modifier = Modifier.fillMaxSize().background(AppColors.Background)) {
             LazyColumn(
@@ -115,9 +120,25 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                     }
                 } else {
                     items(transactions, key = { it.id }) { transaction ->
-                        TransactionRowItem(transaction)
+                        TransactionRowItem(
+                            transaction = transaction,
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                selectedTransaction = transaction
+                            }
+                        )
                     }
                 }
+            }
+
+            // Transaction Detail Modal
+            val currentSelected = selectedTransaction
+            if (currentSelected != null) {
+                TransactionDetailModal(
+                    transaction = currentSelected,
+                    onDelete = { id -> viewModel.deleteTransaction(id) },
+                    onDismiss = { selectedTransaction = null }
+                )
             }
         }
     }
@@ -197,8 +218,8 @@ data class WalletDetailScreen(val walletId: String) : Screen {
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
-            color = AppColors.SurfaceRaised,
-            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+            color = Color(0xFF111827),
+            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF1F2937))
         ) {
             Box(
                 modifier = Modifier
@@ -226,26 +247,25 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                                 modifier = Modifier
                                     .size(8.dp)
                                     .clip(CircleShape)
-                                    .background(AppColors.Accent)
+                                    .background(Color(0xFFFFDE43))
                             )
                             Text(
                                 text = "SALDO SAAT INI",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = AppColors.TextMuted,
+                                color = Color.White.copy(alpha = 0.7f),
                                 letterSpacing = 0.5.sp
                             )
                         }
                         Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = AppColors.Primary.copy(alpha = 0.15f),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Primary.copy(alpha = 0.3f))
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFFFFDE43)
                         ) {
                             Text(
                                 text = typeLabel,
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = AppColors.Primary,
+                                color = Color(0xFF111827),
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                             )
                         }
@@ -254,8 +274,8 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                     Text(
                         text = wallet.balance.format(),
                         style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Black,
-                        color = if (isDebt && wallet.balance.amount < 0) AppColors.Danger else AppColors.TextMain
+                        fontWeight = FontWeight.ExtraBold,
+                        color = if (isDebt && wallet.balance.amount < 0) AppColors.Danger else Color.White
                     )
                 }
             }
@@ -280,7 +300,7 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(if (!isFamily) AppColors.Primary else Color.Transparent)
+                        .background(if (!isFamily) Color(0xFFFFDE43) else Color.Transparent)
                         .padding(vertical = 10.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -288,14 +308,14 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                         text = "Pribadi",
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.labelMedium,
-                        color = if (!isFamily) Color.White else AppColors.TextMuted
+                        color = if (!isFamily) Color(0xFF111827) else AppColors.TextMuted
                     )
                 }
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(if (isFamily) AppColors.Primary else Color.Transparent)
+                        .background(if (isFamily) Color(0xFFFFDE43) else Color.Transparent)
                         .padding(vertical = 10.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -303,7 +323,7 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                         text = "Ruang Keluarga",
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.labelMedium,
-                        color = if (isFamily) Color.White else AppColors.TextMuted
+                        color = if (isFamily) Color(0xFF111827) else AppColors.TextMuted
                     )
                 }
             }
@@ -311,7 +331,10 @@ data class WalletDetailScreen(val walletId: String) : Screen {
     }
 
     @Composable
-    private fun TransactionRowItem(transaction: Transaction) {
+    private fun TransactionRowItem(
+        transaction: Transaction,
+        onClick: () -> Unit = {}
+    ) {
         val isIncome = transaction.type == TransactionType.INCOME
         val isTransfer = transaction.type == TransactionType.TRANSFER
 
@@ -322,7 +345,10 @@ data class WalletDetailScreen(val walletId: String) : Screen {
         }
 
         Surface(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(18.dp))
+                .clickable(onClick = onClick),
             shape = RoundedCornerShape(18.dp),
             color = AppColors.Surface,
             border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
