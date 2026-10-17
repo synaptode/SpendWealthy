@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -52,6 +53,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
@@ -75,11 +77,13 @@ class SettingsScreen : Screen {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(AppColors.Background)
+                .background(AppColors.Background),
+            contentAlignment = Alignment.TopCenter
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .widthIn(max = 680.dp)
                     .windowInsetsPadding(WindowInsets.statusBars)
             ) {
                 // Top Header
@@ -90,17 +94,25 @@ class SettingsScreen : Screen {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f, fill = false)
+                            .padding(end = 12.dp)
+                    ) {
                         Text(
                             text = "Pengaturan & Keamanan",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.ExtraBold,
-                            color = AppColors.TextMain
+                            color = AppColors.TextMain,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = "Kelola akun, privasi data & preferensi",
                             style = MaterialTheme.typography.bodySmall,
-                            color = AppColors.TextMuted
+                            color = AppColors.TextMuted,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
 

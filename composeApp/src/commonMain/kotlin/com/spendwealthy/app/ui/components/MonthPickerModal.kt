@@ -60,6 +60,8 @@ fun MonthPickerModal(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .widthIn(max = 520.dp)
+                .align(Alignment.CenterHorizontally)
                 .padding(horizontal = 24.dp)
                 .padding(bottom = 36.dp)
         ) {

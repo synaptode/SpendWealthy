@@ -245,12 +245,13 @@ class HomeScreen : Screen {
             // User Avatar & Greeting
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.weight(1f, fill = false)
             ) {
                 // Stylish Profile Avatar (Clickable to Settings)
                 Box(
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(42.dp)
                         .clip(CircleShape)
                         .clickable {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -262,7 +263,7 @@ class HomeScreen : Screen {
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(40.dp)
+                            .size(38.dp)
                             .clip(CircleShape)
                             .background(
                                 Brush.linearGradient(
@@ -273,25 +274,29 @@ class HomeScreen : Screen {
                     ) {
                         Text(
                             text = userName.take(1).uppercase(),
-                            fontSize = 18.sp,
+                            fontSize = 17.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF7C2D12)
                         )
                     }
                 }
 
-                Column {
+                Column(modifier = Modifier.weight(1f, fill = false)) {
                     Text(
                         text = "Good Morning,",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Color(0xFF6B7280)
+                        color = Color(0xFF6B7280),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = userName,
-                        fontSize = 16.sp,
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF111827)
+                        color = Color(0xFF111827),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -460,12 +465,12 @@ class HomeScreen : Screen {
                 // 3 Quick Action Buttons: [+ Add Money], [↑ Send], [↓ Receive]
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     // + Add Money (Canary Gold Yellow)
                     Surface(
                         modifier = Modifier
-                            .weight(1.35f)
+                            .weight(1.3f)
                             .height(42.dp)
                             .clip(RoundedCornerShape(12.dp))
                             .clickable {
@@ -476,17 +481,20 @@ class HomeScreen : Screen {
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Row(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxSize().padding(horizontal = 4.dp),
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Default.Add, null, tint = Color(0xFF111827), modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(Icons.Default.Add, null, tint = Color(0xFF111827), modifier = Modifier.size(15.dp))
+                            Spacer(modifier = Modifier.width(3.dp))
                             Text(
                                 text = "Add Money",
-                                fontSize = 13.sp,
+                                fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF111827)
+                                color = Color(0xFF111827),
+                                maxLines = 1,
+                                softWrap = false,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
@@ -505,17 +513,20 @@ class HomeScreen : Screen {
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Row(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxSize().padding(horizontal = 4.dp),
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Default.ArrowUpward, null, tint = Color.White, modifier = Modifier.size(15.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(Icons.Default.ArrowUpward, null, tint = Color.White, modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(3.dp))
                             Text(
                                 text = "Send",
-                                fontSize = 13.sp,
+                                fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White
+                                color = Color.White,
+                                maxLines = 1,
+                                softWrap = false,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
@@ -523,7 +534,7 @@ class HomeScreen : Screen {
                     // ↓ Receive (Cloud Gray)
                     Surface(
                         modifier = Modifier
-                            .weight(1.15f)
+                            .weight(1.1f)
                             .height(42.dp)
                             .clip(RoundedCornerShape(12.dp))
                             .clickable {
@@ -534,17 +545,20 @@ class HomeScreen : Screen {
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Row(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxSize().padding(horizontal = 4.dp),
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Default.ArrowDownward, null, tint = Color(0xFF111827), modifier = Modifier.size(15.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(Icons.Default.ArrowDownward, null, tint = Color(0xFF111827), modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(3.dp))
                             Text(
                                 text = "Receive",
-                                fontSize = 13.sp,
+                                fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF111827)
+                                color = Color(0xFF111827),
+                                maxLines = 1,
+                                softWrap = false,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }

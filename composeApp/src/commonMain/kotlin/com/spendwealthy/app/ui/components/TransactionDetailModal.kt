@@ -84,6 +84,8 @@ fun TransactionDetailModal(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .widthIn(max = 560.dp)
+                .align(Alignment.CenterHorizontally)
                 .padding(horizontal = 24.dp)
                 .padding(bottom = 36.dp)
         ) {

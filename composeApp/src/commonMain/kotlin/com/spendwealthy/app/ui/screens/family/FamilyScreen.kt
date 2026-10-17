@@ -27,6 +27,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -65,14 +66,20 @@ class FamilyScreen : Screen {
             },
             containerColor = AppColors.Background
         ) { padding ->
-            LazyColumn(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
-                    .padding(horizontal = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(18.dp),
-                contentPadding = PaddingValues(top = 10.dp, bottom = 40.dp)
+                    .padding(padding),
+                contentAlignment = Alignment.TopCenter
             ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .widthIn(max = 680.dp)
+                        .padding(horizontal = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(18.dp),
+                    contentPadding = PaddingValues(top = 10.dp, bottom = 40.dp)
+                ) {
                 // 1. Hero Family Total Vault Card
                 item {
                     FamilyVaultHeroCard(
@@ -211,6 +218,7 @@ class FamilyScreen : Screen {
                     }
                 }
             }
+        }
 
             // Dialogs
             if (state.showContributeDialog) {
@@ -266,14 +274,19 @@ class FamilyScreen : Screen {
         onBackClick: () -> Unit,
         onAddGoalClick: () -> Unit
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
         ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 680.dp)
+                    .statusBarsPadding()
+                    .padding(horizontal = 20.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
             Surface(
                 modifier = Modifier
                     .size(40.dp)
@@ -328,6 +341,7 @@ class FamilyScreen : Screen {
             }
         }
     }
+}
 
     @Composable
     private fun FamilyVaultHeroCard(
@@ -469,19 +483,19 @@ class FamilyScreen : Screen {
                 // 3 Quick Action Buttons
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     // + Setor Tabungan (Primary)
                     Surface(
                         modifier = Modifier
-                            .weight(1.3f)
+                            .weight(1.2f)
                             .clip(RoundedCornerShape(14.dp))
                             .clickable(onClick = onContribute),
                         shape = RoundedCornerShape(14.dp),
                         color = Color(0xFFFFDE43)
                     ) {
                         Row(
-                            modifier = Modifier.padding(vertical = 12.dp),
+                            modifier = Modifier.padding(vertical = 11.dp, horizontal = 4.dp),
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -489,14 +503,17 @@ class FamilyScreen : Screen {
                                 imageVector = Icons.Default.Add,
                                 contentDescription = null,
                                 tint = Color(0xFF111827),
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(15.dp)
                             )
-                            Spacer(Modifier.width(6.dp))
+                            Spacer(Modifier.width(4.dp))
                             Text(
-                                text = "Setor Tabungan",
-                                fontSize = 13.sp,
+                                text = "Setor",
+                                fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF111827)
+                                color = Color(0xFF111827),
+                                maxLines = 1,
+                                softWrap = false,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
@@ -511,7 +528,7 @@ class FamilyScreen : Screen {
                         color = Color(0xFF111827)
                     ) {
                         Row(
-                            modifier = Modifier.padding(vertical = 12.dp),
+                            modifier = Modifier.padding(vertical = 11.dp, horizontal = 4.dp),
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -519,14 +536,17 @@ class FamilyScreen : Screen {
                                 imageVector = Icons.Default.PersonAdd,
                                 contentDescription = null,
                                 tint = Color.White,
-                                modifier = Modifier.size(15.dp)
+                                modifier = Modifier.size(14.dp)
                             )
-                            Spacer(Modifier.width(6.dp))
+                            Spacer(Modifier.width(4.dp))
                             Text(
                                 text = "Undang",
-                                fontSize = 13.sp,
+                                fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White
+                                color = Color.White,
+                                maxLines = 1,
+                                softWrap = false,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
@@ -542,7 +562,7 @@ class FamilyScreen : Screen {
                         border = BorderStroke(1.dp, AppColors.Outline)
                     ) {
                         Row(
-                            modifier = Modifier.padding(vertical = 12.dp),
+                            modifier = Modifier.padding(vertical = 11.dp, horizontal = 4.dp),
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -550,14 +570,17 @@ class FamilyScreen : Screen {
                                 imageVector = Icons.Default.Flag,
                                 contentDescription = null,
                                 tint = AppColors.TextMain,
-                                modifier = Modifier.size(15.dp)
+                                modifier = Modifier.size(14.dp)
                             )
-                            Spacer(Modifier.width(6.dp))
+                            Spacer(Modifier.width(4.dp))
                             Text(
                                 text = "Target",
-                                fontSize = 13.sp,
+                                fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = AppColors.TextMain
+                                color = AppColors.TextMain,
+                                maxLines = 1,
+                                softWrap = false,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
@@ -599,7 +622,10 @@ class FamilyScreen : Screen {
                             text = label,
                             fontSize = 12.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                            color = if (isSelected) AppColors.TextMain else AppColors.TextMuted
+                            color = if (isSelected) AppColors.TextMain else AppColors.TextMuted,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -1011,7 +1037,9 @@ class FamilyScreen : Screen {
 
         Dialog(onDismissRequest = onDismiss) {
             Surface(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 480.dp),
                 shape = RoundedCornerShape(24.dp),
                 color = AppColors.Surface
             ) {
@@ -1222,7 +1250,9 @@ class FamilyScreen : Screen {
 
         Dialog(onDismissRequest = onDismiss) {
             Surface(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 480.dp),
                 shape = RoundedCornerShape(24.dp),
                 color = AppColors.Surface
             ) {
@@ -1375,7 +1405,9 @@ class FamilyScreen : Screen {
 
         Dialog(onDismissRequest = onDismiss) {
             Surface(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 480.dp),
                 shape = RoundedCornerShape(24.dp),
                 color = AppColors.Surface
             ) {
@@ -1551,7 +1583,9 @@ class FamilyScreen : Screen {
     ) {
         Dialog(onDismissRequest = onDismiss) {
             Surface(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 480.dp),
                 shape = RoundedCornerShape(24.dp),
                 color = AppColors.Surface
             ) {

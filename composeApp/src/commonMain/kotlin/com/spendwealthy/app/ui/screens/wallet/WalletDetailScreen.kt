@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -44,6 +45,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
@@ -68,10 +70,14 @@ data class WalletDetailScreen(val walletId: String) : Screen {
         val haptic = LocalHapticFeedback.current
         var selectedTransaction by remember { mutableStateOf<Transaction?>(null) }
 
-        Box(modifier = Modifier.fillMaxSize().background(AppColors.Background)) {
+        Box(
+            modifier = Modifier.fillMaxSize().background(AppColors.Background),
+            contentAlignment = Alignment.TopCenter
+        ) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
+                    .widthIn(max = 680.dp)
                     .windowInsetsPadding(WindowInsets.statusBars),
                 contentPadding = PaddingValues(start = 24.dp, top = 12.dp, end = 24.dp, bottom = 140.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -171,17 +177,26 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                 }
             }
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .padding(horizontal = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.ExtraBold,
-                    color = AppColors.TextMain
+                    color = AppColors.TextMain,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = "Informasi saldo & riwayat",
                     style = MaterialTheme.typography.bodySmall,
-                    color = AppColors.TextMuted
+                    color = AppColors.TextMuted,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 

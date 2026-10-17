@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -69,6 +70,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -118,10 +120,14 @@ class AddTransactionScreen(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             contentWindowInsets = WindowInsets(0, 0, 0, 0)
         ) { padding ->
-            Box(modifier = Modifier.fillMaxSize().padding(padding).background(AppColors.Background)) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(padding).background(AppColors.Background),
+                contentAlignment = Alignment.TopCenter
+            ) {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
+                        .widthIn(max = 680.dp)
                         .windowInsetsPadding(WindowInsets.statusBars)
                         .imePadding(),
                     contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 260.dp)
@@ -189,7 +195,9 @@ class AddTransactionScreen(
                     visible = showAmountPad,
                     enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
                     exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
-                    modifier = Modifier.align(Alignment.BottomCenter)
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .widthIn(max = 560.dp)
                 ) {
                     Column(
                         modifier = Modifier
@@ -247,17 +255,26 @@ class AddTransactionScreen(
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, "Kembali", tint = AppColors.TextMain, modifier = Modifier.size(18.dp))
             }
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .padding(horizontal = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Text(
                     text = "Catat Transaksi",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = AppColors.TextMain
+                    color = AppColors.TextMain,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = "Kelola arus uang masuk & keluar",
                     fontSize = 12.sp,
-                    color = AppColors.TextMuted
+                    color = AppColors.TextMuted,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 
@@ -329,7 +346,10 @@ class AddTransactionScreen(
                             text = label,
                             color = if (isSelected) Color(0xFF090D16) else AppColors.TextMuted,
                             fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium,
-                            fontSize = 13.sp
+                            fontSize = 12.sp,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
