@@ -58,10 +58,11 @@ fun EditProfileModal(
                 .fillMaxWidth()
                 .widthIn(max = 540.dp)
                 .align(Alignment.CenterHorizontally)
+                .imePadding()
+                .navigationBarsPadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp)
-                .padding(bottom = 36.dp)
-                .navigationBarsPadding(),
+                .padding(bottom = 36.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
             // Header

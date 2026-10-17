@@ -79,9 +79,12 @@ import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.DarkMode
 import com.spendwealthy.app.domain.model.ThemeMode
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -90,6 +93,7 @@ import com.spendwealthy.app.ui.screens.security.SetPinModal
 
 class SettingsScreen : Screen {
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Content() {
         val viewModel = koinScreenModel<SettingsViewModel>()
@@ -639,23 +643,67 @@ class SettingsScreen : Screen {
             }
 
             if (showLogoutDialog) {
-                AlertDialog(
+                ModalBottomSheet(
                     onDismissRequest = { showLogoutDialog = false },
-                    title = {
-                        Text(
-                            text = "Konfirmasi Keluar",
-                            fontWeight = FontWeight.Bold,
-                            color = AppColors.TextMain
+                    shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                    containerColor = AppColors.Surface,
+                    dragHandle = {
+                        Box(
+                            modifier = Modifier
+                                .padding(vertical = 12.dp)
+                                .width(36.dp)
+                                .height(4.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFE5E7EB))
                         )
-                    },
-                    text = {
-                        Text(
-                            text = "Apakah Anda yakin ingin keluar dari akun? Sesi cloud akan diakhiri dan aplikasi akan kembali ke mode penyimpanan lokal offline.",
-                            color = AppColors.TextMuted,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    },
-                    confirmButton = {
+                    }
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .widthIn(max = 540.dp)
+                            .align(Alignment.CenterHorizontally)
+                            .padding(horizontal = 24.dp)
+                            .padding(bottom = 36.dp)
+                            .navigationBarsPadding(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Surface(
+                            modifier = Modifier.size(56.dp),
+                            shape = CircleShape,
+                            color = AppColors.Danger.copy(alpha = 0.12f)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.Logout,
+                                    contentDescription = null,
+                                    tint = AppColors.Danger,
+                                    modifier = Modifier.size(28.dp)
+                                )
+                            }
+                        }
+
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text(
+                                text = "Konfirmasi Keluar",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.TextMain
+                            )
+                            Text(
+                                text = "Apakah Anda yakin ingin keluar dari akun? Sesi cloud akan diakhiri dan aplikasi akan kembali ke mode penyimpanan lokal offline.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = AppColors.TextMuted,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
                         Button(
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -666,24 +714,25 @@ class SettingsScreen : Screen {
                                 containerColor = AppColors.Danger,
                                 contentColor = Color.White
                             ),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(14.dp),
+                            modifier = Modifier.fillMaxWidth().height(50.dp)
                         ) {
-                            Text("Keluar", fontWeight = FontWeight.Bold)
+                            Text("Keluar dari Akun", fontWeight = FontWeight.Bold)
                         }
-                    },
-                    dismissButton = {
-                        TextButton(
+
+                        OutlinedButton(
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 showLogoutDialog = false
-                            }
+                            },
+                            shape = RoundedCornerShape(14.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline),
+                            modifier = Modifier.fillMaxWidth().height(50.dp)
                         ) {
                             Text("Batal", color = AppColors.TextMuted, fontWeight = FontWeight.SemiBold)
                         }
-                    },
-                    containerColor = AppColors.SurfaceRaised,
-                    shape = RoundedCornerShape(22.dp)
-                )
+                    }
+                }
             }
         }
     }

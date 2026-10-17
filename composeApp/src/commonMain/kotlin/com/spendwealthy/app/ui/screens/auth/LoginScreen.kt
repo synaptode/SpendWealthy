@@ -44,6 +44,7 @@ import com.spendwealthy.app.ui.theme.AppColors
 
 class LoginScreen : Screen {
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Content() {
         val viewModel = koinScreenModel<AuthViewModel>()
@@ -485,37 +486,142 @@ class LoginScreen : Screen {
             }
         }
 
-        // Forgot Password Simple Dialog
+        // Forgot Password Bottom Sheet
         if (showForgotPasswordDialog) {
-            AlertDialog(
+            ModalBottomSheet(
                 onDismissRequest = { showForgotPasswordDialog = false },
-                title = {
-                    Text(
-                        text = "Atur Ulang Sandi",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = AppColors.TextMain
-                    )
-                },
-                text = {
-                    Text(
-                        text = "SpendWealthy berbasis Sovereign Local Vault. Jika Anda lupa PIN atau kata sandi lokal, Anda dapat masuk melalui Biometrik perangkat Anda atau membuat akun vault baru.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = AppColors.TextMuted
-                    )
-                },
-                confirmButton = {
-                    TextButton(onClick = { showForgotPasswordDialog = false }) {
-                        Text(
-                            text = "Mengerti",
-                            fontWeight = FontWeight.Bold,
-                            color = AppColors.PrimaryDark
-                        )
-                    }
-                },
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
                 containerColor = AppColors.Surface,
-                shape = RoundedCornerShape(20.dp)
-            )
+                dragHandle = {
+                    Box(
+                        modifier = Modifier
+                            .padding(vertical = 12.dp)
+                            .width(36.dp)
+                            .height(4.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFE5E7EB))
+                    )
+                }
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .widthIn(max = 540.dp)
+                        .align(Alignment.CenterHorizontally)
+                        .padding(horizontal = 24.dp)
+                        .padding(bottom = 36.dp)
+                        .navigationBarsPadding(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Surface(
+                                modifier = Modifier.size(40.dp),
+                                shape = CircleShape,
+                                color = AppColors.Primary.copy(alpha = 0.12f)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = Icons.Default.Key,
+                                        contentDescription = null,
+                                        tint = AppColors.Primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                            Text(
+                                text = "Pemulihan Akses Vault",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.TextMain
+                            )
+                        }
+
+                        Surface(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .clickable { showForgotPasswordDialog = false },
+                            shape = CircleShape,
+                            color = AppColors.SurfaceRaised,
+                            border = BorderStroke(1.dp, AppColors.Outline)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Tutup",
+                                    tint = AppColors.TextMuted,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    HorizontalDivider(color = AppColors.Outline)
+
+                    Text(
+                        text = "SpendWealthy berbasis Sovereign Local Vault. Data Anda dienkripsi secara mandiri langsung di perangkat tanpa server terpusat yang menyimpan kunci privat Anda.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = AppColors.TextMuted,
+                        lineHeight = 20.sp
+                    )
+
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = AppColors.SurfaceRaised,
+                        border = BorderStroke(1.dp, AppColors.Outline),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(14.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Fingerprint,
+                                    contentDescription = null,
+                                    tint = AppColors.PrimaryDark,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Text(
+                                    text = "Gunakan Biometrik",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp,
+                                    color = AppColors.TextMain
+                                )
+                            }
+                            Text(
+                                text = "Jika Anda telah menyetel biometrik (Face ID atau Sidik Jari), Anda dapat langsung masuk tanpa memasukkan sandi.",
+                                fontSize = 12.sp,
+                                color = AppColors.TextMuted,
+                                lineHeight = 18.sp
+                            )
+                        }
+                    }
+
+                    Button(
+                        onClick = { showForgotPasswordDialog = false },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = AppColors.PrimaryDark,
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier.fillMaxWidth().height(48.dp)
+                    ) {
+                        Text("Saya Mengerti", fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
         }
     }
 }

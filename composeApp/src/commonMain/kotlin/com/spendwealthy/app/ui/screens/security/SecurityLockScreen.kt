@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Backspace
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
@@ -40,6 +41,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SecurityLockScreen(
     onUnlocked: () -> Unit,
@@ -370,53 +372,131 @@ fun SecurityLockScreen(
             }
         }
 
-        // Help / Forgot PIN Dialog
+        // Help / Forgot PIN Bottom Sheet
         if (showHelpDialog) {
-            AlertDialog(
+            ModalBottomSheet(
                 onDismissRequest = { showHelpDialog = false },
-                title = {
-                    Text(
-                        text = "Bantuan Keamanan Akun",
-                        fontWeight = FontWeight.Bold,
-                        color = AppColors.TextMain
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                containerColor = AppColors.Surface,
+                dragHandle = {
+                    Box(
+                        modifier = Modifier
+                            .padding(vertical = 12.dp)
+                            .width(36.dp)
+                            .height(4.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFE5E7EB))
                     )
-                },
-                text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(
-                            text = "SpendWealthy mengamankan data keuangan Anda secara lokal di perangkat.",
-                            fontSize = 14.sp,
-                            color = AppColors.TextMuted
-                        )
+                }
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .widthIn(max = 540.dp)
+                        .align(Alignment.CenterHorizontally)
+                        .padding(horizontal = 24.dp)
+                        .padding(bottom = 36.dp)
+                        .navigationBarsPadding(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Surface(
+                                modifier = Modifier.size(40.dp),
+                                shape = CircleShape,
+                                color = AppColors.Primary.copy(alpha = 0.12f)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = Icons.Default.Info,
+                                        contentDescription = null,
+                                        tint = AppColors.Primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                            Text(
+                                text = "Bantuan PIN & Keamanan",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.TextMain
+                            )
+                        }
+
                         Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = AppColors.CanaryYellow.copy(alpha = 0.15f),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.CanaryYellow.copy(alpha = 0.4f)),
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .clickable { showHelpDialog = false },
+                            shape = CircleShape,
+                            color = AppColors.SurfaceRaised,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Tutup",
+                                    tint = AppColors.TextMuted,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    HorizontalDivider(color = AppColors.Outline)
+
+                    Text(
+                        text = "SpendWealthy mengamankan seluruh data keuangan Anda secara lokal (Sovereign Local Vault) pada perangkat ini.",
+                        fontSize = 14.sp,
+                        color = AppColors.TextMuted,
+                        lineHeight = 20.sp
+                    )
+
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = AppColors.CanaryYellow.copy(alpha = 0.15f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.CanaryYellow.copy(alpha = 0.4f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(14.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             Text(
-                                text = "💡 PIN bawaan demo: 123456\nAnda dapat mengganti atau mematikan PIN kapan saja melalui menu Pengaturan > Keamanan.",
+                                text = "💡 Demo PIN Bawaan:",
                                 fontSize = 13.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = AppColors.CharcoalBlack,
-                                modifier = Modifier.padding(12.dp)
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.CharcoalBlack
+                            )
+                            Text(
+                                text = "Ketik 123456 untuk membuka kunci demo. Anda dapat mengubah atau menonaktifkan PIN melalui menu Pengaturan > Keamanan.",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Normal,
+                                color = AppColors.CharcoalBlack
                             )
                         }
                     }
-                },
-                confirmButton = {
+
                     Button(
                         onClick = { showHelpDialog = false },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = AppColors.CharcoalBlack,
                             contentColor = Color.White
                         ),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier.fillMaxWidth().height(48.dp)
                     ) {
-                        Text("Saya Mengerti")
+                        Text("Saya Mengerti", fontWeight = FontWeight.Bold)
                     }
                 }
-            )
+            }
         }
     }
 }
