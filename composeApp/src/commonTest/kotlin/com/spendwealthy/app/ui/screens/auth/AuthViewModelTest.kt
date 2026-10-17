@@ -152,6 +152,70 @@ class AuthViewModelTest {
     }
 
     @Test
+    fun testLoginWithGoogleSetsSessionAndPreferences() = runTest(testDispatcher) {
+        val viewModel = AuthViewModel(fakePreferenceRepo)
+
+        var successCalled = false
+        viewModel.loginWithGoogle { successCalled = true }
+        advanceUntilIdle()
+
+        assertTrue(successCalled)
+        assertTrue(viewModel.uiState.value.isSuccess)
+        assertFalse(viewModel.uiState.value.isLoading)
+        assertTrue(fakePreferenceRepo.getBoolean("is_logged_in").first())
+        assertTrue(fakePreferenceRepo.getBoolean("onboarding_completed").first())
+        assertEquals("alex.google@spendwealthy.com", fakePreferenceRepo.getString("user_email").first())
+        assertEquals("Alex Google", fakePreferenceRepo.getString("user_name").first())
+    }
+
+    @Test
+    fun testLoginWithAppleSetsSessionAndPreferences() = runTest(testDispatcher) {
+        val viewModel = AuthViewModel(fakePreferenceRepo)
+
+        var successCalled = false
+        viewModel.loginWithApple { successCalled = true }
+        advanceUntilIdle()
+
+        assertTrue(successCalled)
+        assertTrue(viewModel.uiState.value.isSuccess)
+        assertFalse(viewModel.uiState.value.isLoading)
+        assertTrue(fakePreferenceRepo.getBoolean("is_logged_in").first())
+        assertTrue(fakePreferenceRepo.getBoolean("onboarding_completed").first())
+        assertEquals("alex.apple@privaterelay.appleid.com", fakePreferenceRepo.getString("user_email").first())
+        assertEquals("Alex Apple", fakePreferenceRepo.getString("user_name").first())
+    }
+
+    @Test
+    fun testRegisterWithGoogleSetsCurrencyAndUser() = runTest(testDispatcher) {
+        val viewModel = AuthViewModel(fakePreferenceRepo)
+        viewModel.onCurrencyChanged("EUR")
+
+        var successCalled = false
+        viewModel.registerWithGoogle { successCalled = true }
+        advanceUntilIdle()
+
+        assertTrue(successCalled)
+        assertTrue(fakePreferenceRepo.getBoolean("is_logged_in").first())
+        assertEquals("EUR", fakePreferenceRepo.getString("user_currency").first())
+        assertEquals("alex.google@spendwealthy.com", fakePreferenceRepo.getString("user_email").first())
+    }
+
+    @Test
+    fun testRegisterWithAppleSetsCurrencyAndUser() = runTest(testDispatcher) {
+        val viewModel = AuthViewModel(fakePreferenceRepo)
+        viewModel.onCurrencyChanged("SGD")
+
+        var successCalled = false
+        viewModel.registerWithApple { successCalled = true }
+        advanceUntilIdle()
+
+        assertTrue(successCalled)
+        assertTrue(fakePreferenceRepo.getBoolean("is_logged_in").first())
+        assertEquals("SGD", fakePreferenceRepo.getString("user_currency").first())
+        assertEquals("alex.apple@privaterelay.appleid.com", fakePreferenceRepo.getString("user_email").first())
+    }
+
+    @Test
     fun testTogglesInViewModel() {
         val viewModel = AuthViewModel(fakePreferenceRepo)
 

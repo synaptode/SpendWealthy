@@ -77,6 +77,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.WalletType
 import com.spendwealthy.app.ui.main.MainScreen
 import com.spendwealthy.app.ui.screens.auth.LoginScreen
+import com.spendwealthy.app.ui.screens.auth.RegisterScreen
 
 class OnboardingScreen : Screen {
 
@@ -138,6 +139,10 @@ class OnboardingScreen : Screen {
                     onLogin = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         navigator.push(LoginScreen())
+                    },
+                    onRegister = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        navigator.push(RegisterScreen())
                     }
                 )
 
@@ -177,6 +182,10 @@ class OnboardingScreen : Screen {
                     onLogin = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         navigator.push(LoginScreen())
+                    },
+                    onRegister = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        navigator.push(RegisterScreen())
                     }
                 )
             }
@@ -187,7 +196,12 @@ class OnboardingScreen : Screen {
     // Header & Stepper
     // --------------------------------------------------------------------------
     @Composable
-    private fun TopHeaderBar(step: Int, onSkip: () -> Unit, onLogin: () -> Unit) {
+    private fun TopHeaderBar(
+        step: Int,
+        onSkip: () -> Unit,
+        onLogin: () -> Unit,
+        onRegister: () -> Unit
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -232,6 +246,14 @@ class OnboardingScreen : Screen {
                             Text(
                                 text = "Masuk",
                                 color = Color(0xFFFFDE43),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        TextButton(onClick = onRegister) {
+                            Text(
+                                text = "Daftar",
+                                color = Color(0xFF10B981),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -863,7 +885,8 @@ class OnboardingScreen : Screen {
         step: Int,
         isLoading: Boolean,
         onNext: () -> Unit,
-        onLogin: () -> Unit
+        onLogin: () -> Unit,
+        onRegister: () -> Unit
     ) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
@@ -936,6 +959,21 @@ class OnboardingScreen : Screen {
                             modifier = Modifier
                                 .clip(RoundedCornerShape(4.dp))
                                 .clickable(onClick = onLogin)
+                                .padding(horizontal = 4.dp, vertical = 2.dp)
+                        )
+                        Text(
+                            text = " • ",
+                            fontSize = 13.sp,
+                            color = Color(0xFF64748B)
+                        )
+                        Text(
+                            text = "Daftar Akun",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF10B981),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .clickable(onClick = onRegister)
                                 .padding(horizontal = 4.dp, vertical = 2.dp)
                         )
                     }

@@ -504,6 +504,39 @@ class RegisterScreen : Screen {
                     }
                 }
 
+                Spacer(Modifier.height(20.dp))
+
+                // Social Register Divider
+                SocialAuthDivider(label = "atau daftar instan dengan")
+
+                Spacer(Modifier.height(16.dp))
+
+                // Dedicated Google SSO Register Button
+                GoogleSsoButton(
+                    text = "Daftar dengan Google",
+                    onClick = {
+                        focusManager.clearFocus()
+                        viewModel.registerWithGoogle {
+                            navigator.replaceAll(OnboardingScreen())
+                        }
+                    },
+                    isLoading = state.isLoading
+                )
+
+                Spacer(Modifier.height(10.dp))
+
+                // Dedicated Apple SSO Register Button
+                AppleSsoButton(
+                    text = "Daftar dengan Apple",
+                    onClick = {
+                        focusManager.clearFocus()
+                        viewModel.registerWithApple {
+                            navigator.replaceAll(OnboardingScreen())
+                        }
+                    },
+                    isLoading = state.isLoading
+                )
+
                 Spacer(Modifier.height(24.dp))
 
                 // Link to Login

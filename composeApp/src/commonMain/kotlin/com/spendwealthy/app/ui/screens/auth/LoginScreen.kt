@@ -381,102 +381,75 @@ class LoginScreen : Screen {
 
                 Spacer(Modifier.height(24.dp))
 
+                Spacer(Modifier.height(20.dp))
+
                 // Social Logins Divider
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    HorizontalDivider(modifier = Modifier.weight(1f), color = AppColors.Outline)
-                    Text(
-                        text = "atau masuk dengan",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = AppColors.TextMuted,
-                        modifier = Modifier.padding(horizontal = 12.dp)
-                    )
-                    HorizontalDivider(modifier = Modifier.weight(1f), color = AppColors.Outline)
-                }
+                SocialAuthDivider(label = "atau masuk dengan")
 
                 Spacer(Modifier.height(16.dp))
 
-                // Quick Login Buttons (Biometric & Google/Apple)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Surface(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(48.dp)
-                            .clip(RoundedCornerShape(14.dp))
-                            .clickable {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                viewModel.loginAsGuest {
-                                    navigator.replaceAll(MainScreen())
-                                }
-                            },
-                        shape = RoundedCornerShape(14.dp),
-                        color = AppColors.Surface,
-                        border = BorderStroke(1.dp, AppColors.Outline)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Fingerprint,
-                                contentDescription = null,
-                                tint = AppColors.PrimaryDark,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                text = "Biometrik",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = AppColors.TextMain
-                            )
+                // Dedicated Google SSO Button
+                GoogleSsoButton(
+                    text = "Masuk dengan Google",
+                    onClick = {
+                        focusManager.clearFocus()
+                        viewModel.loginWithGoogle {
+                            navigator.replaceAll(MainScreen())
                         }
-                    }
+                    },
+                    isLoading = state.isLoading
+                )
 
-                    Surface(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(48.dp)
-                            .clip(RoundedCornerShape(14.dp))
-                            .clickable {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                viewModel.onEmailChanged("google.user@spendwealthy.com")
-                                viewModel.onPasswordChanged("google_pass_123")
-                                viewModel.login {
-                                    navigator.replaceAll(MainScreen())
-                                }
-                            },
-                        shape = RoundedCornerShape(14.dp),
-                        color = AppColors.Surface,
-                        border = BorderStroke(1.dp, AppColors.Outline)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.AccountBalance,
-                                contentDescription = null,
-                                tint = AppColors.TextMain,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                text = "Google / Apple",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = AppColors.TextMain,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                Spacer(Modifier.height(10.dp))
+
+                // Dedicated Apple SSO Button
+                AppleSsoButton(
+                    text = "Masuk dengan Apple",
+                    onClick = {
+                        focusManager.clearFocus()
+                        viewModel.loginWithApple {
+                            navigator.replaceAll(MainScreen())
                         }
+                    },
+                    isLoading = state.isLoading
+                )
+
+                Spacer(Modifier.height(10.dp))
+
+                // Biometric Login Button
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .clickable {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            viewModel.loginAsGuest {
+                                navigator.replaceAll(MainScreen())
+                            }
+                        },
+                    shape = RoundedCornerShape(14.dp),
+                    color = AppColors.Surface,
+                    border = BorderStroke(1.dp, AppColors.Outline)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Fingerprint,
+                            contentDescription = null,
+                            tint = AppColors.PrimaryDark,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = "Masuk Cepat dengan Biometrik",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.TextMain
+                        )
                     }
                 }
 

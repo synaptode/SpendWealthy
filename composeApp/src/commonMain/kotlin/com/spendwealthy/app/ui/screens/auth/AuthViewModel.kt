@@ -142,6 +142,64 @@ class AuthViewModel(
         }
     }
 
+    fun loginWithGoogle(onSuccess: () -> Unit) {
+        screenModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            delay(400)
+            preferenceRepository.setBoolean("is_logged_in", true)
+            preferenceRepository.setBoolean("onboarding_completed", true)
+            preferenceRepository.setString("user_email", "alex.google@spendwealthy.com")
+            preferenceRepository.setString("user_name", "Alex Google")
+            preferenceRepository.setString("auth_token", "sw_google_oauth_token")
+            _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+            onSuccess()
+        }
+    }
+
+    fun loginWithApple(onSuccess: () -> Unit) {
+        screenModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            delay(400)
+            preferenceRepository.setBoolean("is_logged_in", true)
+            preferenceRepository.setBoolean("onboarding_completed", true)
+            preferenceRepository.setString("user_email", "alex.apple@privaterelay.appleid.com")
+            preferenceRepository.setString("user_name", "Alex Apple")
+            preferenceRepository.setString("auth_token", "sw_apple_identity_token")
+            _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+            onSuccess()
+        }
+    }
+
+    fun registerWithGoogle(onSuccess: () -> Unit) {
+        screenModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            delay(400)
+            preferenceRepository.setBoolean("is_logged_in", true)
+            preferenceRepository.setBoolean("onboarding_completed", true)
+            preferenceRepository.setString("user_email", "alex.google@spendwealthy.com")
+            preferenceRepository.setString("user_name", "Alex Google")
+            preferenceRepository.setString("user_currency", _uiState.value.selectedCurrency)
+            preferenceRepository.setString("auth_token", "sw_google_oauth_token")
+            _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+            onSuccess()
+        }
+    }
+
+    fun registerWithApple(onSuccess: () -> Unit) {
+        screenModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            delay(400)
+            preferenceRepository.setBoolean("is_logged_in", true)
+            preferenceRepository.setBoolean("onboarding_completed", true)
+            preferenceRepository.setString("user_email", "alex.apple@privaterelay.appleid.com")
+            preferenceRepository.setString("user_name", "Alex Apple")
+            preferenceRepository.setString("user_currency", _uiState.value.selectedCurrency)
+            preferenceRepository.setString("auth_token", "sw_apple_identity_token")
+            _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+            onSuccess()
+        }
+    }
+
     fun loginAsGuest(onSuccess: () -> Unit) {
         screenModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }

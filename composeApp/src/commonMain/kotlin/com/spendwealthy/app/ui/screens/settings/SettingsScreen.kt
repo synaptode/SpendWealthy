@@ -69,6 +69,7 @@ import com.spendwealthy.app.ui.screens.insight.PrideStatusScreen
 import com.spendwealthy.app.ui.screens.premium.PaywallScreen
 import com.spendwealthy.app.ui.screens.auth.LoginScreen
 import com.spendwealthy.app.ui.screens.auth.RegisterScreen
+import com.spendwealthy.app.ui.screens.onboarding.OnboardingScreen
 import com.spendwealthy.app.ui.theme.AppColors
 
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -425,6 +426,21 @@ class SettingsScreen : Screen {
                                     onClick = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         navigator.push(PrideStatusScreen())
+                                    }
+                                )
+
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(vertical = 12.dp),
+                                    color = AppColors.Outline
+                                )
+
+                                SettingsRowItem(
+                                    title = "Panduan Onboarding Aplikasi",
+                                    subtitle = "Lihat kembali pengenalan fitur, mode akun & safe-to-spend",
+                                    icon = Icons.Default.Info,
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        navigator.push(OnboardingScreen())
                                     }
                                 )
                             }
