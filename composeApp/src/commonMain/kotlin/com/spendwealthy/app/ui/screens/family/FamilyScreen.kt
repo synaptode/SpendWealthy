@@ -504,38 +504,45 @@ class FamilyScreen : Screen {
                 // 3 Quick Action Buttons
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     // + Setor Tabungan (Primary)
                     Surface(
                         modifier = Modifier
-                            .weight(1.2f)
+                            .weight(1f)
                             .clip(RoundedCornerShape(14.dp))
                             .clickable(onClick = onContribute),
                         shape = RoundedCornerShape(14.dp),
                         color = AppColors.Primary
                     ) {
-                        Row(
-                            modifier = Modifier.padding(vertical = 11.dp, horizontal = 4.dp),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 11.dp, horizontal = 4.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = null,
-                                tint = AppColors.OnPrimary,
-                                modifier = Modifier.size(15.dp)
-                            )
-                            Spacer(Modifier.width(4.dp))
-                            Text(
-                                text = "Setor",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = AppColors.OnPrimary,
-                                maxLines = 1,
-                                softWrap = false,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = null,
+                                    tint = AppColors.OnPrimary,
+                                    modifier = Modifier.size(15.dp)
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                Text(
+                                    text = "Setor",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = AppColors.OnPrimary,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                         }
                     }
 
@@ -549,27 +556,33 @@ class FamilyScreen : Screen {
                         color = AppColors.SurfaceRaised,
                         border = BorderStroke(1.dp, AppColors.Outline)
                     ) {
-                        Row(
-                            modifier = Modifier.padding(vertical = 11.dp, horizontal = 4.dp),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 11.dp, horizontal = 4.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.PersonAdd,
-                                contentDescription = null,
-                                tint = AppColors.TextMain,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Spacer(Modifier.width(4.dp))
-                            Text(
-                                text = "Undang",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = AppColors.TextMain,
-                                maxLines = 1,
-                                softWrap = false,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.PersonAdd,
+                                    contentDescription = null,
+                                    tint = AppColors.TextMain,
+                                    modifier = Modifier.size(15.dp)
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                Text(
+                                    text = "Undang",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = AppColors.TextMain,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                         }
                     }
 
@@ -583,27 +596,33 @@ class FamilyScreen : Screen {
                         color = AppColors.Surface,
                         border = BorderStroke(1.dp, AppColors.Outline)
                     ) {
-                        Row(
-                            modifier = Modifier.padding(vertical = 11.dp, horizontal = 4.dp),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 11.dp, horizontal = 4.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Flag,
-                                contentDescription = null,
-                                tint = AppColors.TextMain,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Spacer(Modifier.width(4.dp))
-                            Text(
-                                text = "Target",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = AppColors.TextMain,
-                                maxLines = 1,
-                                softWrap = false,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Flag,
+                                    contentDescription = null,
+                                    tint = AppColors.TextMain,
+                                    modifier = Modifier.size(15.dp)
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                Text(
+                                    text = "Target",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = AppColors.TextMain,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                         }
                     }
                 }
@@ -1267,7 +1286,7 @@ class FamilyScreen : Screen {
 
                     Surface(
                         modifier = Modifier
-                            .weight(1.5f)
+                            .weight(1f)
                             .height(48.dp)
                             .clip(RoundedCornerShape(14.dp))
                             .clickable(enabled = amountLong > 0 && selectedGoalId.isNotBlank()) {
@@ -1455,7 +1474,7 @@ class FamilyScreen : Screen {
 
                     Surface(
                         modifier = Modifier
-                            .weight(1.5f)
+                            .weight(1f)
                             .height(48.dp)
                             .clip(RoundedCornerShape(14.dp))
                             .clickable(enabled = title.isNotBlank() && targetLong > 0) {

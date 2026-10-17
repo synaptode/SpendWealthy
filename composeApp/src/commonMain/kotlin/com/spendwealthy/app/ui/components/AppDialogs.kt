@@ -98,7 +98,7 @@ fun CatDialog(
                 AppButton(
                     text = confirmText,
                     onClick = onConfirm,
-                    modifier = Modifier.weight(1.2f)
+                    modifier = Modifier.weight(1f)
                 )
             }
         }

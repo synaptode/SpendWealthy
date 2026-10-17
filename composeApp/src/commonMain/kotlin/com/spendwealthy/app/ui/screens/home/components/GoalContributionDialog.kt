@@ -144,7 +144,7 @@ fun GoalContributionDialog(
                     },
                     enabled = amount.isNotBlank() && selectedWallet != null,
                     modifier = Modifier
-                        .weight(1.6f)
+                        .weight(1f)
                         .height(52.dp)
                 )
             }

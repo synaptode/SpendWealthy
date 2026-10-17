@@ -916,8 +916,8 @@ class ReportScreen(
                 // Metric 2: Top Expense Category
                 Column(
                     modifier = Modifier
-                        .weight(1.2f)
-                        .padding(horizontal = 8.dp),
+                        .weight(1f)
+                        .padding(horizontal = 6.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
@@ -948,7 +948,7 @@ class ReportScreen(
 
                 // Metric 3: Total Transactions Count
                 Column(
-                    modifier = Modifier.weight(0.9f),
+                    modifier = Modifier.weight(1f),
                     horizontalAlignment = Alignment.End
                 ) {
                     Text(
