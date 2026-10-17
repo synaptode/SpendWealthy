@@ -27,12 +27,14 @@ import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.Goal
+import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.domain.model.RecurrenceType
 import com.spendwealthy.app.domain.model.Wallet
 import com.spendwealthy.app.ui.components.AppAmountInput
 import com.spendwealthy.app.ui.components.AppButton
 import com.spendwealthy.app.ui.components.AppGlassCard
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 class AutoMoveSetupScreen : Screen {
     @Composable
@@ -86,6 +88,7 @@ class AutoMoveSetupScreen : Screen {
                             items(state.wallets) { wallet ->
                                 SelectionChip(
                                     label = wallet.name,
+                                    subtitle = wallet.balance.formatWithSymbol(),
                                     isSelected = selectedSource?.id == wallet.id,
                                     onClick = { selectedSource = wallet }
                                 )
@@ -99,8 +102,11 @@ class AutoMoveSetupScreen : Screen {
                         Text("Ke Pos Target / Tabungan", fontWeight = FontWeight.Bold, color = AppColors.TextMain)
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             items(state.goals) { goal ->
+                                val remainingAmount = (goal.targetAmount.amount - goal.currentAmount.amount).coerceAtLeast(0L)
+                                val remaining = Money(remainingAmount, goal.targetAmount.currency)
                                 SelectionChip(
                                     label = goal.name,
+                                    subtitle = "Sisa: ${remaining.formatWithSymbol()}",
                                     isSelected = selectedTargetGoal?.id == goal.id,
                                     onClick = { selectedTargetGoal = goal }
                                 )
@@ -142,7 +148,12 @@ class AutoMoveSetupScreen : Screen {
     }
 
     @Composable
-    private fun SelectionChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
+    private fun SelectionChip(
+        label: String,
+        subtitle: String? = null,
+        isSelected: Boolean,
+        onClick: () -> Unit
+    ) {
         Surface(
             modifier = Modifier
                 .clip(RoundedCornerShape(14.dp))
@@ -151,13 +162,26 @@ class AutoMoveSetupScreen : Screen {
             color = if (isSelected) AppColors.Primary else AppColors.SurfaceRaised,
             border = androidx.compose.foundation.BorderStroke(1.dp, if (isSelected) AppColors.Primary else AppColors.Outline)
         ) {
-            Text(
-                text = label,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                color = if (isSelected) Color(0xFF090D16) else AppColors.TextMain,
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
-            )
+            Column(
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+            ) {
+                Text(
+                    text = label,
+                    color = if (isSelected) Color(0xFF090D16) else AppColors.TextMain,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp
+                )
+                if (subtitle != null) {
+                    Text(
+                        text = subtitle,
+                        style = AppTypography.labelNumeric(
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = if (isSelected) Color(0xFF090D16).copy(alpha = 0.8f) else AppColors.TextMuted
+                        )
+                    )
+                }
+            }
         }
     }
 }

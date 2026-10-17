@@ -58,6 +58,7 @@ import com.spendwealthy.app.ui.components.AppAmountInput
 import com.spendwealthy.app.ui.components.AppButton
 import com.spendwealthy.app.ui.components.AppTextField
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 class AddWalletScreen : Screen {
 
@@ -234,9 +235,11 @@ class AddWalletScreen : Screen {
                                         Text(
                                             text = label,
                                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium,
-                                            color = if (isSelected) AppColors.Primary else AppColors.TextMuted
+                                            style = AppTypography.labelNumeric(
+                                                fontSize = 12.sp,
+                                                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.SemiBold,
+                                                color = if (isSelected) AppColors.Primary else AppColors.TextMuted
+                                            )
                                         )
                                     }
                                 }

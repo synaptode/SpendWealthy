@@ -69,6 +69,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.domain.model.RecurrenceType
 import com.spendwealthy.app.ui.components.AppAmountInput
 import com.spendwealthy.app.ui.components.AppButton
@@ -76,6 +77,7 @@ import com.spendwealthy.app.ui.components.AppTextField
 import com.spendwealthy.app.ui.components.BrandLogo
 import com.spendwealthy.app.ui.components.KnownBrand
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 private data class BillPreset(
     val name: String,
@@ -317,12 +319,22 @@ class AddBillScreen : Screen {
                                     modifier = Modifier.size(16.dp)
                                 )
                             }
-                            Text(
-                                text = preset.name,
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.SemiBold,
-                                color = if (isSelected) AppColors.Primary else AppColors.TextMain
-                            )
+                            Column {
+                                Text(
+                                    text = preset.name,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.SemiBold,
+                                    color = if (isSelected) AppColors.Primary else AppColors.TextMain
+                                )
+                                Text(
+                                    text = Money(preset.suggestedAmount, "IDR").formatWithSymbol(),
+                                    style = AppTypography.labelNumeric(
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = if (isSelected) AppColors.Primary.copy(alpha = 0.85f) else AppColors.TextMuted
+                                    )
+                                )
+                            }
                         }
                     }
                 }

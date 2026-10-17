@@ -26,6 +26,7 @@ import com.spendwealthy.app.domain.model.Wallet
 import com.spendwealthy.app.ui.components.AppAmountInput
 import com.spendwealthy.app.ui.components.AppButton
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -161,22 +162,32 @@ private fun WalletChip(wallet: Wallet, isSelected: Boolean, onClick: () -> Unit)
         border = androidx.compose.foundation.BorderStroke(1.dp, if (isSelected) AppColors.Primary else AppColors.Outline)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Icon(
                 Icons.Default.AccountBalanceWallet, 
                 null, 
-                tint = if (isSelected) Color.White else AppColors.Primary,
+                tint = if (isSelected) AppColors.OnPrimary else AppColors.Primary,
                 modifier = Modifier.size(16.dp)
             )
-            Text(
-                text = wallet.name,
-                color = if (isSelected) Color.White else AppColors.TextMain,
-                fontWeight = FontWeight.Bold,
-                fontSize = 13.sp
-            )
+            Column {
+                Text(
+                    text = wallet.name,
+                    color = if (isSelected) AppColors.OnPrimary else AppColors.TextMain,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp
+                )
+                Text(
+                    text = wallet.balance.formatWithSymbol(),
+                    style = AppTypography.labelNumeric(
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = if (isSelected) AppColors.OnPrimary.copy(alpha = 0.8f) else AppColors.TextMuted
+                    )
+                )
+            }
         }
     }
 }

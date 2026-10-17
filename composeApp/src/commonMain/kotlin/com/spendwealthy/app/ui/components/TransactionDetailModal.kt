@@ -34,6 +34,7 @@ import com.spendwealthy.app.domain.model.CurrencyConverter
 import com.spendwealthy.app.domain.model.Transaction
 import com.spendwealthy.app.domain.model.TransactionType
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -181,22 +182,25 @@ fun TransactionDetailModal(
 
                     Text(
                         text = (if (isIncome) "+ " else if (isTransfer) "⇄ " else "- ") + transaction.amount.formatWithSymbol(),
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = when {
-                            isIncome -> AppColors.EmeraldGreen
-                            else -> MaterialTheme.colorScheme.onSurface
-                        },
-                        letterSpacing = (-0.5).sp
+                        style = AppTypography.displayNumeric(
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = when {
+                                isIncome -> AppColors.EmeraldGreen
+                                else -> MaterialTheme.colorScheme.onSurface
+                            }
+                        )
                     )
 
                     if (transaction.amount.currency != "IDR") {
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = CurrencyConverter.formatEstimatedIdr(transaction.amount),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = AppTypography.bodyNumeric(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         )
                     }
 

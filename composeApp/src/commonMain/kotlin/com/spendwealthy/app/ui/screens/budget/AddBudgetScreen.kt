@@ -51,6 +51,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -60,6 +61,7 @@ import com.spendwealthy.app.ui.components.AddCategoryModal
 import com.spendwealthy.app.ui.components.AppAmountInput
 import com.spendwealthy.app.ui.components.AppButton
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 class AddBudgetScreen : Screen {
 
@@ -182,9 +184,11 @@ class AddBudgetScreen : Screen {
                                         Text(
                                             text = label,
                                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium,
-                                            color = if (isSelected) AppColors.Primary else AppColors.TextMuted
+                                            style = AppTypography.labelNumeric(
+                                                fontSize = 12.sp,
+                                                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.SemiBold,
+                                                color = if (isSelected) AppColors.Primary else AppColors.TextMuted
+                                            )
                                         )
                                     }
                                 }
