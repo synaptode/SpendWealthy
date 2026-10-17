@@ -37,9 +37,9 @@ class AutoMoveHistoryScreen : Screen {
         
         // Mock data
         val logs = listOf(
-            AutoMoveLog("1", "am1", Money(500000, "IDR"), AutoMoveStatus.SUCCESS, Clock.System.now(), "Monthly Savings Executed"),
-            AutoMoveLog("2", "am1", Money(500000, "IDR"), AutoMoveStatus.SUCCESS, Clock.System.now(), "Monthly Savings Executed"),
-            AutoMoveLog("3", "am1", Money(500000, "IDR"), AutoMoveStatus.FAILED, Clock.System.now(), "Insufficient funds in source wallet")
+            AutoMoveLog("1", "am1", Money(500000, "IDR"), AutoMoveStatus.SUCCESS, Clock.System.now(), "Tabungan Otomatis Bulanan Berhasil"),
+            AutoMoveLog("2", "am1", Money(1000000, "IDR"), AutoMoveStatus.SUCCESS, Clock.System.now(), "Alokasi Dana Darurat Terlaksana"),
+            AutoMoveLog("3", "am1", Money(750000, "IDR"), AutoMoveStatus.FAILED, Clock.System.now(), "Saldo dompet sumber tidak mencukupi")
         )
 
         Scaffold(
@@ -54,9 +54,9 @@ class AutoMoveHistoryScreen : Screen {
                         Modifier.size(44.dp).clip(CircleShape).background(AppColors.SurfaceRaised).clickable { navigator.pop() },
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = AppColors.TextMain)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali", tint = AppColors.TextMain)
                     }
-                    Text("Automation History", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
+                    Text("Riwayat Auto-Move", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = AppColors.TextMain)
                     Box(Modifier.size(44.dp))
                 }
             }
@@ -67,7 +67,7 @@ class AutoMoveHistoryScreen : Screen {
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
-                    Text("Track every automated move we've made for you.", style = MaterialTheme.typography.bodyMedium, color = AppColors.TextMuted)
+                    Text("Lacak setiap pemindahan dana otomatis yang telah dieksekusi secara privat.", style = MaterialTheme.typography.bodyMedium, color = AppColors.TextMuted)
                 }
                 
                 items(logs) { log ->
@@ -91,25 +91,25 @@ class AutoMoveHistoryScreen : Screen {
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Box(
-                    modifier = Modifier.size(40.dp).clip(CircleShape).background(if (isSuccess) AppColors.Success.copy(alpha = 0.1f) else Color(0xFFFEF2F2)),
+                    modifier = Modifier.size(40.dp).clip(CircleShape).background(if (isSuccess) AppColors.Success.copy(alpha = 0.15f) else AppColors.Danger.copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         if (isSuccess) Icons.Default.CheckCircle else Icons.Default.Warning,
-                        null,
-                        tint = if (isSuccess) AppColors.Success else Color(0xFFEF4444),
+                        contentDescription = null,
+                        tint = if (isSuccess) AppColors.Success else AppColors.Danger,
                         modifier = Modifier.size(24.dp)
                     )
                 }
                 
                 Column(Modifier.weight(1f)) {
-                    Text(if (isSuccess) "Transfer Successful" else "Transfer Failed", fontWeight = FontWeight.Bold, color = AppColors.TextMain)
+                    Text(if (isSuccess) "Pemindahan Sukses" else "Pemindahan Gagal", fontWeight = FontWeight.Bold, color = AppColors.TextMain)
                     Text(log.message ?: "", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
                 }
                 
                 Column(horizontalAlignment = Alignment.End) {
                     Text(log.amount.format(), fontWeight = FontWeight.Black, color = if (isSuccess) AppColors.Primary else AppColors.TextMuted)
-                    Text("Just now", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
+                    Text("Baru saja", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
                 }
             }
         }

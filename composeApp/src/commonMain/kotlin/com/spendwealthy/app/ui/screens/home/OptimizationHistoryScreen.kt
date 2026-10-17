@@ -42,10 +42,10 @@ class OptimizationHistoryScreen : Screen {
         Scaffold(
             topBar = {
                 CenterAlignedTopAppBar(
-                    title = { Text("Impact History", fontWeight = FontWeight.Black) },
+                    title = { Text("Riwayat Optimalisasi", fontWeight = FontWeight.Black, color = AppColors.TextMain) },
                     navigationIcon = {
                         IconButton(onClick = { navigator.pop() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali", tint = AppColors.TextMain)
                         }
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -65,13 +65,13 @@ class OptimizationHistoryScreen : Screen {
                 }
                 
                 item {
-                    Text("Past Optimizations", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text("Catatan Efisiensi Finansial", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
                 }
                 
                 if (state.optimizationLogs.isEmpty()) {
                     item {
                         Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-                            Text("No history yet. Start optimizing!", color = AppColors.TextMuted)
+                            Text("Belum ada riwayat optimalisasi. Mulai terapkan rekomendasi finansial!", color = AppColors.TextMuted)
                         }
                     }
                 } else {
@@ -86,14 +86,14 @@ class OptimizationHistoryScreen : Screen {
     @Composable
     private fun ImpactSummaryCard(logs: List<OptimizationLog>) {
         val totalImpact = logs.sumOf { it.impactScore }
-        AppGlassCard(backgroundColor = AppColors.Secondary) {
+        AppGlassCard(backgroundColor = AppColors.CardDark) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text("Total Efficiency Gain", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.8f))
-                    Text("$totalImpact pts", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black, color = Color.White)
-                    Text("ROI optimized through AI", style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.7f))
+                    Text("TOTAL SKOR EFISIENSI", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, color = AppColors.Primary)
+                    Text("$totalImpact pts", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black, color = AppColors.TextMain)
+                    Text("Dioptimasi melalui algoritma kekayaan privat", style = MaterialTheme.typography.bodySmall, color = AppColors.TextMuted)
                 }
-                Icon(Icons.AutoMirrored.Filled.TrendingUp, null, tint = Color.White, modifier = Modifier.size(48.dp))
+                Icon(Icons.AutoMirrored.Filled.TrendingUp, contentDescription = null, tint = AppColors.Primary, modifier = Modifier.size(44.dp))
             }
         }
     }
@@ -103,11 +103,12 @@ class OptimizationHistoryScreen : Screen {
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            color = AppColors.SurfaceRaised
+            color = AppColors.SurfaceRaised,
+            border = BorderStroke(1.dp, AppColors.Outline)
         ) {
             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Box(
-                    modifier = Modifier.size(40.dp).clip(CircleShape).background(AppColors.Primary.copy(alpha = 0.1f)),
+                    modifier = Modifier.size(40.dp).clip(CircleShape).background(AppColors.Primary.copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(Icons.Default.AutoAwesome, null, tint = AppColors.Primary, modifier = Modifier.size(20.dp))
@@ -115,7 +116,7 @@ class OptimizationHistoryScreen : Screen {
                 Spacer(Modifier.width(16.dp))
                 Column(Modifier.weight(1f)) {
                     Text(log.title, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
-                    Text("Executed successfully", style = MaterialTheme.typography.labelSmall, color = AppColors.Success)
+                    Text("Berhasil diterapkan", style = MaterialTheme.typography.labelSmall, color = AppColors.Success)
                 }
                 Text("+${log.impactScore}", fontWeight = FontWeight.Black, color = AppColors.Primary, fontSize = 16.sp)
             }
