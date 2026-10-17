@@ -102,6 +102,8 @@ import com.spendwealthy.app.ui.screens.wallet.WalletListScreen
 import com.spendwealthy.app.ui.screens.family.FamilyScreen
 import com.spendwealthy.app.ui.screens.simulator.PurchaseSimulatorBottomSheet
 import com.spendwealthy.app.ui.screens.simulator.PurchaseSimulatorViewModel
+import com.spendwealthy.app.ui.screens.splitter.PaycheckSplitterBottomSheet
+import com.spendwealthy.app.ui.screens.splitter.PaycheckSplitterViewModel
 import com.spendwealthy.app.ui.theme.AppColors
 import com.spendwealthy.app.ui.theme.AppTypography
 
@@ -128,6 +130,7 @@ class HomeScreen : Screen {
         val now = remember { kotlinx.datetime.Clock.System.now().toLocalDateTime(kotlinx.datetime.TimeZone.currentSystemDefault()) }
         var showMonthPicker by remember { mutableStateOf(false) }
         var showPurchaseSimulator by remember { mutableStateOf(false) }
+        var showPaycheckSplitter by remember { mutableStateOf(false) }
         val selectedMonth = state.selectedMonth
         val selectedYear = state.selectedYear
         val selectedMonthName = if (selectedMonth != null && selectedYear != null) {
@@ -178,6 +181,14 @@ class HomeScreen : Screen {
                     showPurchaseSimulator = false
                     rootNavigator.push(FamilyScreen())
                 }
+            )
+        }
+
+        if (showPaycheckSplitter) {
+            val splitterViewModel = koinScreenModel<PaycheckSplitterViewModel>()
+            PaycheckSplitterBottomSheet(
+                viewModel = splitterViewModel,
+                onDismiss = { showPaycheckSplitter = false }
             )
         }
 
@@ -232,13 +243,13 @@ class HomeScreen : Screen {
                     )
                 }
 
-                // 2.1 Quick Actions Row (Send, Receive, Swap, Deposit, Simulasi)
+                // 2.1 Quick Actions Row (Send, Receive, Swap, Bagi Gaji, Simulasi)
                 item {
                     QuickActionsRow(
                         onSend = { rootNavigator.push(AddTransactionScreen(TransactionType.EXPENSE)) },
                         onReceive = { rootNavigator.push(AddTransactionScreen(TransactionType.INCOME)) },
                         onSwap = { rootNavigator.push(AddTransactionScreen(TransactionType.TRANSFER)) },
-                        onDeposit = { rootNavigator.push(AddTransactionScreen(TransactionType.INCOME)) },
+                        onSplitSalary = { showPaycheckSplitter = true },
                         onSimulate = { showPurchaseSimulator = true },
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
                     )
@@ -611,7 +622,7 @@ class HomeScreen : Screen {
         onSend: () -> Unit,
         onReceive: () -> Unit,
         onSwap: () -> Unit,
-        onDeposit: () -> Unit,
+        onSplitSalary: () -> Unit,
         onSimulate: () -> Unit,
         modifier: Modifier = Modifier
     ) {
@@ -658,15 +669,15 @@ class HomeScreen : Screen {
                 }
             )
 
-            // 4. Deposit Action (Income)
+            // 4. Paycheck Splitter Action ("Bagi Gaji")
             QuickActionItem(
-                label = "Deposit",
-                icon = Icons.Default.Add,
+                label = "Bagi Gaji",
+                icon = Icons.AutoMirrored.Filled.CallSplit,
                 backgroundColor = Color(0xFFFFDE43),
                 iconColor = Color(0xFF111827),
                 onClick = {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onDeposit()
+                    onSplitSalary()
                 }
             )
 
