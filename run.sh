@@ -45,10 +45,10 @@ usage() {
     echo -e "  ${GREEN}./run.sh android${NC}   - Buka emulator / device Android & jalankan aplikasi"
     echo -e "  ${GREEN}./run.sh both${NC}      - Jalankan Android dan iOS sekaligus berdampingan"
     echo -e "  ${GREEN}./run.sh fast-ios${NC}  - Jalankan build iOS terakhir di simulator (tanpa rebuild)"
-    echo -e "  ${GREEN}./run.sh test${NC}      - Jalankan seluruh unit test (33 tests)"
+    echo -e "  ${GREEN}./run.sh test${NC}      - Jalankan seluruh unit test suite"
     echo ""
     echo -e "${BOLD}Shortcut Makefile juga tersedia:${NC}"
-    echo -e "  ${CYAN}make ios${NC}       |  ${CYAN}make android${NC}  |  ${CYAN}make both${NC}  |  ${CYAN}make test${NC}"
+    echo -e "  ${CYAN}make ios${NC}  |  ${CYAN}make android${NC}  |  ${CYAN}make both${NC}  |  ${CYAN}make test${NC}  |  ${CYAN}make check${NC}"
     echo ""
 }
 

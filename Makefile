@@ -1,4 +1,4 @@
-.PHONY: help ios fast-ios android both test build-android
+.PHONY: help ios fast-ios android both test build-android check clean all
 
 help:
 	@./run.sh
@@ -21,5 +21,11 @@ all:
 test:
 	@./run.sh test
 
+check:
+	@./gradlew compileDebugKotlinAndroid testDebugUnitTest
+
 build-android:
 	@./gradlew :composeApp:assembleDebug
+
+clean:
+	@./gradlew clean

@@ -15,6 +15,13 @@ import kotlinx.coroutines.launch
 
 import com.spendwealthy.app.domain.model.ThemeMode
 
+import com.spendwealthy.app.domain.gateway.FileShareGateway
+import com.spendwealthy.app.domain.gateway.GatewayResult
+import com.spendwealthy.app.domain.usecase.ExportMonthlyTransactionsCsvUseCase
+import kotlinx.datetime.Clock as KtClock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+
 data class SettingsState(
     val biometricEnabled: Boolean = false,
     val notificationsEnabled: Boolean = true,
@@ -36,7 +43,9 @@ class SettingsViewModel(
     private val subscriptionRepository: SubscriptionRepository,
     private val walletRepository: WalletRepository,
     private val transactionRepository: TransactionRepository,
-    private val dataService: DataService
+    private val dataService: DataService,
+    private val fileShareGateway: FileShareGateway? = null,
+    private val exportMonthlyTransactionsCsvUseCase: ExportMonthlyTransactionsCsvUseCase? = null
 ) : ScreenModel {
 
     private val _uiState = MutableStateFlow(SettingsState())
@@ -127,14 +136,62 @@ class SettingsViewModel(
     }
 
     fun exportFamilyData() {
+        backupLocalDataJson()
+    }
+
+    fun backupLocalDataJson() {
         screenModelScope.launch {
-            _uiState.update { it.copy(exportStatus = "Preparing sync data...") }
-            val wallets = walletRepository.getWallets().first()
-            val transactions = transactionRepository.getTransactions().first()
-            val json = dataService.exportToJson(wallets, transactions)
-            // In a real app, we would share this via Intent or Clipboard
-            _uiState.update { it.copy(exportStatus = "Data is ready for export.") }
+            _uiState.update { it.copy(exportStatus = "Menyiapkan berkas cadangan JSON...") }
+            try {
+                val wallets = walletRepository.getWallets().first()
+                val transactions = transactionRepository.getTransactions().first()
+                val json = dataService.exportToJson(wallets, transactions)
+                val now = KtClock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+                val fileName = "spendwealthy-backup-${now.date}.json"
+
+                if (fileShareGateway != null) {
+                    when (val result = fileShareGateway.shareTextFile(fileName, "application/json", json)) {
+                        is GatewayResult.Success -> {
+                            _uiState.update { it.copy(exportStatus = "Cadangan JSON berhasil dibagikan.") }
+                        }
+                        is GatewayResult.Failure -> {
+                            _uiState.update { it.copy(exportStatus = "Gagal membagikan cadangan: ${result.message}") }
+                        }
+                    }
+                } else {
+                    _uiState.update { it.copy(exportStatus = "Cadangan JSON siap diekspor.") }
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(exportStatus = "Terjadi kesalahan: ${e.message}") }
+            }
         }
+    }
+
+    fun exportTransactionsCsv() {
+        screenModelScope.launch {
+            _uiState.update { it.copy(exportStatus = "Menyiapkan ekspor CSV transaksi...") }
+            try {
+                val now = KtClock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+                if (exportMonthlyTransactionsCsvUseCase != null) {
+                    when (val result = exportMonthlyTransactionsCsvUseCase.invoke(now.year, now.monthNumber)) {
+                        is GatewayResult.Success -> {
+                            _uiState.update { it.copy(exportStatus = "Laporan transaksi CSV berhasil diekspor.") }
+                        }
+                        is GatewayResult.Failure -> {
+                            _uiState.update { it.copy(exportStatus = "Gagal mengekspor CSV: ${result.message}") }
+                        }
+                    }
+                } else {
+                    _uiState.update { it.copy(exportStatus = "Ekspor CSV siap.") }
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(exportStatus = "Terjadi kesalahan: ${e.message}") }
+            }
+        }
+    }
+
+    fun clearExportStatus() {
+        _uiState.update { it.copy(exportStatus = null) }
     }
 
     fun setBiometricEnabled(enabled: Boolean) {

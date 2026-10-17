@@ -363,25 +363,60 @@ class SettingsScreen : Screen {
                                             .fillMaxWidth()
                                             .padding(bottom = 12.dp),
                                         shape = RoundedCornerShape(12.dp),
-                                        color = AppColors.Primary.copy(alpha = 0.1f)
+                                        color = AppColors.Primary.copy(alpha = 0.12f),
+                                        border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Primary.copy(alpha = 0.3f))
                                     ) {
-                                        Text(
-                                            text = status,
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = AppColors.Primary,
-                                            fontWeight = FontWeight.SemiBold,
-                                            modifier = Modifier.padding(12.dp)
-                                        )
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 12.dp, vertical = 10.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(
+                                                text = status,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = AppColors.Primary,
+                                                fontWeight = FontWeight.SemiBold,
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                            Icon(
+                                                imageVector = Icons.Default.Close,
+                                                contentDescription = "Tutup status",
+                                                tint = AppColors.Primary,
+                                                modifier = Modifier
+                                                    .size(16.dp)
+                                                    .clip(CircleShape)
+                                                    .clickable {
+                                                        viewModel.clearExportStatus()
+                                                    }
+                                            )
+                                        }
                                     }
                                 }
 
                                 SettingsRowItem(
-                                    title = "Ekspor Laporan CSV",
-                                    subtitle = "Unduh seluruh riwayat transaksi & dompet",
+                                    title = "Ekspor Riwayat Transaksi (CSV)",
+                                    subtitle = "Unduh seluruh riwayat transaksi bulanan dalam format spreadsheet CSV",
+                                    icon = Icons.AutoMirrored.Filled.ReceiptLong,
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        viewModel.exportTransactionsCsv()
+                                    }
+                                )
+
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(vertical = 12.dp),
+                                    color = AppColors.Outline
+                                )
+
+                                SettingsRowItem(
+                                    title = "Cadangkan Data Lengkap (JSON)",
+                                    subtitle = "Ekspor cadangan utuh seluruh akun dompet & transaksi lokal offline",
                                     icon = Icons.Default.Download,
                                     onClick = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        viewModel.exportFamilyData()
+                                        viewModel.backupLocalDataJson()
                                     }
                                 )
 
