@@ -59,7 +59,11 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.Transaction
 import com.spendwealthy.app.domain.model.TransactionType
 import com.spendwealthy.app.domain.model.WalletType
+import com.spendwealthy.app.ui.components.BrandLogo
+import com.spendwealthy.app.ui.components.KnownBrand
 import com.spendwealthy.app.ui.components.TransactionDetailModal
+import com.spendwealthy.app.ui.components.bouncyClickable
+import com.spendwealthy.app.ui.components.tactilePress
 import com.spendwealthy.app.ui.theme.AppColors
 import org.koin.core.parameter.parametersOf
 
@@ -89,6 +93,7 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                 item {
                     DetailHeader(
                         title = state.wallet?.name ?: "Detail Dompet",
+                        wallet = state.wallet,
                         onBack = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             if (navigator.canPop) navigator.pop()
@@ -160,7 +165,13 @@ data class WalletDetailScreen(val walletId: String) : Screen {
     }
 
     @Composable
-    private fun DetailHeader(title: String, onBack: () -> Unit) {
+    private fun DetailHeader(
+        title: String,
+        wallet: com.spendwealthy.app.domain.model.Wallet? = null,
+        onBack: () -> Unit
+    ) {
+        val brand = wallet?.name?.let { KnownBrand.from(it) }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -172,7 +183,11 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                 modifier = Modifier
                     .size(42.dp)
                     .clip(CircleShape)
-                    .clickable(onClick = onBack),
+                    .bouncyClickable(
+                        pressedScale = 0.90f,
+                        hapticType = HapticFeedbackType.LongPress,
+                        onClick = onBack
+                    ),
                 shape = CircleShape,
                 color = AppColors.Surface,
                 border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
@@ -213,16 +228,20 @@ data class WalletDetailScreen(val walletId: String) : Screen {
             Surface(
                 modifier = Modifier.size(42.dp),
                 shape = CircleShape,
-                color = AppColors.Surface,
+                color = if (brand != null) Color(0xFFF9FAFB) else AppColors.Surface,
                 border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Default.AccountBalanceWallet,
-                        contentDescription = null,
-                        tint = AppColors.Primary,
-                        modifier = Modifier.size(18.dp)
-                    )
+                    if (brand != null) {
+                        BrandLogo(brand = brand, modifier = Modifier.size(22.dp))
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.AccountBalanceWallet,
+                            contentDescription = null,
+                            tint = AppColors.Primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
             }
         }
@@ -234,6 +253,7 @@ data class WalletDetailScreen(val walletId: String) : Screen {
         onAction: (TransactionType) -> Unit
     ) {
         val isDebt = wallet.type == WalletType.PAYLATER || wallet.type == WalletType.CREDIT_CARD
+        val brand = KnownBrand.from(wallet.name)
         val typeLabel = when (wallet.type) {
             WalletType.BANK -> "Rekening Bank"
             WalletType.EWALLET -> "Dompet Digital"
@@ -269,15 +289,27 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier.weight(1f, fill = false).padding(end = 6.dp)
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(8.dp)
-                                    .clip(CircleShape)
-                                    .background(AppColors.Primary)
-                            )
+                            if (brand != null) {
+                                Surface(
+                                    modifier = Modifier.size(24.dp),
+                                    shape = CircleShape,
+                                    color = Color.White
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        BrandLogo(brand = brand, modifier = Modifier.size(16.dp))
+                                    }
+                                }
+                            } else {
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .clip(CircleShape)
+                                        .background(AppColors.Primary)
+                                )
+                            }
                             Text(
                                 text = "SALDO SAAT INI",
                                 style = MaterialTheme.typography.labelSmall,
@@ -333,7 +365,11 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                             modifier = Modifier
                                 .weight(1f)
                                 .clip(RoundedCornerShape(14.dp))
-                                .clickable { onAction(TransactionType.INCOME) },
+                                .bouncyClickable(
+                                    pressedScale = 0.93f,
+                                    hapticType = HapticFeedbackType.LongPress,
+                                    onClick = { onAction(TransactionType.INCOME) }
+                                ),
                             shape = RoundedCornerShape(14.dp),
                             color = AppColors.Primary
                         ) {
@@ -363,7 +399,11 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                             modifier = Modifier
                                 .weight(1f)
                                 .clip(RoundedCornerShape(14.dp))
-                                .clickable { onAction(TransactionType.EXPENSE) },
+                                .bouncyClickable(
+                                    pressedScale = 0.93f,
+                                    hapticType = HapticFeedbackType.LongPress,
+                                    onClick = { onAction(TransactionType.EXPENSE) }
+                                ),
                             shape = RoundedCornerShape(14.dp),
                             color = Color(0xFF1E293B),
                             border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.15f))
@@ -394,7 +434,11 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                             modifier = Modifier
                                 .weight(1f)
                                 .clip(RoundedCornerShape(14.dp))
-                                .clickable { onAction(TransactionType.TRANSFER) },
+                                .bouncyClickable(
+                                    pressedScale = 0.93f,
+                                    hapticType = HapticFeedbackType.LongPress,
+                                    onClick = { onAction(TransactionType.TRANSFER) }
+                                ),
                             shape = RoundedCornerShape(14.dp),
                             color = Color(0xFF1E293B),
                             border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.15f))
@@ -431,7 +475,11 @@ data class WalletDetailScreen(val walletId: String) : Screen {
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
-                .clickable(onClick = onToggle),
+                .bouncyClickable(
+                    pressedScale = 0.98f,
+                    hapticType = HapticFeedbackType.LongPress,
+                    onClick = onToggle
+                ),
             color = AppColors.SurfaceRaised,
             border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
         ) {
@@ -482,6 +530,7 @@ data class WalletDetailScreen(val walletId: String) : Screen {
     ) {
         val isIncome = transaction.type == TransactionType.INCOME
         val isTransfer = transaction.type == TransactionType.TRANSFER
+        val brand = KnownBrand.from(transaction.merchant.ifBlank { transaction.note })
 
         val (icon, tint) = when {
             isIncome -> Icons.AutoMirrored.Filled.TrendingUp to AppColors.Success
@@ -493,7 +542,11 @@ data class WalletDetailScreen(val walletId: String) : Screen {
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(18.dp))
-                .clickable(onClick = onClick),
+                .bouncyClickable(
+                    pressedScale = 0.97f,
+                    hapticType = HapticFeedbackType.LongPress,
+                    onClick = onClick
+                ),
             shape = RoundedCornerShape(18.dp),
             color = AppColors.Surface,
             border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
@@ -511,15 +564,26 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                         modifier = Modifier
                             .size(40.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(tint.copy(alpha = 0.12f)),
+                            .background(
+                                if (brand != null) Color(0xFFF9FAFB)
+                                else tint.copy(alpha = 0.12f)
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            tint = tint,
-                            modifier = Modifier.size(18.dp)
-                        )
+                        if (brand != null) {
+                            BrandLogo(
+                                brand = brand,
+                                modifier = Modifier.size(22.dp),
+                                tint = if (brand.isMonochrome) AppColors.TextMain else null
+                            )
+                        } else {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                tint = tint,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
                     }
                     Spacer(Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f, fill = false)) {

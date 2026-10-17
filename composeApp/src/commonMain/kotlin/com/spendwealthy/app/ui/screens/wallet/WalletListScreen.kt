@@ -53,7 +53,11 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.domain.model.Wallet
 import com.spendwealthy.app.domain.model.WalletType
+import com.spendwealthy.app.ui.components.BrandLogo
 import com.spendwealthy.app.ui.components.EmptyState
+import com.spendwealthy.app.ui.components.KnownBrand
+import com.spendwealthy.app.ui.components.bouncyClickable
+import com.spendwealthy.app.ui.components.tactilePress
 import com.spendwealthy.app.ui.theme.AppColors
 
 class WalletListScreen : Screen {
@@ -144,7 +148,11 @@ class WalletListScreen : Screen {
                 modifier = Modifier
                     .size(42.dp)
                     .clip(CircleShape)
-                    .clickable(onClick = onBack),
+                    .bouncyClickable(
+                        pressedScale = 0.90f,
+                        hapticType = HapticFeedbackType.LongPress,
+                        onClick = onBack
+                    ),
                 shape = CircleShape,
                 color = AppColors.Surface,
                 border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
@@ -186,7 +194,11 @@ class WalletListScreen : Screen {
                 modifier = Modifier
                     .size(42.dp)
                     .clip(CircleShape)
-                    .clickable(onClick = onAdd),
+                    .bouncyClickable(
+                        pressedScale = 0.90f,
+                        hapticType = HapticFeedbackType.LongPress,
+                        onClick = onAdd
+                    ),
                 shape = CircleShape,
                 color = AppColors.Primary
             ) {
@@ -286,11 +298,17 @@ class WalletListScreen : Screen {
             WalletType.CASH -> Icons.Default.AccountBalanceWallet to "Uang Tunai"
         }
 
+        val brand = KnownBrand.from(wallet.name)
+
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(20.dp))
-                .clickable(onClick = onClick),
+                .bouncyClickable(
+                    pressedScale = 0.97f,
+                    hapticType = HapticFeedbackType.LongPress,
+                    onClick = onClick
+                ),
             shape = RoundedCornerShape(20.dp),
             color = AppColors.Surface,
             border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
@@ -309,17 +327,22 @@ class WalletListScreen : Screen {
                             .size(44.dp)
                             .clip(RoundedCornerShape(12.dp))
                             .background(
-                                if (isDebt) AppColors.Danger.copy(alpha = 0.12f)
+                                if (brand != null) Color(0xFFF9FAFB)
+                                else if (isDebt) AppColors.Danger.copy(alpha = 0.12f)
                                 else AppColors.Primary.copy(alpha = 0.1f)
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            tint = if (isDebt) AppColors.Danger else AppColors.Primary,
-                            modifier = Modifier.size(20.dp)
-                        )
+                        if (brand != null) {
+                            BrandLogo(brand = brand, modifier = Modifier.size(24.dp))
+                        } else {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                tint = if (isDebt) AppColors.Danger else AppColors.Primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
                     Spacer(Modifier.width(14.dp))
                     Column(modifier = Modifier.weight(1f, fill = false)) {

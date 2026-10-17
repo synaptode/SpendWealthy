@@ -1037,11 +1037,13 @@ class HomeScreen : Screen {
                     )
                 }
 
-                // User's custom wallets (Vector AccountBalanceWallet Icon)
+                // User's custom wallets (Vector AccountBalanceWallet Icon or KnownBrand logo)
                 items(wallets) { wallet ->
+                    val brand = KnownBrand.from(wallet.name)
                     FintechAccountCard(
                         icon = Icons.Default.AccountBalanceWallet,
-                        iconBg = Color(0xFFF3F4F6),
+                        brand = brand,
+                        iconBg = if (brand != null) Color(0xFFF9FAFB) else Color(0xFFF3F4F6),
                         iconTint = Color(0xFF111827),
                         title = wallet.name,
                         maskedNumber = "Account • Active",
@@ -1101,7 +1103,8 @@ class HomeScreen : Screen {
         title: String,
         maskedNumber: String,
         balance: String,
-        isBalanceHidden: Boolean
+        isBalanceHidden: Boolean,
+        brand: KnownBrand? = null
     ) {
         Surface(
             modifier = Modifier
@@ -1132,12 +1135,16 @@ class HomeScreen : Screen {
                             .background(iconBg),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            tint = iconTint,
-                            modifier = Modifier.size(18.dp)
-                        )
+                        if (brand != null) {
+                            BrandLogo(brand = brand, modifier = Modifier.size(20.dp))
+                        } else {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                tint = iconTint,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
                     }
                     Column {
                         Text(
