@@ -44,7 +44,7 @@ import com.spendwealthy.app.ui.theme.AppColors
  * Features triple-zero (000), quick increment pills (+10k, +50k, +100k), and haptic feedback.
  */
 @Composable
-fun CatPad(
+fun QuickEntryKeypad(
     onValueChange: (String) -> Unit,
     currentValue: String,
     modifier: Modifier = Modifier
@@ -55,7 +55,8 @@ fun CatPad(
         "+10k" to 10_000L,
         "+20k" to 20_000L,
         "+50k" to 50_000L,
-        "+100k" to 100_000L
+        "+100k" to 100_000L,
+        "+500k" to 500_000L
     )
 
     val keys = listOf(
@@ -69,8 +70,8 @@ fun CatPad(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
-            .background(Color(0xFF0F172A))
-            .border(1.dp, Color.White.copy(alpha = 0.12f), RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
+            .background(Color(0xFF090D16))
+            .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
             .padding(horizontal = 20.dp, vertical = 20.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
@@ -84,8 +85,8 @@ fun CatPad(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color(0xFF1E293B))
-                        .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(14.dp))
+                        .background(Color(0xFF131A29))
+                        .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(14.dp))
                         .clickable {
                             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                             val current = currentValue.filter { it.isDigit() }.toLongOrNull() ?: 0L
@@ -97,7 +98,7 @@ fun CatPad(
                 ) {
                     Text(
                         text = label,
-                        fontSize = 13.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF10B981)
                     )
@@ -112,7 +113,7 @@ fun CatPad(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 row.forEach { key ->
-                    CatPadKey(
+                    QuickEntryKey(
                         key = key,
                         modifier = Modifier.weight(1f),
                         onClick = {
@@ -146,8 +147,16 @@ fun CatPad(
     }
 }
 
+/** Backwards-compatible alias for legacy calls */
 @Composable
-private fun CatPadKey(
+fun CatPad(
+    onValueChange: (String) -> Unit,
+    currentValue: String,
+    modifier: Modifier = Modifier
+) = QuickEntryKeypad(onValueChange, currentValue, modifier)
+
+@Composable
+private fun QuickEntryKey(
     key: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -162,13 +171,13 @@ private fun CatPadKey(
     val backgroundColor = when (key) {
         "DEL" -> Color(0xFFF43F5E).copy(alpha = 0.16f)
         "000" -> Color(0xFF10B981).copy(alpha = 0.16f)
-        else -> Color(0xFF1E293B)
+        else -> Color(0xFF131A29)
     }
 
     val borderColor = when (key) {
         "DEL" -> Color(0xFFF43F5E).copy(alpha = 0.35f)
         "000" -> Color(0xFF10B981).copy(alpha = 0.35f)
-        else -> Color.White.copy(alpha = 0.08f)
+        else -> Color(0xFF1E293B)
     }
 
     val textColor = when (key) {

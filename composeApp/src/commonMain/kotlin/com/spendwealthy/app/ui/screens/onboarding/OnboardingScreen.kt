@@ -385,7 +385,7 @@ class OnboardingScreen : Screen {
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 FeaturePill(Icons.Default.Lock, "Enkripsi Lokal", Modifier.weight(1f))
-                FeaturePill(Icons.Default.Payments, "CatPad 000", Modifier.weight(1f))
+                FeaturePill(Icons.Default.Payments, "QuickPad 000", Modifier.weight(1f))
                 FeaturePill(Icons.Default.Security, "Brankas Dokumen", Modifier.weight(1f))
             }
         }

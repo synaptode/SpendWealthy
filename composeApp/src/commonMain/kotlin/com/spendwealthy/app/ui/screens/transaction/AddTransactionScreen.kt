@@ -81,7 +81,7 @@ import com.spendwealthy.app.domain.model.TransactionType
 import com.spendwealthy.app.domain.model.Wallet
 import com.spendwealthy.app.ui.components.AppButton
 import com.spendwealthy.app.ui.components.AppTextField
-import com.spendwealthy.app.ui.components.CatPad
+import com.spendwealthy.app.ui.components.QuickEntryKeypad
 import com.spendwealthy.app.ui.theme.AppColors
 
 /**
@@ -195,7 +195,7 @@ class AddTransactionScreen(
                         modifier = Modifier
                             .navigationBarsPadding()
                             .fillMaxWidth()
-                            .background(Color(0xFF0F172A))
+                            .background(Color(0xFF090D16))
                     ) {
                         Box(
                             modifier = Modifier
@@ -211,7 +211,7 @@ class AddTransactionScreen(
                                     .background(Color.White.copy(alpha = 0.25f))
                             )
                         }
-                        CatPad(
+                        QuickEntryKeypad(
                             currentValue = state.amount,
                             onValueChange = { viewModel.onEvent(AddTransactionEvent.AmountChanged(it)) }
                         )
@@ -327,8 +327,8 @@ class AddTransactionScreen(
                     ) {
                         Text(
                             text = label,
-                            color = if (isSelected) Color.White else AppColors.TextMuted,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isSelected) Color(0xFF090D16) else AppColors.TextMuted,
+                            fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium,
                             fontSize = 13.sp
                         )
                     }
@@ -344,53 +344,88 @@ class AddTransactionScreen(
         onClick: () -> Unit,
         onAmountChange: (String) -> Unit
     ) {
+        val haptic = LocalHapticFeedback.current
+        val quickAmounts = listOf(
+            "+10rb" to 10_000L,
+            "+50rb" to 50_000L,
+            "+100rb" to 100_000L,
+            "+250rb" to 250_000L,
+            "+500rb" to 500_000L
+        )
+
         FormSection(title = "Nominal", icon = Icons.Default.Payments) {
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = onClick
-                    ),
-                shape = RoundedCornerShape(22.dp),
-                color = AppColors.Surface,
-                shadowElevation = 4.dp,
-                border = BorderStroke(1.dp, if (error != null) AppColors.Danger else AppColors.Outline.copy(alpha = 0.5f))
-            ) {
-                Row(
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 20.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Rp",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = AppColors.Primary,
-                        modifier = Modifier.padding(end = 12.dp)
-                    )
-
-                    BasicTextField(
-                        value = amount,
-                        onValueChange = { input -> onAmountChange(input.filter { it.isDigit() }) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        singleLine = true,
-                        textStyle = TextStyle(
-                            color = if (amount.isBlank()) AppColors.TextMuted else AppColors.TextMain,
-                            fontSize = 32.sp,
-                            fontWeight = FontWeight.Black
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = onClick
                         ),
-                        cursorBrush = SolidColor(AppColors.Primary),
-                        modifier = Modifier.weight(1f),
-                        decorationBox = { innerTextField ->
-                            if (amount.isBlank()) {
-                                Text("0", fontSize = 32.sp, fontWeight = FontWeight.Black, color = AppColors.TextMuted.copy(alpha = 0.4f))
+                    shape = RoundedCornerShape(22.dp),
+                    color = AppColors.Surface,
+                    shadowElevation = 4.dp,
+                    border = BorderStroke(1.dp, if (error != null) AppColors.Danger else AppColors.Outline.copy(alpha = 0.5f))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 20.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Rp",
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.Primary,
+                            modifier = Modifier.padding(end = 12.dp)
+                        )
+
+                        BasicTextField(
+                            value = amount,
+                            onValueChange = { input -> onAmountChange(input.filter { it.isDigit() }) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            singleLine = true,
+                            textStyle = TextStyle(
+                                color = if (amount.isBlank()) AppColors.TextMuted else AppColors.TextMain,
+                                fontSize = 32.sp,
+                                fontWeight = FontWeight.Black
+                            ),
+                            cursorBrush = SolidColor(AppColors.Primary),
+                            modifier = Modifier.weight(1f),
+                            decorationBox = { innerTextField ->
+                                if (amount.isBlank()) {
+                                    Text("0", fontSize = 32.sp, fontWeight = FontWeight.Black, color = AppColors.TextMuted.copy(alpha = 0.4f))
+                                }
+                                innerTextField()
                             }
-                            innerTextField()
+                        )
+                    }
+                }
+
+                // Quick Increment Shelf
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(quickAmounts) { (label, increment) ->
+                        Surface(
+                            modifier = Modifier.clickable {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                val currentVal = amount.toLongOrNull() ?: 0L
+                                onAmountChange((currentVal + increment).toString())
+                            },
+                            shape = RoundedCornerShape(10.dp),
+                            color = AppColors.SurfaceRaised,
+                            border = BorderStroke(1.dp, AppColors.Outline.copy(alpha = 0.6f))
+                        ) {
+                            Text(
+                                text = label,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.Primary
+                            )
                         }
-                    )
+                    }
                 }
             }
             if (!error.isNullOrBlank()) {
@@ -512,7 +547,7 @@ class AddTransactionScreen(
             Text(
                 text = text,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                color = if (isSelected) Color.White else AppColors.TextMain,
+                color = if (isSelected) Color(0xFF090D16) else AppColors.TextMain,
                 fontSize = 13.sp,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                 maxLines = 1
