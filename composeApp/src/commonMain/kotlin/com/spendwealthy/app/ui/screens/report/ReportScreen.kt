@@ -155,14 +155,25 @@ class ReportScreen : Screen {
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             if (activeSummaries.isNotEmpty()) {
+                                val subtitle = if (isIncomeSelected) {
+                                    "${activeSummaries.size} Sumber"
+                                } else {
+                                    if (state.totalIncome.amount > 0) {
+                                        val remainingPercent = kotlin.math.max(0, 100 - (state.totalExpense.amount * 100 / state.totalIncome.amount).toInt())
+                                        "$remainingPercent% Sisa Tabungan"
+                                    } else {
+                                        "${activeSummaries.size} Kategori"
+                                    }
+                                }
                                 CategoryPieChart(
                                     data = activeSummaries.map {
                                         PieChartData(it.amount.amount.toFloat(), it.color, it.categoryName)
                                     },
-                                    centerTitle = centerTitle
+                                    centerTitle = centerTitle,
+                                    subtitleBadge = subtitle
                                 )
                             } else {
-                                EmptyReportState()
+                                EmptyReportState(isIncome = isIncomeSelected)
                             }
                         }
                     }
@@ -180,7 +191,7 @@ class ReportScreen : Screen {
                         SectionTitle(if (isIncomeSelected) "Sumber Pemasukan" else "Rincian per Kategori")
                     }
                     items(activeSummaries, key = { it.categoryId ?: it.categoryName }) { summary ->
-                        CategorySpendingRow(summary)
+                        CategorySpendingRow(summary, isIncome = isIncomeSelected)
                     }
                 }
             }
@@ -511,7 +522,7 @@ class ReportScreen : Screen {
     }
 
     @Composable
-    private fun CategorySpendingRow(summary: CategorySummary) {
+    private fun CategorySpendingRow(summary: CategorySummary, isIncome: Boolean = false) {
         val percentageInt = (summary.percentage * 100).toInt()
         val animatedProgress by animateFloatAsState(
             targetValue = summary.percentage.toFloat().coerceIn(0f, 1f),
@@ -581,7 +592,7 @@ class ReportScreen : Screen {
                                 color = AppColors.TextMain
                             )
                             Text(
-                                text = "$percentageInt% of total expense",
+                                text = "$percentageInt% of total ${if (isIncome) "income" else "expense"}",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = AppColors.TextMuted
@@ -617,7 +628,7 @@ class ReportScreen : Screen {
     }
 
     @Composable
-    private fun EmptyReportState() {
+    private fun EmptyReportState(isIncome: Boolean = false) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
@@ -636,13 +647,16 @@ class ReportScreen : Screen {
                     modifier = Modifier.size(36.dp)
                 )
                 Text(
-                    text = "Belum Ada Pengeluaran",
+                    text = if (isIncome) "Belum Ada Pemasukan" else "Belum Ada Pengeluaran",
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.bodyMedium,
                     color = AppColors.TextMain
                 )
                 Text(
-                    text = "Transaksi pengeluaran bulan ini akan otomatis dikelompokkan dalam grafik dan persentase di sini.",
+                    text = if (isIncome)
+                        "Transaksi pemasukan bulan ini akan otomatis dikelompokkan dalam grafik dan persentase di sini."
+                    else
+                        "Transaksi pengeluaran bulan ini akan otomatis dikelompokkan dalam grafik dan persentase di sini.",
                     style = MaterialTheme.typography.bodySmall,
                     color = AppColors.TextMuted,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center

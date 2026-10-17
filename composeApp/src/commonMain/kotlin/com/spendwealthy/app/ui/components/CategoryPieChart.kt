@@ -34,6 +34,7 @@ data class PieChartData(
 fun CategoryPieChart(
     data: List<PieChartData>,
     centerTitle: String = "Total Expense",
+    subtitleBadge: String? = null,
     modifier: Modifier = Modifier
 ) {
     val total = data.sumOf { it.value.toDouble() }.toFloat()
@@ -145,17 +146,17 @@ fun CategoryPieChart(
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                     )
                 }
-            } else {
+            } else if (!subtitleBadge.isNullOrBlank()) {
                 Surface(
                     shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
-                    color = AppColors.Accent.copy(alpha = 0.25f)
+                    color = Color(0xFFFFDE43).copy(alpha = 0.35f)
                 ) {
                     Text(
-                        text = "42% remaining",
+                        text = subtitleBadge,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
-                        color = AppColors.TextMain,
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        color = Color(0xFF111827),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
                     )
                 }
             }
