@@ -435,8 +435,9 @@ class AddTransactionScreen(
                     .padding(horizontal = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                val strings = com.spendwealthy.app.core.localization.LocalStrings.current
                 Text(
-                    text = "Catat Transaksi",
+                    text = strings.addTransactionTitle,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = AppColors.TextMain,
@@ -459,11 +460,12 @@ class AddTransactionScreen(
     @Composable
     private fun TypeSelector(selected: TransactionType, onSelected: (TransactionType) -> Unit) {
         val haptic = LocalHapticFeedback.current
+        val strings = com.spendwealthy.app.core.localization.LocalStrings.current
 
         val types = listOf(
-            TransactionType.EXPENSE to "Pengeluaran",
-            TransactionType.INCOME to "Pemasukan",
-            TransactionType.TRANSFER to "Transfer"
+            TransactionType.EXPENSE to strings.transactionExpense,
+            TransactionType.INCOME to strings.transactionIncome,
+            TransactionType.TRANSFER to strings.transactionTransfer
         )
 
         Surface(

@@ -76,20 +76,22 @@ fun PurchaseSimulatorBottomSheet(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+                    val strings = com.spendwealthy.app.core.localization.LocalStrings.current
                     Text(
-                        text = "Boleh Beli Gak Ya?",
+                        text = strings.simulatorTitle,
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.ExtraBold,
                         color = AppColors.TextMain,
                         letterSpacing = (-0.5).sp
                     )
                     Text(
-                        text = "Simulasi dampak pembelian sebelum uang keluar",
+                        text = strings.simulatorSubtitle,
                         style = MaterialTheme.typography.bodySmall,
                         color = AppColors.TextMuted
                     )
                 }
 
+                val strings = com.spendwealthy.app.core.localization.LocalStrings.current
                 Surface(
                     modifier = Modifier
                         .size(36.dp)
@@ -102,7 +104,7 @@ fun PurchaseSimulatorBottomSheet(
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = Icons.Default.Close,
-                            contentDescription = "Tutup",
+                            contentDescription = strings.close,
                             tint = AppColors.TextMain,
                             modifier = Modifier.size(18.dp)
                         )

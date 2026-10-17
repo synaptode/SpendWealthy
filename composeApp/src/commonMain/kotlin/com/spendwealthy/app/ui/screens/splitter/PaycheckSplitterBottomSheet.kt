@@ -115,25 +115,27 @@ fun PaycheckSplitterBottomSheet(
                         )
                     }
                     Spacer(modifier = Modifier.width(12.dp))
+                    val strings = com.spendwealthy.app.core.localization.LocalStrings.current
                     Column {
                         Text(
-                            text = "Bagi Gaji Otomatis",
+                            text = strings.splitterTitle,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = AppColors.TextMain
                         )
                         Text(
-                            text = "Smart Paycheck Splitter",
+                            text = strings.splitterSubtitle,
                             fontSize = 12.sp,
                             color = AppColors.TextMuted
                         )
                     }
                 }
 
+                val strings = com.spendwealthy.app.core.localization.LocalStrings.current
                 IconButton(onClick = onDismiss) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Tutup",
+                        contentDescription = strings.close,
                         tint = AppColors.TextMuted
                     )
                 }

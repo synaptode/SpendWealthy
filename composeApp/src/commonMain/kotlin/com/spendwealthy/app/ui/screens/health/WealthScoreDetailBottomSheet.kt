@@ -102,18 +102,20 @@ fun WealthScoreDetailBottomSheet(
                         )
                     }
                     Spacer(modifier = Modifier.width(10.dp))
+                    val strings = com.spendwealthy.app.core.localization.LocalStrings.current
                     Text(
-                        text = "Analisis Kesehatan Finansial",
+                        text = strings.scoreTitle,
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
                         color = AppColors.TextMain
                     )
                 }
 
+                val strings = com.spendwealthy.app.core.localization.LocalStrings.current
                 IconButton(onClick = onDismiss) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Tutup",
+                        contentDescription = strings.close,
                         tint = AppColors.TextMuted
                     )
                 }

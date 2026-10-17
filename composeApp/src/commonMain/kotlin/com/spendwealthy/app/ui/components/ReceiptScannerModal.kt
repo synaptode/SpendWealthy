@@ -303,13 +303,14 @@ fun ReceiptScannerModal(
                             modifier = Modifier.size(18.dp)
                         )
                     }
+                    val strings = com.spendwealthy.app.core.localization.LocalStrings.current
                     Column {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             Text(
-                                text = "Smart Receipt OCR",
+                                text = strings.scanReceiptTitle,
                                 fontWeight = FontWeight.Black,
                                 style = MaterialTheme.typography.titleMedium,
                                 color = if (isDark) Color(0xFFF8FAFC) else Color(0xFF111827)
@@ -328,13 +329,14 @@ fun ReceiptScannerModal(
                             }
                         }
                         Text(
-                            text = "Ekstraksi otomatis nominal, toko & kategori",
+                            text = strings.scanReceiptSubtitle,
                             style = MaterialTheme.typography.labelSmall,
                             color = AppColors.TextMuted
                         )
                     }
                 }
 
+                val strings = com.spendwealthy.app.core.localization.LocalStrings.current
                 Surface(
                     modifier = Modifier
                         .size(34.dp)
@@ -350,7 +352,7 @@ fun ReceiptScannerModal(
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = Icons.Default.Close,
-                            contentDescription = "Tutup",
+                            contentDescription = strings.close,
                             tint = AppColors.TextMain,
                             modifier = Modifier.size(16.dp)
                         )

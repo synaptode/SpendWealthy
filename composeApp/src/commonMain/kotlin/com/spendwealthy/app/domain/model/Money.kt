@@ -71,6 +71,9 @@ data class Money(
             "USD" -> "${sign}$$formattedComma"
             "EUR" -> "${sign}€$formattedThousands"
             "SGD" -> "${sign}S$$formattedComma"
+            "MYR" -> "${sign}RM$formattedComma"
+            "THB" -> "${sign}฿$formattedComma"
+            "CNY" -> "${sign}¥$formattedComma"
             "JPY" -> "${sign}¥$formattedComma"
             "GBP" -> "${sign}£$formattedComma"
             "AUD" -> "${sign}A$$formattedComma"
@@ -88,6 +91,9 @@ object CurrencyConverter {
         "USD" to 16250.0,
         "EUR" to 17500.0,
         "SGD" to 12400.0,
+        "MYR" to 3700.0,
+        "THB" to 490.0,
+        "CNY" to 2250.0,
         "JPY" to 108.0,
         "GBP" to 20800.0,
         "AUD" to 10700.0
