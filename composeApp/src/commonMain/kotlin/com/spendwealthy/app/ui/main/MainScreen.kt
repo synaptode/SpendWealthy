@@ -1,6 +1,7 @@
 package com.spendwealthy.app.ui.main
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -117,18 +118,24 @@ class MainScreen : Screen {
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(bottom = 14.dp, start = 8.dp, end = 8.dp),
+                .padding(horizontal = 20.dp, vertical = 12.dp),
             contentAlignment = Alignment.BottomCenter
         ) {
             Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 440.dp)
+                    .height(64.dp),
                 shape = RoundedCornerShape(32.dp),
                 color = Color(0xFF111827),
                 shadowElevation = 20.dp,
-                border = BorderStroke(1.dp, Color(0xFF1F2937).copy(alpha = 0.8f))
+                border = BorderStroke(1.dp, Color(0xFF1F2937).copy(alpha = 0.9f))
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 5.dp),
-                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     DockPillItem(HomeTab, Icons.Default.Home, "Home")
@@ -137,7 +144,7 @@ class MainScreen : Screen {
                     // Quick Action Button (+ Add)
                     Box(
                         modifier = Modifier
-                            .size(38.dp)
+                            .size(46.dp)
                             .clip(CircleShape)
                             .background(Color(0xFFFFDE43))
                             .clickable {
@@ -150,7 +157,7 @@ class MainScreen : Screen {
                             imageVector = Icons.Default.Add,
                             contentDescription = "Catat Transaksi",
                             tint = Color(0xFF111827),
-                            modifier = Modifier.size(19.dp)
+                            modifier = Modifier.size(22.dp)
                         )
                     }
 
@@ -177,23 +184,24 @@ class MainScreen : Screen {
                         tabNavigator.current = tab
                     }
                 }
-                .padding(horizontal = if (isSelected) 12.dp else 8.dp, vertical = 7.dp),
+                .animateContentSize(spring(stiffness = Spring.StiffnessMediumLow))
+                .padding(horizontal = if (isSelected) 14.dp else 12.dp, vertical = 9.dp),
             contentAlignment = Alignment.Center
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(5.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = label,
                     tint = if (isSelected) Color(0xFF111827) else Color.White.copy(alpha = 0.65f),
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(20.dp)
                 )
                 if (isSelected) {
                     Text(
                         text = label,
-                        fontSize = 11.5.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF111827),
                         maxLines = 1
