@@ -54,6 +54,7 @@ class FamilyScreen : Screen {
         Scaffold(
             topBar = {
                 FamilyTopBar(
+                    canPop = navigator.canPop,
                     onBackClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         if (navigator.canPop) navigator.pop()
@@ -78,7 +79,7 @@ class FamilyScreen : Screen {
                         .widthIn(max = 680.dp)
                         .padding(horizontal = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(18.dp),
-                    contentPadding = PaddingValues(top = 10.dp, bottom = 40.dp)
+                    contentPadding = PaddingValues(top = 10.dp, bottom = 120.dp)
                 ) {
                 // 1. Hero Family Total Vault Card
                 item {
@@ -271,6 +272,7 @@ class FamilyScreen : Screen {
 
     @Composable
     private fun FamilyTopBar(
+        canPop: Boolean = true,
         onBackClick: () -> Unit,
         onAddGoalClick: () -> Unit
     ) {
@@ -287,24 +289,28 @@ class FamilyScreen : Screen {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-            Surface(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .clickable(onClick = onBackClick),
-                shape = CircleShape,
-                color = AppColors.Surface,
-                border = BorderStroke(1.dp, AppColors.Outline)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Kembali",
-                        tint = AppColors.TextMain,
-                        modifier = Modifier.size(18.dp)
-                    )
+                if (canPop) {
+                    Surface(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .clickable(onClick = onBackClick),
+                        shape = CircleShape,
+                        color = AppColors.Surface,
+                        border = BorderStroke(1.dp, AppColors.Outline)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Kembali",
+                                tint = AppColors.TextMain,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                } else {
+                    Spacer(Modifier.size(40.dp))
                 }
-            }
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(

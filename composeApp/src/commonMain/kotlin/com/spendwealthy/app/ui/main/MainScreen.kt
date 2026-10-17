@@ -36,6 +36,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.PieChart
@@ -70,6 +71,7 @@ import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabNavigator
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import com.spendwealthy.app.ui.screens.budget.BudgetListScreen
+import com.spendwealthy.app.ui.screens.family.FamilyScreen
 import com.spendwealthy.app.ui.screens.home.HomeScreen
 import com.spendwealthy.app.ui.screens.report.ReportScreen
 import com.spendwealthy.app.ui.screens.transaction.AddTransactionScreen
@@ -152,7 +154,7 @@ class MainScreen : Screen {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     DockPillItem(HomeTab, Icons.Default.Home, "Home")
-                    DockPillItem(TransactionTab, Icons.AutoMirrored.Filled.ReceiptLong, "Activity")
+                    DockPillItem(FamilyTab, Icons.Default.Groups, "Keluarga")
                     
                     // Quick Action Button (+ Add) with tactile bounce
                     Box(
@@ -235,6 +237,12 @@ internal object HomeTab : Tab {
     override val options: TabOptions
         @Composable get() = TabOptions(index = 0u, title = "Beranda", icon = null)
     @Composable override fun Content() = HomeScreen().Content()
+}
+
+internal object FamilyTab : Tab {
+    override val options: TabOptions
+        @Composable get() = TabOptions(index = 1u, title = "Tabungan Keluarga", icon = null)
+    @Composable override fun Content() = FamilyScreen().Content()
 }
 
 internal object TransactionTab : Tab {
