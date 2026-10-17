@@ -109,6 +109,11 @@ import com.spendwealthy.app.ui.screens.health.WealthScoreDetailBottomSheet
 import com.spendwealthy.app.ui.screens.health.WealthScoreViewModel
 import com.spendwealthy.app.ui.components.ReceiptScannerModal
 import com.spendwealthy.app.ui.screens.home.components.FinancialGuardianCard
+import com.spendwealthy.app.ui.screens.home.components.SpendingInsightsCard
+import com.spendwealthy.app.ui.screens.home.components.WealthOptimizerCard
+import com.spendwealthy.app.ui.screens.home.components.OptimizationDetailBottomSheet
+import com.spendwealthy.app.ui.screens.home.OptimizationHistoryScreen
+import com.spendwealthy.app.domain.model.OptimizerRecommendation
 import com.spendwealthy.app.core.localization.LocalStrings
 import com.spendwealthy.app.ui.theme.AppColors
 import com.spendwealthy.app.ui.theme.AppTypography
@@ -129,6 +134,7 @@ class HomeScreen : Screen {
         val state by viewModel.uiState.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
         val rootNavigator = navigator.parent ?: navigator
+        val strings = LocalStrings.current
 
         val isBalanceHidden = state.isPrivacyMode
         var selectedGoalForContribution by remember { mutableStateOf<Goal?>(null) }
@@ -150,6 +156,7 @@ class HomeScreen : Screen {
             "Semua"
         }
         var selectedTransaction by remember { mutableStateOf<Transaction?>(null) }
+        var selectedOptimizationRecommendation by remember { mutableStateOf<OptimizerRecommendation?>(null) }
 
         LaunchedEffect(viewModel) {
             viewModel.effect.collect { effect ->
@@ -313,6 +320,70 @@ class HomeScreen : Screen {
                     )
                 }
 
+                // 3.2. Daily AI Financial Coach Insight Card
+                val dailyInsight = state.dailyInsight
+                if (dailyInsight != null) {
+                    item {
+                        SpendingInsightsCard(
+                            insight = dailyInsight,
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
+                        )
+                    }
+                }
+
+                // 3.3. Autonomous Wealth Optimizer Recommendations
+                if (state.optimizerRecommendations.isNotEmpty()) {
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp, vertical = 6.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = "Autonomous Wealth Optimizer",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = AppColors.TextMain
+                                )
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = AppColors.Primary.copy(alpha = 0.15f)
+                                ) {
+                                    Text(
+                                        text = "${state.optimizerRecommendations.size}",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = AppColors.Primary,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
+                            Text(
+                                text = strings.seeAll,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.Primary,
+                                modifier = Modifier
+                                    .clickable { rootNavigator.push(OptimizationHistoryScreen()) }
+                                    .padding(4.dp)
+                            )
+                        }
+                    }
+                    items(state.optimizerRecommendations) { rec ->
+                        WealthOptimizerCard(
+                            recommendation = rec,
+                            onClick = { selectedOptimizationRecommendation = rec },
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
+                        )
+                    }
+                }
+
                 // 3.2. Proactive Financial Guardian Anomaly Alerts
                 if (state.detectedAnomalies.isNotEmpty()) {
                     item {
@@ -392,6 +463,23 @@ class HomeScreen : Screen {
                     categories = state.categories,
                     onDelete = { id -> viewModel.deleteTransaction(id) },
                     onDismiss = { selectedTransaction = null }
+                )
+            }
+
+            // Optimization Detail Modal
+            val currentRec = selectedOptimizationRecommendation
+            if (currentRec != null) {
+                OptimizationDetailBottomSheet(
+                    recommendation = currentRec,
+                    onExecute = { id ->
+                        viewModel.onEvent(HomeEvent.ExecuteOptimization(id))
+                        selectedOptimizationRecommendation = null
+                    },
+                    onViewHistory = {
+                        selectedOptimizationRecommendation = null
+                        rootNavigator.push(OptimizationHistoryScreen())
+                    },
+                    onDismiss = { selectedOptimizationRecommendation = null }
                 )
             }
 
