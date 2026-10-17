@@ -80,10 +80,11 @@ fun WealthScoreCard(
                             modifier = Modifier.size(18.dp)
                         )
                     }
+                    val strings = com.spendwealthy.app.core.localization.LocalStrings.current
                     Spacer(modifier = Modifier.width(10.dp))
                     Column {
                         Text(
-                            text = "Financial Health Score",
+                            text = strings.scoreTitle,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             color = AppColors.TextMuted
@@ -97,6 +98,7 @@ fun WealthScoreCard(
                     }
                 }
 
+                val strings = com.spendwealthy.app.core.localization.LocalStrings.current
                 Surface(
                     shape = RoundedCornerShape(12.dp),
                     color = Color(0xFFFFDE43).copy(alpha = 0.18f),
@@ -107,7 +109,7 @@ fun WealthScoreCard(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "🔥 ${streak.currentStreakDays} Hari",
+                            text = "🔥 ${streak.currentStreakDays}d",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF92400E)
@@ -140,7 +142,7 @@ fun WealthScoreCard(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "+${wealthScore.delta} bln ini",
+                        text = "+${wealthScore.delta} pts",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF10B981),
@@ -152,8 +154,9 @@ fun WealthScoreCard(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(bottom = 4.dp)
                 ) {
+                    val strings = com.spendwealthy.app.core.localization.LocalStrings.current
                     Text(
-                        text = "Lihat Analisis",
+                        text = strings.seeAll,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = AppColors.TextMuted

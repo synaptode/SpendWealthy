@@ -109,6 +109,7 @@ import com.spendwealthy.app.ui.screens.health.WealthScoreDetailBottomSheet
 import com.spendwealthy.app.ui.screens.health.WealthScoreViewModel
 import com.spendwealthy.app.ui.components.ReceiptScannerModal
 import com.spendwealthy.app.ui.screens.home.components.FinancialGuardianCard
+import com.spendwealthy.app.core.localization.LocalStrings
 import com.spendwealthy.app.ui.theme.AppColors
 import com.spendwealthy.app.ui.theme.AppTypography
 
@@ -558,8 +559,9 @@ class HomeScreen : Screen {
                         tint = Color(0xFF6B7280),
                         modifier = Modifier.size(16.dp)
                     )
+                    val strings = LocalStrings.current
                     Text(
-                        text = "Total Balance",
+                        text = strings.totalLiquidBalance,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
                         color = Color(0xFF4B5563)
@@ -1130,6 +1132,7 @@ class HomeScreen : Screen {
         modifier: Modifier = Modifier
     ) {
         Column(modifier = modifier.fillMaxWidth()) {
+            val strings = LocalStrings.current
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1138,7 +1141,7 @@ class HomeScreen : Screen {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "My Wallets",
+                    text = strings.walletsAccounts,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF111827)
@@ -1153,14 +1156,14 @@ class HomeScreen : Screen {
                     )
                 ) {
                     Text(
-                        text = "See all",
+                        text = strings.seeAll,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color(0xFF6B7280)
                     )
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = "Lihat Semua",
+                        contentDescription = strings.seeAll,
                         tint = Color(0xFF6B7280),
                         modifier = Modifier.size(13.dp)
                     )
@@ -1501,6 +1504,7 @@ class HomeScreen : Screen {
         modifier: Modifier = Modifier
     ) {
         Column(modifier = modifier.fillMaxWidth()) {
+            val strings = LocalStrings.current
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1509,7 +1513,7 @@ class HomeScreen : Screen {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Recent",
+                    text = strings.recentTransactions,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF111827)
@@ -1520,14 +1524,14 @@ class HomeScreen : Screen {
                     modifier = Modifier.clickable(onClick = onViewAll)
                 ) {
                     Text(
-                        text = "View All",
+                        text = strings.seeAll,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF111827)
                     )
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = "Lihat Semua Transaksi",
+                        contentDescription = strings.seeAll,
                         tint = Color(0xFF111827),
                         modifier = Modifier.size(13.dp)
                     )
@@ -1596,8 +1600,9 @@ class HomeScreen : Screen {
                                 }
                             }
                             Spacer(modifier = Modifier.height(10.dp))
+                            val strings = LocalStrings.current
                             Text(
-                                text = "Belum ada transaksi di periode ini",
+                                text = strings.noTransactionsYet,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color(0xFF374151)
