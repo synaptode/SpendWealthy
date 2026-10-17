@@ -7,6 +7,7 @@ import com.spendwealthy.app.domain.service.*
 import com.spendwealthy.app.domain.usecase.*
 import com.spendwealthy.app.domain.model.FreePlanLimits
 import com.spendwealthy.app.AppViewModel
+import com.spendwealthy.app.ui.screens.auth.AuthViewModel
 import com.spendwealthy.app.ui.screens.onboarding.OnboardingViewModel
 import com.spendwealthy.app.ui.screens.home.HomeViewModel
 import com.spendwealthy.app.ui.screens.transaction.AddTransactionViewModel
@@ -92,6 +93,7 @@ val commonModule = module {
 
     // App-level State / Screen Models
     single { AppViewModel(get(), get(), get()) }
+    factory { AuthViewModel(get()) }
     factory { OnboardingViewModel(get(), get(), get(), get(), get()) }
     factory {
         HomeViewModel(

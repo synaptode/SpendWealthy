@@ -76,6 +76,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.WalletType
 import com.spendwealthy.app.ui.main.MainScreen
+import com.spendwealthy.app.ui.screens.auth.LoginScreen
 
 class OnboardingScreen : Screen {
 
@@ -127,12 +128,16 @@ class OnboardingScreen : Screen {
                     .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                // Header Bar (Brand + Stepper + Skip)
+                // Header Bar (Brand + Stepper + Skip + Login)
                 TopHeaderBar(
                     step = state.step,
                     onSkip = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         viewModel.skipToComplete()
+                    },
+                    onLogin = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        navigator.push(LoginScreen())
                     }
                 )
 
@@ -168,6 +173,10 @@ class OnboardingScreen : Screen {
                     onNext = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         viewModel.nextStep()
+                    },
+                    onLogin = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        navigator.push(LoginScreen())
                     }
                 )
             }
@@ -178,7 +187,7 @@ class OnboardingScreen : Screen {
     // Header & Stepper
     // --------------------------------------------------------------------------
     @Composable
-    private fun TopHeaderBar(step: Int, onSkip: () -> Unit) {
+    private fun TopHeaderBar(step: Int, onSkip: () -> Unit, onLogin: () -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -217,14 +226,27 @@ class OnboardingScreen : Screen {
                     )
                 }
 
-                if (step < 4) {
-                    TextButton(onClick = onSkip) {
-                        Text(
-                            text = "Lewati",
-                            color = Color(0xFF94A3B8),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium
-                        )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (step == 1) {
+                        TextButton(onClick = onLogin) {
+                            Text(
+                                text = "Masuk",
+                                color = Color(0xFFFFDE43),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                    if (step < 4) {
+                        TextButton(onClick = onSkip) {
+                            Text(
+                                text = "Lewati",
+                                color = Color(0xFF94A3B8),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                     }
                 }
             }
@@ -840,7 +862,8 @@ class OnboardingScreen : Screen {
     private fun BottomActionDock(
         step: Int,
         isLoading: Boolean,
-        onNext: () -> Unit
+        onNext: () -> Unit,
+        onLogin: () -> Unit
     ) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
@@ -850,7 +873,8 @@ class OnboardingScreen : Screen {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 16.dp)
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Button(
                     onClick = onNext,
@@ -890,6 +914,30 @@ class OnboardingScreen : Screen {
                                 modifier = Modifier.size(18.dp)
                             )
                         }
+                    }
+                }
+
+                if (step == 1) {
+                    Spacer(Modifier.height(12.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "Sudah memiliki akun? ",
+                            fontSize = 13.sp,
+                            color = Color(0xFF94A3B8)
+                        )
+                        Text(
+                            text = "Masuk",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFFFDE43),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .clickable(onClick = onLogin)
+                                .padding(horizontal = 4.dp, vertical = 2.dp)
+                        )
                     }
                 }
             }

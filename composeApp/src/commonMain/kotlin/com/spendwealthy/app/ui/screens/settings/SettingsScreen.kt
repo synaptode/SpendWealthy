@@ -67,6 +67,8 @@ import com.spendwealthy.app.ui.screens.bill.BillListScreen
 import com.spendwealthy.app.ui.screens.family.FamilyScreen
 import com.spendwealthy.app.ui.screens.insight.PrideStatusScreen
 import com.spendwealthy.app.ui.screens.premium.PaywallScreen
+import com.spendwealthy.app.ui.screens.auth.LoginScreen
+import com.spendwealthy.app.ui.screens.auth.RegisterScreen
 import com.spendwealthy.app.ui.theme.AppColors
 
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -166,6 +168,40 @@ class SettingsScreen : Screen {
                             navigator.push(PaywallScreen())
                         }
                     )
+
+                    // Akun & Autentikasi
+                    SettingSection(title = "Akun & Keamanan Cloud") {
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = AppColors.Surface,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                SettingsRowItem(
+                                    title = "Ganti Akun / Masuk",
+                                    subtitle = "Masuk dengan email atau akun SpendWealthy Cloud",
+                                    icon = Icons.Default.Lock,
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        navigator.push(LoginScreen())
+                                    }
+                                )
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(vertical = 12.dp),
+                                    color = AppColors.Outline
+                                )
+                                SettingsRowItem(
+                                    title = "Daftar Akun Baru",
+                                    subtitle = "Buat akun sovereign vault untuk sinkronisasi antar perangkat",
+                                    icon = Icons.Default.Security,
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        navigator.push(RegisterScreen())
+                                    }
+                                )
+                            }
+                        }
+                    }
 
                     // Export & Sync Section
                     SettingSection(title = "Data & Sinkronisasi") {
