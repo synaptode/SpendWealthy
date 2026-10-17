@@ -28,20 +28,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.automirrored.filled.ReceiptLong
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.CreditCard
-import androidx.compose.material.icons.filled.ElectricBolt
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.icons.filled.WarningAmber
+import androidx.compose.material.icons.automirrored.filled.*
+import androidx.compose.material.icons.filled.*
 
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -264,7 +252,7 @@ class HomeScreen : Screen {
                 }
             }
 
-            // Month Selector Chip ("August ▾")
+            // Month Selector Chip ("August" + vector chevron down icon)
             Surface(
                 shape = RoundedCornerShape(20.dp),
                 color = Color.White,
@@ -274,7 +262,7 @@ class HomeScreen : Screen {
                 Row(
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
                         text = "August",
@@ -282,10 +270,11 @@ class HomeScreen : Screen {
                         fontWeight = FontWeight.SemiBold,
                         color = Color(0xFF111827)
                     )
-                    Text(
-                        text = "▾",
-                        fontSize = 12.sp,
-                        color = Color(0xFF6B7280)
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = "Pilih Bulan",
+                        tint = Color(0xFF6B7280),
+                        modifier = Modifier.size(16.dp)
                     )
                 }
             }
@@ -393,13 +382,19 @@ class HomeScreen : Screen {
 
                         Spacer(modifier = Modifier.height(6.dp))
 
-                        // Green Growth Badge: "↑ 8.2% this month"
+                        // Green Growth Badge: Vector ArrowUpward + "8.2% this month"
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            horizontalArrangement = Arrangement.spacedBy(3.dp)
                         ) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowUpward,
+                                contentDescription = null,
+                                tint = Color(0xFF10B981),
+                                modifier = Modifier.size(12.dp)
+                            )
                             Text(
-                                text = "↑ 8.2% this month",
+                                text = "8.2% this month",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color(0xFF10B981)
@@ -595,13 +590,21 @@ class HomeScreen : Screen {
                             color = Color(0xFF111827)
                         )
                     }
-                    Text(
-                        text = "↗",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF111827),
-                        modifier = Modifier.clickable(onClick = onViewDetails)
-                    )
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFF3F4F6))
+                            .clickable(onClick = onViewDetails),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = "Detail Arus Kas",
+                            tint = Color(0xFF111827),
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -639,13 +642,24 @@ class HomeScreen : Screen {
                                 color = Color(0xFF6B7280)
                             )
                         }
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "↑ 8.4% vs last month",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF10B981)
-                        )
+                        Spacer(modifier = Modifier.height(3.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(3.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowUpward,
+                                contentDescription = null,
+                                tint = Color(0xFF10B981),
+                                modifier = Modifier.size(11.dp)
+                            )
+                            Text(
+                                text = "8.4% vs last month",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFF10B981)
+                            )
+                        }
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "66%",
@@ -677,13 +691,24 @@ class HomeScreen : Screen {
                                 color = Color(0xFF6B7280)
                             )
                         }
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "↑ 4% vs last month",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF10B981)
-                        )
+                        Spacer(modifier = Modifier.height(3.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(3.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowUpward,
+                                contentDescription = null,
+                                tint = Color(0xFF10B981),
+                                modifier = Modifier.size(11.dp)
+                            )
+                            Text(
+                                text = "4% vs last month",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFF10B981)
+                            )
+                        }
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "33%",
@@ -753,23 +778,36 @@ class HomeScreen : Screen {
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF111827)
                 )
-                Text(
-                    text = "See all ↗",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF6B7280),
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(3.dp),
                     modifier = Modifier.clickable(onClick = onManageWallets)
-                )
+                ) {
+                    Text(
+                        text = "See all",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF6B7280)
+                    )
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = "Lihat Semua",
+                        tint = Color(0xFF6B7280),
+                        modifier = Modifier.size(13.dp)
+                    )
+                }
             }
 
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 6.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Euro Account Card (Reference 2)
+                // Euro Account Card (Vector Public/Globe Icon)
                 item {
                     FintechAccountCard(
-                        flagSymbol = "🇪🇺",
+                        icon = Icons.Default.Public,
+                        iconBg = Color(0xFFEFF6FF),
+                        iconTint = Color(0xFF2563EB),
                         title = "Euro account",
                         maskedNumber = "1580 **** 9086",
                         balance = "€3,450.86",
@@ -777,10 +815,12 @@ class HomeScreen : Screen {
                     )
                 }
 
-                // US Dollar Card (Reference 4)
+                // US Dollar Card (Vector CreditCard Icon)
                 item {
                     FintechAccountCard(
-                        flagSymbol = "🇺🇸",
+                        icon = Icons.Default.CreditCard,
+                        iconBg = Color(0xFFECFDF5),
+                        iconTint = Color(0xFF059669),
                         title = "US Dollar",
                         maskedNumber = "4821 **** 1024",
                         balance = "$40,500.80",
@@ -788,10 +828,12 @@ class HomeScreen : Screen {
                     )
                 }
 
-                // User's custom wallets
+                // User's custom wallets (Vector AccountBalanceWallet Icon)
                 items(wallets) { wallet ->
                     FintechAccountCard(
-                        flagSymbol = "🏛️",
+                        icon = Icons.Default.AccountBalanceWallet,
+                        iconBg = Color(0xFFF3F4F6),
+                        iconTint = Color(0xFF111827),
                         title = wallet.name,
                         maskedNumber = "Account • Active",
                         balance = wallet.balance.format(),
@@ -840,7 +882,9 @@ class HomeScreen : Screen {
 
     @Composable
     private fun FintechAccountCard(
-        flagSymbol: String,
+        icon: ImageVector,
+        iconBg: Color,
+        iconTint: Color,
         title: String,
         maskedNumber: String,
         balance: String,
@@ -871,10 +915,15 @@ class HomeScreen : Screen {
                         modifier = Modifier
                             .size(38.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFF3F4F6)),
+                            .background(iconBg),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(text = flagSymbol, fontSize = 20.sp)
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = iconTint,
+                            modifier = Modifier.size(18.dp)
+                        )
                     }
                     Column {
                         Text(
@@ -928,13 +977,24 @@ class HomeScreen : Screen {
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF111827)
                 )
-                Text(
-                    text = "View All ↗",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF111827),
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(3.dp),
                     modifier = Modifier.clickable(onClick = onViewAll)
-                )
+                ) {
+                    Text(
+                        text = "View All",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF111827)
+                    )
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = "Lihat Semua Transaksi",
+                        tint = Color(0xFF111827),
+                        modifier = Modifier.size(13.dp)
+                    )
+                }
             }
 
             Surface(
@@ -948,9 +1008,18 @@ class HomeScreen : Screen {
                     if (transactions.isNotEmpty()) {
                         transactions.take(5).forEachIndexed { index, tx ->
                             val isIncome = tx.type == TransactionType.INCOME
+                            val (vectorIcon, iconBg, iconTint) = when {
+                                isIncome -> Triple(Icons.AutoMirrored.Filled.TrendingUp, Color(0xFFECFDF5), Color(0xFF059669))
+                                tx.note.contains("pizza", ignoreCase = true) || tx.note.contains("makan", ignoreCase = true) || tx.note.contains("food", ignoreCase = true) -> Triple(Icons.Default.Restaurant, Color(0xFFFFF7ED), Color(0xFFEA580C))
+                                tx.note.contains("mrt", ignoreCase = true) || tx.note.contains("transport", ignoreCase = true) -> Triple(Icons.Default.DirectionsCar, Color(0xFFEFF6FF), Color(0xFF2563EB))
+                                tx.note.contains("grocery", ignoreCase = true) || tx.note.contains("belanja", ignoreCase = true) -> Triple(Icons.Default.ShoppingCart, Color(0xFFF3E8FF), Color(0xFF9333EA))
+                                else -> Triple(Icons.AutoMirrored.Filled.ReceiptLong, Color(0xFFF3F4F6), Color(0xFF4B5563))
+                            }
+
                             RecentTxRow(
-                                iconBg = if (isIncome) Color(0xFFECFDF5) else Color(0xFFF3F4F6),
-                                iconText = if (isIncome) "💰" else "💳",
+                                icon = vectorIcon,
+                                iconBg = iconBg,
+                                iconTint = iconTint,
                                 title = tx.note.ifBlank { "Transaction" },
                                 timestamp = "${tx.date}",
                                 amount = if (isBalanceHidden) "•••••" else (if (isIncome) "+ " else "- ") + tx.amount.format(),
@@ -967,10 +1036,11 @@ class HomeScreen : Screen {
                             }
                         }
                     } else {
-                        // Pristine Seed Transactions matching Reference 1 & 2
+                        // Pristine Seed Transactions with Pure Vector Icons (Lucide-style)
                         RecentTxRow(
+                            icon = Icons.Default.Business,
                             iconBg = Color(0xFFEFF6FF),
-                            iconText = "🌐",
+                            iconTint = Color(0xFF2563EB),
                             title = "Google Workspace",
                             timestamp = "Aug 16 • 11:32 AM",
                             amount = "$240.00",
@@ -979,8 +1049,9 @@ class HomeScreen : Screen {
                         )
                         Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFF3F4F6)))
                         RecentTxRow(
+                            icon = Icons.Default.Cloud,
                             iconBg = Color(0xFFFFF7ED),
-                            iconText = "☁️",
+                            iconTint = Color(0xFFD97706),
                             title = "AWS",
                             timestamp = "Aug 16 • 05:22 PM",
                             amount = "$1,240.00",
@@ -989,8 +1060,9 @@ class HomeScreen : Screen {
                         )
                         Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFF3F4F6)))
                         RecentTxRow(
+                            icon = Icons.Default.DirectionsCar,
                             iconBg = Color(0xFFF3F4F6),
-                            iconText = "🚗",
+                            iconTint = Color(0xFF111827),
                             title = "Uber for Business",
                             timestamp = "Aug 15 • 09:12 AM",
                             amount = "$248.40",
@@ -999,8 +1071,9 @@ class HomeScreen : Screen {
                         )
                         Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFF3F4F6)))
                         RecentTxRow(
+                            icon = Icons.Default.MusicNote,
                             iconBg = Color(0xFFECFDF5),
-                            iconText = "🎵",
+                            iconTint = Color(0xFF10B981),
                             title = "Spotify Premium",
                             timestamp = "Aug 14 • 08:30 AM",
                             amount = "-$15.99",
@@ -1015,8 +1088,9 @@ class HomeScreen : Screen {
 
     @Composable
     private fun RecentTxRow(
+        icon: ImageVector,
         iconBg: Color,
-        iconText: String,
+        iconTint: Color,
         title: String,
         timestamp: String,
         amount: String,
@@ -1042,7 +1116,12 @@ class HomeScreen : Screen {
                         .background(iconBg),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = iconText, fontSize = 20.sp)
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = iconTint,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
 
                 Column {
