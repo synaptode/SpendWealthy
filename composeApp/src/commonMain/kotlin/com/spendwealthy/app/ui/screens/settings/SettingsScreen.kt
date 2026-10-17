@@ -59,6 +59,7 @@ import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.SubscriptionPlan
+import com.spendwealthy.app.ui.screens.family.FamilyScreen
 import com.spendwealthy.app.ui.screens.premium.PaywallScreen
 import com.spendwealthy.app.ui.theme.AppColors
 
@@ -185,12 +186,12 @@ class SettingsScreen : Screen {
                                 )
 
                                 SettingsRowItem(
-                                    title = "Sinkronisasi Ruang Keluarga",
-                                    subtitle = "Bagikan catatan dengan pasangan atau keluarga",
+                                    title = "Tabungan & Ruang Keluarga",
+                                    subtitle = "Menabung bersama keluarga, target impian & kelola anggota",
                                     icon = Icons.Default.Groups,
                                     onClick = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        viewModel.exportFamilyData()
+                                        navigator.push(FamilyScreen())
                                     }
                                 )
                             }
