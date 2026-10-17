@@ -103,6 +103,15 @@ class BudgetListViewModel(
     val warningBudgetsCount: Int
         get() = _uiState.value.budgets.count { getUsage(it) >= 0.8 && getUsage(it) < 1.0 }
 
+    val projectedBreachBudgetsCount: Int
+        get() = _uiState.value.budgets.count {
+            getUsage(it) < 1.0 && getProjection(it).status == com.spendwealthy.app.domain.service.ProjectionStatus.WARNING_PROJECTED_OVERBUDGET
+        }
+
+    fun getProjection(budget: Budget): com.spendwealthy.app.domain.service.BudgetProjection {
+        return budgetEngine.calculateProjection(budget, _uiState.value.transactions)
+    }
+
     fun getBudgetName(budget: Budget): String {
         return budget.categoryId?.let { _uiState.value.categoriesById[it]?.name } ?: "Total bulan ini"
     }

@@ -45,9 +45,20 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.material.icons.filled.ElectricBolt
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -709,6 +720,7 @@ class BudgetListScreen : Screen {
         val usage = viewModel.overallUsagePercentage
         val criticalCount = viewModel.criticalBudgetsCount
         val warningCount = viewModel.warningBudgetsCount
+        val projectedBreachCount = viewModel.projectedBreachBudgetsCount
 
         val (accentColor, badgeBg, statusText) = when {
             criticalCount > 0 -> Triple(
@@ -720,6 +732,11 @@ class BudgetListScreen : Screen {
                 AppColors.Warning,
                 Color(0xFFF59E0B).copy(alpha = 0.15f),
                 "$warningCount Pos Waspada (80%+) ⚠️"
+            )
+            projectedBreachCount > 0 -> Triple(
+                Color(0xFFF59E0B),
+                Color(0xFFF59E0B).copy(alpha = 0.15f),
+                "$projectedBreachCount Pos Berisiko Jebol ⚡"
             )
             else -> Triple(
                 AppColors.Primary,
@@ -834,8 +851,11 @@ class BudgetListScreen : Screen {
         remaining: String,
         viewModel: BudgetListViewModel
     ) {
+        var isExpanded by remember { mutableStateOf(false) }
+        val projection = viewModel.getProjection(budget)
         val isOverbudget = usage >= 1.0
         val isWarning = usage >= 0.8 && !isOverbudget
+        val isProjectedBreach = !isOverbudget && projection.status == com.spendwealthy.app.domain.service.ProjectionStatus.WARNING_PROJECTED_OVERBUDGET
         val progress = usage.toFloat().coerceIn(0f, 1f)
         val animatedProgress by animateFloatAsState(
             targetValue = progress,
@@ -849,10 +869,10 @@ class BudgetListScreen : Screen {
                 Brush.horizontalGradient(listOf(Color(0xFFF43F5E), Color(0xFFBE123C))),
                 "Overbudget"
             )
-            isWarning -> Triple(
+            isWarning || isProjectedBreach -> Triple(
                 AppColors.Warning,
                 Brush.horizontalGradient(listOf(Color(0xFFF59E0B), Color(0xFFFBBF24))),
-                "Waspada"
+                if (isProjectedBreach && !isWarning) "Berisiko" else "Waspada"
             )
             else -> Triple(
                 AppColors.Primary,
@@ -865,10 +885,15 @@ class BudgetListScreen : Screen {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 6.dp)
-                .tactilePress(pressedScale = 0.97f),
+                .tactilePress(pressedScale = 0.98f),
             shape = RoundedCornerShape(20.dp),
             color = AppColors.Surface,
-            border = androidx.compose.foundation.BorderStroke(1.dp, if (isOverbudget) Color(0xFFF43F5E).copy(alpha = 0.5f) else AppColors.Outline)
+            border = androidx.compose.foundation.BorderStroke(
+                1.dp,
+                if (isOverbudget) Color(0xFFF43F5E).copy(alpha = 0.5f)
+                else if (isProjectedBreach) Color(0xFFF59E0B).copy(alpha = 0.45f)
+                else AppColors.Outline
+            )
         ) {
             Column(
                 modifier = Modifier.padding(18.dp),
@@ -891,7 +916,11 @@ class BudgetListScreen : Screen {
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = if (isOverbudget) Icons.Default.Warning else Icons.Default.Payments,
+                                imageVector = when {
+                                    isOverbudget -> Icons.Default.Warning
+                                    isProjectedBreach -> Icons.Default.ElectricBolt
+                                    else -> Icons.Default.Payments
+                                },
                                 contentDescription = null,
                                 tint = accentColor,
                                 modifier = Modifier.size(20.dp)
@@ -967,9 +996,268 @@ class BudgetListScreen : Screen {
                             .background(progressBrush)
                     )
                 }
+
+                // Smart Projection Quick Pill & Toggle Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = when {
+                            isOverbudget -> Color(0xFFF43F5E).copy(alpha = 0.12f)
+                            isProjectedBreach -> Color(0xFFF59E0B).copy(alpha = 0.14f)
+                            else -> Color(0xFF10B981).copy(alpha = 0.12f)
+                        }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(5.dp)
+                        ) {
+                            Icon(
+                                imageVector = when {
+                                    isOverbudget -> Icons.Default.Warning
+                                    isProjectedBreach -> Icons.Default.ElectricBolt
+                                    else -> Icons.Default.Shield
+                                },
+                                contentDescription = null,
+                                tint = when {
+                                    isOverbudget -> AppColors.Danger
+                                    isProjectedBreach -> AppColors.Warning
+                                    else -> Color(0xFF10B981)
+                                },
+                                modifier = Modifier.size(13.dp)
+                            )
+                            Text(
+                                text = when {
+                                    isOverbudget -> "Plafon habis terpakai"
+                                    isProjectedBreach -> "Prediksi habis dlm ${projection.estimatedDaysUntilDepleted ?: 1} hari"
+                                    else -> "Batas aman: ${projection.safeDailyAllowanceRemaining.formatWithSymbol()}/hari"
+                                },
+                                style = AppTypography.labelNumeric(
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = when {
+                                        isOverbudget -> AppColors.Danger
+                                        isProjectedBreach -> AppColors.Warning
+                                        else -> Color(0xFF10B981)
+                                    }
+                                )
+                            )
+                        }
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = AppColors.SurfaceRaised,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { isExpanded = !isExpanded }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(3.dp)
+                        ) {
+                            Text(
+                                text = if (isExpanded) "Tutup Analisis" else "Analisis Proyeksi",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.Primary
+                            )
+                            Icon(
+                                imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                contentDescription = null,
+                                tint = AppColors.Primary,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                    }
+                }
+
+                // Expandable Smart Projection Analytics Panel
+                AnimatedVisibility(
+                    visible = isExpanded,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(AppColors.SurfaceRaised)
+                            .padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text(
+                            text = "Prakiraan & Laju Pengeluaran",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.TextMuted
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Surface(
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp),
+                                color = AppColors.Surface
+                            ) {
+                                Column(modifier = Modifier.padding(10.dp)) {
+                                    Text(
+                                        text = "Laju Rata-rata Harian",
+                                        fontSize = 10.sp,
+                                        color = AppColors.TextMuted
+                                    )
+                                    Text(
+                                        text = "${projection.dailyRunRate.formatWithSymbol()}/hari",
+                                        style = AppTypography.labelNumeric(
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = AppColors.TextMain
+                                        )
+                                    )
+                                    Text(
+                                        text = "Hari ke-${projection.currentDayOfMonth} dari ${projection.totalDaysInMonth}",
+                                        fontSize = 9.sp,
+                                        color = AppColors.TextMuted
+                                    )
+                                }
+                            }
+
+                            Surface(
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp),
+                                color = AppColors.Surface
+                            ) {
+                                Column(modifier = Modifier.padding(10.dp)) {
+                                    Text(
+                                        text = "Proyeksi Akhir Bulan",
+                                        fontSize = 10.sp,
+                                        color = AppColors.TextMuted
+                                    )
+                                    Text(
+                                        text = projection.projectedMonthEndSpending.formatWithSymbol(),
+                                        style = AppTypography.labelNumeric(
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = when {
+                                                isOverbudget || isProjectedBreach -> AppColors.Warning
+                                                else -> AppColors.TextMain
+                                            }
+                                        )
+                                    )
+                                    val projPct = if (budget.limit.amount > 0) {
+                                        ((projection.projectedMonthEndSpending.amount.toDouble() / budget.limit.amount) * 100).toInt()
+                                    } else 0
+                                    Text(
+                                        text = "$projPct% dari batas plafon",
+                                        fontSize = 9.sp,
+                                        color = if (projPct > 100) AppColors.Danger else AppColors.TextMuted
+                                    )
+                                }
+                            }
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Surface(
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp),
+                                color = AppColors.Surface
+                            ) {
+                                Column(modifier = Modifier.padding(10.dp)) {
+                                    Text(
+                                        text = "Sisa Hari Periode Ini",
+                                        fontSize = 10.sp,
+                                        color = AppColors.TextMuted
+                                    )
+                                    Text(
+                                        text = "${projection.daysRemainingInMonth} Hari",
+                                        style = AppTypography.labelNumeric(
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = AppColors.TextMain
+                                        )
+                                    )
+                                    Text(
+                                        text = "Menuju akhir bulan",
+                                        fontSize = 9.sp,
+                                        color = AppColors.TextMuted
+                                    )
+                                }
+                            }
+
+                            Surface(
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp),
+                                color = AppColors.Surface
+                            ) {
+                                Column(modifier = Modifier.padding(10.dp)) {
+                                    Text(
+                                        text = "Batas Belanja Aman",
+                                        fontSize = 10.sp,
+                                        color = AppColors.TextMuted
+                                    )
+                                    Text(
+                                        text = "${projection.safeDailyAllowanceRemaining.formatWithSymbol()}/hari",
+                                        style = AppTypography.labelNumeric(
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (projection.safeDailyAllowanceRemaining.amount <= 0) AppColors.Danger else Color(0xFF10B981)
+                                        )
+                                    )
+                                    Text(
+                                        text = "Agar tidak overbudget",
+                                        fontSize = 9.sp,
+                                        color = AppColors.TextMuted
+                                    )
+                                }
+                            }
+                        }
+
+                        // Recommendation Banner
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = when {
+                                isOverbudget -> AppColors.Danger.copy(alpha = 0.1f)
+                                isProjectedBreach -> AppColors.Warning.copy(alpha = 0.12f)
+                                else -> Color(0xFF10B981).copy(alpha = 0.1f)
+                            }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Text(
+                                    text = when {
+                                        isOverbudget -> "⚠️ Plafon terlampaui. Tunda pengeluaran pos ini atau tingkatkan batas anggaran jika mendesak."
+                                        isProjectedBreach -> "⚡ Laju saat ini melebihi kapasitas. Batasi pengeluaran ke ${projection.safeDailyAllowanceRemaining.formatWithSymbol()}/hari agar bertahan sampai akhir bulan."
+                                        else -> "✨ Laju pengeluaran sangat sehat! Disiplin ini berpotensi menghasilkan sisa dana untuk tabungan."
+                                    },
+                                    fontSize = 11.sp,
+                                    color = when {
+                                        isOverbudget -> AppColors.Danger
+                                        isProjectedBreach -> Color(0xFFD97706)
+                                        else -> Color(0xFF059669)
+                                    },
+                                    lineHeight = 15.sp
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
+
 
     @Composable
     private fun EmptyBudgetCard(onClick: () -> Unit) {

@@ -127,4 +127,120 @@ class BudgetEngineTest {
         val usage = engine.calculateUsagePercentage(totalBudget, transactions)
         assertEquals(0.5, usage, 0.001)
     }
+
+    @Test
+    fun testCalculateProjectionWarningProjectedOverbudget() {
+        // Plafon 3.000.000, Oktober (31 hari)
+        // Pada tanggal 10 Oktober, terpakai 1.500.000 (run-rate 150.000/hari)
+        // Proyeksi akhir bulan = 150.000 * 31 = 4.650.000 (> 3.000.000) -> WARNING_PROJECTED_OVERBUDGET
+        val budget = Budget(
+            id = "b_food",
+            categoryId = "cat-food",
+            limit = Money(3_000_000L, "IDR"),
+            month = 10,
+            year = 2026,
+            createdAt = now
+        )
+
+        val txs = listOf(
+            Transaction(
+                id = "t1",
+                amount = Money(1_500_000L, "IDR"),
+                type = TransactionType.EXPENSE,
+                categoryId = "cat-food",
+                walletId = "w1",
+                targetWalletId = null,
+                date = LocalDate(2026, 10, 10),
+                note = "",
+                merchant = "",
+                createdAt = now,
+                updatedAt = now
+            )
+        )
+
+        val projection = engine.calculateProjection(budget, txs, LocalDate(2026, 10, 10))
+
+        assertEquals(150_000L, projection.dailyRunRate.amount)
+        assertEquals(4_650_000L, projection.projectedMonthEndSpending.amount)
+        assertEquals(10, projection.currentDayOfMonth)
+        assertEquals(21, projection.daysRemainingInMonth)
+        assertEquals(31, projection.totalDaysInMonth)
+        // Sisa plafon 1.500.000 / 21 hari = ~71.428/hari
+        assertEquals(71_428L, projection.safeDailyAllowanceRemaining.amount)
+        // Estimasi habis dalam: 1.500.000 / 150.000 = 10 hari lagi
+        assertEquals(10, projection.estimatedDaysUntilDepleted)
+        assertEquals(ProjectionStatus.WARNING_PROJECTED_OVERBUDGET, projection.status)
+    }
+
+    @Test
+    fun testCalculateProjectionHealthy() {
+        // Plafon 5.000.000, Oktober (31 hari)
+        // Pada tanggal 10 Oktober, baru terpakai 500.000 (run-rate 50.000/hari)
+        // Proyeksi akhir bulan = 50.000 * 31 = 1.550.000 (< 85% plafon) -> HEALTHY
+        val budget = Budget(
+            id = "b_util",
+            categoryId = "cat-util",
+            limit = Money(5_000_000L, "IDR"),
+            month = 10,
+            year = 2026,
+            createdAt = now
+        )
+
+        val txs = listOf(
+            Transaction(
+                id = "t1",
+                amount = Money(500_000L, "IDR"),
+                type = TransactionType.EXPENSE,
+                categoryId = "cat-util",
+                walletId = "w1",
+                targetWalletId = null,
+                date = LocalDate(2026, 10, 10),
+                note = "",
+                merchant = "",
+                createdAt = now,
+                updatedAt = now
+            )
+        )
+
+        val projection = engine.calculateProjection(budget, txs, LocalDate(2026, 10, 10))
+
+        assertEquals(50_000L, projection.dailyRunRate.amount)
+        assertEquals(1_550_000L, projection.projectedMonthEndSpending.amount)
+        assertEquals(ProjectionStatus.HEALTHY, projection.status)
+    }
+
+    @Test
+    fun testCalculateProjectionAlreadyExceeded() {
+        val budget = Budget(
+            id = "b_exceeded",
+            categoryId = "cat-food",
+            limit = Money(1_000_000L, "IDR"),
+            month = 10,
+            year = 2026,
+            createdAt = now
+        )
+
+        val txs = listOf(
+            Transaction(
+                id = "t1",
+                amount = Money(1_200_000L, "IDR"),
+                type = TransactionType.EXPENSE,
+                categoryId = "cat-food",
+                walletId = "w1",
+                targetWalletId = null,
+                date = LocalDate(2026, 10, 10),
+                note = "",
+                merchant = "",
+                createdAt = now,
+                updatedAt = now
+            )
+        )
+
+        val projection = engine.calculateProjection(budget, txs, LocalDate(2026, 10, 10))
+
+        assertEquals(0, projection.estimatedDaysUntilDepleted)
+        assertEquals(0L, projection.safeDailyAllowanceRemaining.amount)
+        assertEquals(ProjectionStatus.ALREADY_EXCEEDED, projection.status)
+    }
 }
+
