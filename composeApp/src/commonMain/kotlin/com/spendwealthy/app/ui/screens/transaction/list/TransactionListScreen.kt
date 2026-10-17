@@ -69,9 +69,21 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.domain.model.Transaction
 import com.spendwealthy.app.domain.model.TransactionType
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Close
+import com.spendwealthy.app.ui.components.MonthPickerModal
+import kotlinx.datetime.Clock as KtClock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import com.spendwealthy.app.ui.components.TransactionDetailModal
 import com.spendwealthy.app.ui.screens.transaction.AddTransactionScreen
 import com.spendwealthy.app.ui.theme.AppColors
+
+private val INDO_MONTHS = listOf(
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+)
 
 /**
  * Modern, minimalist transaction ledger ("Buku Kas & Riwayat").
@@ -86,6 +98,7 @@ class TransactionListScreen : Screen {
         val navigator = LocalNavigator.currentOrThrow
         val haptic = LocalHapticFeedback.current
         var selectedTransaction by remember { mutableStateOf<Transaction?>(null) }
+        var showMonthPicker by remember { mutableStateOf(false) }
 
         val totalIncome = state.filteredTransactions
             .filter { it.type == TransactionType.INCOME }
@@ -142,6 +155,94 @@ class TransactionListScreen : Screen {
                     )
                 }
 
+                // 4.1 Period Filter Bar
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (state.selectedMonth != null) AppColors.Primary.copy(alpha = 0.15f) else AppColors.SurfaceRaised,
+                            border = BorderStroke(
+                                1.dp,
+                                if (state.selectedMonth != null) AppColors.Primary else AppColors.Outline
+                            ),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    showMonthPicker = true
+                                }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CalendarMonth,
+                                    contentDescription = null,
+                                    tint = if (state.selectedMonth != null) AppColors.TextMain else AppColors.TextMuted,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                val monthLabel = if (state.selectedMonth != null && state.selectedYear != null) {
+                                    "${INDO_MONTHS.getOrElse(state.selectedMonth!! - 1) { "" }} ${state.selectedYear}"
+                                } else {
+                                    "Semua Periode"
+                                }
+                                Text(
+                                    text = monthLabel,
+                                    fontSize = 12.sp,
+                                    fontWeight = if (state.selectedMonth != null) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (state.selectedMonth != null) AppColors.TextMain else AppColors.TextMuted
+                                )
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDropDown,
+                                    contentDescription = null,
+                                    tint = if (state.selectedMonth != null) AppColors.TextMain else AppColors.TextMuted,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+
+                        if (state.selectedMonth != null) {
+                            Surface(
+                                shape = CircleShape,
+                                color = AppColors.SurfaceRaised,
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .clickable {
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        viewModel.resetPeriod()
+                                    }
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = "Hapus Filter",
+                                        tint = AppColors.TextMuted,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Text(
+                                        text = "Reset",
+                                        fontSize = 11.sp,
+                                        color = AppColors.TextMuted,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // 5. Category Filter Chips
                 item {
                     CategoryFilterRow(
@@ -149,7 +250,7 @@ class TransactionListScreen : Screen {
                         selected = state.selectedCategory,
                         onSelect = {
                             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            viewModel.onCategorySelected(it)
+                            viewModel.onCategorySelectedByName(it)
                         },
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
@@ -210,6 +311,20 @@ class TransactionListScreen : Screen {
                     transaction = currentSelected,
                     onDelete = { id -> viewModel.deleteTransaction(id) },
                     onDismiss = { selectedTransaction = null }
+                )
+            }
+
+            // Month Picker Modal
+            if (showMonthPicker) {
+                val now = KtClock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+                MonthPickerModal(
+                    selectedYear = state.selectedYear ?: now.year,
+                    selectedMonth = state.selectedMonth ?: now.monthNumber,
+                    onMonthSelected = { year, month ->
+                        viewModel.onPeriodSelected(year, month)
+                        showMonthPicker = false
+                    },
+                    onDismiss = { showMonthPicker = false }
                 )
             }
         }

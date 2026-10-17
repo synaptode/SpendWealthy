@@ -43,6 +43,8 @@ private val DarkColorScheme = darkColorScheme(
     error = AppColors.Danger
 )
 
+val LocalDarkTheme = androidx.compose.runtime.compositionLocalOf { false }
+
 @Composable
 fun SpendWealthyTheme(
     darkTheme: Boolean = false,
@@ -50,9 +52,13 @@ fun SpendWealthyTheme(
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = getAppTypography(),
-        content = content
-    )
+    androidx.compose.runtime.CompositionLocalProvider(
+        LocalDarkTheme provides darkTheme
+    ) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = getAppTypography(),
+            content = content
+        )
+    }
 }

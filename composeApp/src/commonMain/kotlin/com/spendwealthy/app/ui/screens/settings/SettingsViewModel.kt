@@ -13,6 +13,8 @@ import com.spendwealthy.app.domain.service.DataService
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
+import com.spendwealthy.app.domain.model.ThemeMode
+
 data class SettingsState(
     val biometricEnabled: Boolean = false,
     val notificationsEnabled: Boolean = true,
@@ -24,6 +26,7 @@ data class SettingsState(
     val isLoggedIn: Boolean = false,
     val userCurrency: String = "IDR",
     val avatarId: Int = 0,
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val privacySummary: String = "Data utama disimpan lokal di perangkat.",
     val exportStatus: String? = null
 ) : UiState
@@ -55,7 +58,8 @@ class SettingsViewModel(
                 preferenceRepository.getString("user_email"),
                 preferenceRepository.getBoolean("is_logged_in"),
                 preferenceRepository.getString("user_currency"),
-                preferenceRepository.getInt("user_avatar_id")
+                preferenceRepository.getInt("user_avatar_id"),
+                preferenceRepository.getString("theme_mode")
             ) { args: Array<Any?> ->
                 val biometric = args[0] as Boolean
                 val notifications = args[1] as Boolean
@@ -67,6 +71,12 @@ class SettingsViewModel(
                 val loggedIn = args[7] as Boolean
                 val currency = args[8] as? String ?: "IDR"
                 val avatarId = args[9] as Int
+                val themeModeStr = args[10] as? String
+                val themeMode = when (themeModeStr?.uppercase()) {
+                    "LIGHT" -> ThemeMode.LIGHT
+                    "DARK" -> ThemeMode.DARK
+                    else -> ThemeMode.SYSTEM
+                }
 
                 SettingsState(
                     biometricEnabled = biometric,
@@ -79,11 +89,18 @@ class SettingsViewModel(
                     isLoggedIn = loggedIn,
                     userCurrency = currency,
                     avatarId = avatarId,
+                    themeMode = themeMode,
                     privacySummary = "SpendWealthy beroperasi offline-first: enkripsi AES-256 lokal dengan sinkronisasi opsional."
                 )
             }.collectLatest { state ->
                 _uiState.value = state
             }
+        }
+    }
+
+    fun setThemeMode(mode: ThemeMode) {
+        screenModelScope.launch {
+            preferenceRepository.setString("theme_mode", mode.name)
         }
     }
 

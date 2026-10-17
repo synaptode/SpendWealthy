@@ -37,10 +37,14 @@ class AppViewModel(
     private val _startupState = MutableStateFlow<AppStartupState>(AppStartupState.Loading)
     val startupState: StateFlow<AppStartupState> = _startupState.asStateFlow()
 
+    private val _themeMode = MutableStateFlow(com.spendwealthy.app.domain.model.ThemeMode.SYSTEM)
+    val themeMode: StateFlow<com.spendwealthy.app.domain.model.ThemeMode> = _themeMode.asStateFlow()
+
     init {
         checkStartupState()
         rescheduleBillReminders()
         observeNotifications()
+        observeThemeMode()
     }
 
     private fun checkStartupState() {
@@ -82,6 +86,25 @@ class AppViewModel(
                 delay(4000)
                 _notification.value = null
             }
+        }
+    }
+
+    private fun observeThemeMode() {
+        scope.launch {
+            preferenceRepository.getString("theme_mode").collectLatest { modeString ->
+                val mode = when (modeString?.uppercase()) {
+                    "LIGHT" -> com.spendwealthy.app.domain.model.ThemeMode.LIGHT
+                    "DARK" -> com.spendwealthy.app.domain.model.ThemeMode.DARK
+                    else -> com.spendwealthy.app.domain.model.ThemeMode.SYSTEM
+                }
+                _themeMode.value = mode
+            }
+        }
+    }
+
+    fun setThemeMode(mode: com.spendwealthy.app.domain.model.ThemeMode) {
+        scope.launch {
+            preferenceRepository.setString("theme_mode", mode.name)
         }
     }
 }

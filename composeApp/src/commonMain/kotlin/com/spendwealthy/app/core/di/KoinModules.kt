@@ -137,7 +137,7 @@ val commonModule = module {
         )
     }
     factory { AddTransactionViewModel(get(), get(), get(), get(), get(), get()) }
-    factory { TransactionListViewModel(get(), get()) }
+    factory { TransactionListViewModel(get(), get(), get()) }
     factory { WalletListViewModel(get()) }
     factory { (walletId: String) -> WalletDetailViewModel(walletId, get(), get()) }
     factory { AddWalletViewModel(get(), get(), get()) }

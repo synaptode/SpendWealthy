@@ -76,6 +76,10 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.BrightnessAuto
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.DarkMode
+import com.spendwealthy.app.domain.model.ThemeMode
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -443,6 +447,81 @@ class SettingsScreen : Screen {
                                         navigator.push(OnboardingScreen())
                                     }
                                 )
+                            }
+                        }
+                    }
+
+                    // Tampilan & Tema Section
+                    SettingSection(title = "Tampilan & Tema") {
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = AppColors.Surface,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = "Mode Tampilan Aplikasi",
+                                    fontWeight = FontWeight.Bold,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = AppColors.TextMain
+                                )
+                                Text(
+                                    text = "Sesuaikan kontras dan tema visual sesuai preferensi Anda",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = AppColors.TextMuted
+                                )
+
+                                Spacer(Modifier.height(14.dp))
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    val modes = listOf(
+                                        Triple(ThemeMode.SYSTEM, "Sistem", Icons.Default.BrightnessAuto),
+                                        Triple(ThemeMode.LIGHT, "Terang", Icons.Default.LightMode),
+                                        Triple(ThemeMode.DARK, "Gelap", Icons.Default.DarkMode)
+                                    )
+
+                                    modes.forEach { (mode, title, icon) ->
+                                        val isSelected = state.themeMode == mode
+                                        Surface(
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .clip(RoundedCornerShape(14.dp))
+                                                .clickable {
+                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                    viewModel.setThemeMode(mode)
+                                                },
+                                            shape = RoundedCornerShape(14.dp),
+                                            color = if (isSelected) AppColors.Primary.copy(alpha = 0.18f) else AppColors.SurfaceRaised,
+                                            border = androidx.compose.foundation.BorderStroke(
+                                                width = if (isSelected) 1.5.dp else 1.dp,
+                                                color = if (isSelected) AppColors.Primary else AppColors.Outline
+                                            )
+                                        ) {
+                                            Column(
+                                                modifier = Modifier.padding(vertical = 12.dp, horizontal = 6.dp),
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center
+                                            ) {
+                                                Icon(
+                                                    imageVector = icon,
+                                                    contentDescription = title,
+                                                    tint = if (isSelected) AppColors.TextMain else AppColors.TextMuted,
+                                                    modifier = Modifier.size(20.dp)
+                                                )
+                                                Spacer(Modifier.height(6.dp))
+                                                Text(
+                                                    text = title,
+                                                    style = MaterialTheme.typography.labelMedium,
+                                                    fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium,
+                                                    color = if (isSelected) AppColors.TextMain else AppColors.TextMuted
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

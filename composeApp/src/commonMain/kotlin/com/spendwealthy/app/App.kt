@@ -36,8 +36,14 @@ fun App() {
         rootReady.value = true
     }
 
-    SpendWealthyTheme {
-        Surface(color = AppColors.Background, modifier = Modifier.fillMaxSize()) {
+    SpendWealthyTheme(
+        darkTheme = when (viewModel.themeMode.collectAsState().value) {
+            com.spendwealthy.app.domain.model.ThemeMode.SYSTEM -> androidx.compose.foundation.isSystemInDarkTheme()
+            com.spendwealthy.app.domain.model.ThemeMode.DARK -> true
+            com.spendwealthy.app.domain.model.ThemeMode.LIGHT -> false
+        }
+    ) {
+        Surface(color = androidx.compose.material3.MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
             Box(Modifier.fillMaxSize()) {
                 when {
                     !rootReady.value || state == AppStartupState.Loading -> {
