@@ -175,6 +175,20 @@ object AppTypography {
     )
 
     @Composable
+    fun titleNumeric(
+        fontWeight: FontWeight = FontWeight.Bold,
+        fontSize: androidx.compose.ui.unit.TextUnit = 20.sp,
+        color: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.Unspecified
+    ): TextStyle = TextStyle(
+        fontFamily = getPlusJakartaSansFamily(),
+        fontWeight = fontWeight,
+        fontSize = fontSize,
+        lineHeight = (fontSize.value * 1.3f).sp,
+        letterSpacing = (-0.2).sp,
+        color = color
+    )
+
+    @Composable
     fun bodyNumeric(
         fontWeight: FontWeight = FontWeight.SemiBold,
         fontSize: androidx.compose.ui.unit.TextUnit = 16.sp,

@@ -28,6 +28,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.OptimizationLog
 import com.spendwealthy.app.ui.components.AppGlassCard
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 import androidx.compose.foundation.BorderStroke
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -90,7 +91,14 @@ class OptimizationHistoryScreen : Screen {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text("TOTAL SKOR EFISIENSI", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, color = AppColors.Primary)
-                    Text("$totalImpact pts", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black, color = AppColors.TextMain)
+                    Text(
+                        "$totalImpact pts",
+                        style = AppTypography.headlineNumeric(
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Black,
+                            color = AppColors.TextMain
+                        )
+                    )
                     Text("Dioptimasi melalui algoritma kekayaan privat", style = MaterialTheme.typography.bodySmall, color = AppColors.TextMuted)
                 }
                 Icon(Icons.AutoMirrored.Filled.TrendingUp, contentDescription = null, tint = AppColors.Primary, modifier = Modifier.size(44.dp))
@@ -118,7 +126,14 @@ class OptimizationHistoryScreen : Screen {
                     Text(log.title, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
                     Text("Berhasil diterapkan", style = MaterialTheme.typography.labelSmall, color = AppColors.Success)
                 }
-                Text("+${log.impactScore}", fontWeight = FontWeight.Black, color = AppColors.Primary, fontSize = 16.sp)
+                Text(
+                    "+${log.impactScore}",
+                    style = AppTypography.bodyNumeric(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Black,
+                        color = AppColors.Primary
+                    )
+                )
             }
         }
     }

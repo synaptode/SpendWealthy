@@ -34,6 +34,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 class PrideStatusScreen : Screen {
 
@@ -192,9 +193,11 @@ class PrideStatusScreen : Screen {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = "${(animationProgress.value * 100).toInt()}",
-                    fontSize = 44.sp,
-                    fontWeight = FontWeight.Black,
-                    color = AppColors.TextMain
+                    style = AppTypography.displayNumeric(
+                        fontSize = 44.sp,
+                        fontWeight = FontWeight.Black,
+                        color = AppColors.TextMain
+                    )
                 )
                 Text(
                     text = "Skor Kesehatan / 100",

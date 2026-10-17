@@ -40,6 +40,7 @@ import com.spendwealthy.app.domain.model.FamilyMember
 import com.spendwealthy.app.domain.model.FamilyRole
 import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 class FamilyScreen : Screen {
 
@@ -462,10 +463,11 @@ class FamilyScreen : Screen {
                     )
                     Text(
                         text = formattedSavings,
-                        fontSize = savingsFontSize,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = AppColors.TextMain,
-                        letterSpacing = (-0.5).sp,
+                        style = AppTypography.headlineNumeric(
+                            fontSize = savingsFontSize,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = AppColors.TextMain
+                        ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -805,9 +807,11 @@ class FamilyScreen : Screen {
                         )
                         Text(
                             text = formattedCurrent,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = AppColors.TextMain
+                            style = AppTypography.bodyNumeric(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.TextMain
+                            )
                         )
                     }
 
@@ -819,9 +823,11 @@ class FamilyScreen : Screen {
                         )
                         Text(
                             text = formattedTarget,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = AppColors.TextMain
+                            style = AppTypography.bodyNumeric(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.TextMain
+                            )
                         )
                     }
                 }
@@ -840,7 +846,7 @@ class FamilyScreen : Screen {
 
                         goal.contributions.forEach { c ->
                             val cPercent = if (goal.currentAmount > 0) ((c.amount.toFloat() / goal.currentAmount.toFloat()) * 100).toInt() else 0
-                            val cFormatted = "Rp " + c.amount.toString().reversed().chunked(3).joinToString(".").reversed()
+                            val cFormatted = Money(c.amount, "IDR").formatWithSymbol()
 
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -875,9 +881,11 @@ class FamilyScreen : Screen {
 
                                 Text(
                                     text = "$cFormatted ($cPercent%)",
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = AppColors.TextMuted
+                                    style = AppTypography.labelNumeric(
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = AppColors.TextMuted
+                                    )
                                 )
                             }
                         }

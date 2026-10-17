@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
+import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.domain.repository.FamilyRepository
 
 data class MemberContribution(
@@ -214,7 +215,7 @@ class FamilyViewModel(
                     type = ActivityType.CONTRIBUTION_ADDED,
                     memberName = memberName,
                     timestamp = Clock.System.now(),
-                    details = "Menyetor Rp ${amount.toString().reversed().chunked(3).joinToString(".").reversed()} ke '$goalTitle'"
+                    details = "Menyetor ${Money(amount, "IDR").formatWithSymbol()} ke '$goalTitle'"
                 )
 
                 val newTotalSavings = updatedGoals.sumOf { it.currentAmount }

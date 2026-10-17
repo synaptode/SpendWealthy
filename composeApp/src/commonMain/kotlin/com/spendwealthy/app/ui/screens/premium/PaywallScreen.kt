@@ -59,6 +59,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.SubscriptionPlan
 import com.spendwealthy.app.ui.components.AppButton
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 /**
  * Modern, high-converting subscription paywall.
@@ -297,9 +298,11 @@ class PaywallScreen : Screen {
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(
                         text = price,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Black,
-                        color = AppColors.TextMain
+                        style = AppTypography.titleNumeric(
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Black,
+                            color = AppColors.TextMain
+                        )
                     )
                     Text(
                         text = period,

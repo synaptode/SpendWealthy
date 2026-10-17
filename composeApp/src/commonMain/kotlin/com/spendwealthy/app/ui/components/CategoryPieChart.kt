@@ -20,7 +20,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 import kotlinx.coroutines.launch
 import kotlin.math.atan2
 
@@ -35,6 +37,7 @@ fun CategoryPieChart(
     data: List<PieChartData>,
     centerTitle: String = "Total Expense",
     subtitleBadge: String? = null,
+    currency: String = "IDR",
     modifier: Modifier = Modifier
 ) {
     val total = data.sumOf { it.value.toDouble() }.toFloat()
@@ -126,10 +129,12 @@ fun CategoryPieChart(
             )
             
             Text(
-                text = "Rp " + kotlin.math.round(displayValue).toLong().toString().reversed().chunked(3).joinToString(".").reversed(),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Black,
-                color = AppColors.TextMain,
+                text = Money(kotlin.math.round(displayValue).toLong(), currency).formatWithSymbol(),
+                style = AppTypography.headlineNumeric(
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Black,
+                    color = AppColors.TextMain
+                ),
                 modifier = Modifier.padding(vertical = 2.dp)
             )
 
