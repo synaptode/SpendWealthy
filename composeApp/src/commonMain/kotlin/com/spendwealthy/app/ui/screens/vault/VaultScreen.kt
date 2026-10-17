@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -50,6 +51,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
@@ -72,10 +74,14 @@ class VaultScreen : Screen {
         val navigator = LocalNavigator.currentOrThrow
         val haptic = LocalHapticFeedback.current
 
-        Box(modifier = Modifier.fillMaxSize().background(AppColors.Background)) {
+        Box(
+            modifier = Modifier.fillMaxSize().background(AppColors.Background),
+            contentAlignment = Alignment.TopCenter
+        ) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
+                    .widthIn(max = 680.dp)
                     .windowInsetsPadding(WindowInsets.statusBars),
                 contentPadding = PaddingValues(bottom = 140.dp)
             ) {
@@ -192,18 +198,27 @@ class VaultScreen : Screen {
                 }
             }
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .padding(horizontal = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Text(
                     text = "Brankas Finansial",
                     fontWeight = FontWeight.ExtraBold,
                     style = MaterialTheme.typography.titleLarge,
-                    color = AppColors.TextMain
+                    color = AppColors.TextMain,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = "Enkripsi AES-256 lokal",
                     style = MaterialTheme.typography.labelSmall,
                     color = AppColors.Primary,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 

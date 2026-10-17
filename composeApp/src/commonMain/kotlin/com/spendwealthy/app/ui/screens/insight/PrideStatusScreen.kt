@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
@@ -41,8 +42,16 @@ class PrideStatusScreen : Screen {
         val navigator = LocalNavigator.currentOrThrow
         val scrollState = rememberScrollState()
         
-        Box(modifier = Modifier.fillMaxSize().background(AppColors.Background)) {
-            Column(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier.fillMaxSize().background(AppColors.Background),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .widthIn(max = 680.dp)
+                    .windowInsetsPadding(WindowInsets.statusBars)
+            ) {
                 // Header
                 Row(
                     modifier = Modifier
@@ -67,17 +76,26 @@ class PrideStatusScreen : Screen {
                         )
                     }
 
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f, fill = false)
+                            .padding(horizontal = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
                         Text(
-                            text = "Sovereign Wealth Lab ✦",
+                            text = "Sovereign Wealth Lab",
                             fontSize = 17.sp,
                             fontWeight = FontWeight.Bold,
-                            color = AppColors.TextMain
+                            color = AppColors.TextMain,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = "Metrik Kesehatan & Pertumbuhan Kas",
                             fontSize = 11.sp,
-                            color = AppColors.TextMuted
+                            color = AppColors.TextMuted,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
 

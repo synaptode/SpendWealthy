@@ -25,6 +25,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Download
@@ -61,7 +63,9 @@ import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.SubscriptionPlan
+import com.spendwealthy.app.ui.screens.bill.BillListScreen
 import com.spendwealthy.app.ui.screens.family.FamilyScreen
+import com.spendwealthy.app.ui.screens.insight.PrideStatusScreen
 import com.spendwealthy.app.ui.screens.premium.PaywallScreen
 import com.spendwealthy.app.ui.theme.AppColors
 
@@ -204,6 +208,42 @@ class SettingsScreen : Screen {
                                     onClick = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         navigator.push(FamilyScreen())
+                                    }
+                                )
+
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(vertical = 12.dp),
+                                    color = AppColors.Outline
+                                )
+
+                                SettingsRowItem(
+                                    title = "Tagihan & Langganan Rutin",
+                                    subtitle = "Kelola tagihan bulanan, cicilan & notifikasi recurring",
+                                    icon = Icons.AutoMirrored.Filled.ReceiptLong,
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        navigator.push(BillListScreen())
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    // Wealth Analysis & Health Lab
+                    SettingSection(title = "Analisis & Keuangan") {
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = AppColors.Surface,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                SettingsRowItem(
+                                    title = "Sovereign Wealth Lab",
+                                    subtitle = "Metrik kesehatan finansial, gauge score & rekomendasi",
+                                    icon = Icons.AutoMirrored.Filled.TrendingUp,
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        navigator.push(PrideStatusScreen())
                                     }
                                 )
                             }

@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -27,9 +28,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LocalHospital
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Smartphone
+import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -47,9 +57,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
@@ -65,20 +77,20 @@ import com.spendwealthy.app.ui.theme.AppColors
 private data class BillPreset(
     val name: String,
     val suggestedAmount: Long,
-    val iconEmoji: String,
+    val iconVector: ImageVector,
     val recurrence: RecurrenceType = RecurrenceType.MONTHLY
 )
 
 private val BILL_PRESETS = listOf(
-    BillPreset("Listrik PLN", 250_000L, "⚡"),
-    BillPreset("WiFi Indihome / Biznet", 385_000L, "🌐"),
-    BillPreset("BPJS Kesehatan", 150_000L, "🏥"),
-    BillPreset("Netflix", 186_000L, "🎬"),
-    BillPreset("Spotify Family", 86_900L, "🎵"),
-    BillPreset("iCloud Storage", 45_000L, "☁️"),
-    BillPreset("YouTube Premium", 69_000L, "▶️"),
-    BillPreset("Sewa / Kos", 1_500_000L, "🏠"),
-    BillPreset("Cicilan Gadget", 850_000L, "📱")
+    BillPreset("Listrik PLN", 250_000L, Icons.Default.Bolt),
+    BillPreset("WiFi Indihome / Biznet", 385_000L, Icons.Default.Wifi),
+    BillPreset("BPJS Kesehatan", 150_000L, Icons.Default.LocalHospital),
+    BillPreset("Netflix", 186_000L, Icons.Default.Movie),
+    BillPreset("Spotify Family", 86_900L, Icons.Default.MusicNote),
+    BillPreset("iCloud Storage", 45_000L, Icons.Default.Cloud),
+    BillPreset("YouTube Premium", 69_000L, Icons.Default.PlayCircle),
+    BillPreset("Sewa / Kos", 1_500_000L, Icons.Default.Home),
+    BillPreset("Cicilan Gadget", 850_000L, Icons.Default.Smartphone)
 )
 
 class AddBillScreen : Screen {
@@ -105,14 +117,20 @@ class AddBillScreen : Screen {
             snackbarHost = { SnackbarHost(snackbarHostState) },
             contentWindowInsets = WindowInsets(0, 0, 0, 0)
         ) { padding ->
-            LazyColumn(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .background(AppColors.Background)
-                    .windowInsetsPadding(WindowInsets.statusBars),
-                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
+                    .background(AppColors.Background),
+                contentAlignment = Alignment.TopCenter
             ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .widthIn(max = 680.dp)
+                        .windowInsetsPadding(WindowInsets.statusBars),
+                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
+                ) {
                 item {
                     Header(
                         title = "Tambah Tagihan",
@@ -230,6 +248,7 @@ class AddBillScreen : Screen {
             }
         }
     }
+    }
 
     @Composable
     private fun PresetSection(
@@ -277,7 +296,12 @@ class AddBillScreen : Screen {
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Text(text = preset.iconEmoji, fontSize = 15.sp)
+                            Icon(
+                                imageVector = preset.iconVector,
+                                contentDescription = null,
+                                tint = if (isSelected) AppColors.Primary else AppColors.TextMuted,
+                                modifier = Modifier.size(16.dp)
+                            )
                             Text(
                                 text = preset.name,
                                 style = MaterialTheme.typography.labelMedium,
@@ -319,17 +343,26 @@ class AddBillScreen : Screen {
                 }
             }
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .padding(horizontal = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.ExtraBold,
-                    color = AppColors.TextMain
+                    color = AppColors.TextMain,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = AppColors.TextMuted
+                    color = AppColors.TextMuted,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 

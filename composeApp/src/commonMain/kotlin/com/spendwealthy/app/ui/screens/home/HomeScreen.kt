@@ -59,6 +59,7 @@ import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.spendwealthy.app.domain.model.BillReminder
 import com.spendwealthy.app.domain.model.Goal
 import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.domain.model.Transaction
@@ -68,6 +69,7 @@ import com.spendwealthy.app.ui.components.GoalCelebrationOverlay
 import com.spendwealthy.app.ui.components.MONTH_NAMES
 import com.spendwealthy.app.ui.components.MonthPickerModal
 import com.spendwealthy.app.ui.components.TransactionDetailModal
+import com.spendwealthy.app.ui.screens.bill.AddBillScreen
 import com.spendwealthy.app.ui.screens.bill.BillListScreen
 import com.spendwealthy.app.ui.screens.home.components.GoalContributionDialog
 import com.spendwealthy.app.ui.screens.report.ReportScreen
@@ -180,6 +182,19 @@ class HomeScreen : Screen {
                         onAddWallet = { rootNavigator.push(AddWalletScreen()) },
                         modifier = Modifier.padding(vertical = 12.dp)
                     )
+                }
+
+                // 4.5. Upcoming Recurring Bills Section
+                if (state.upcomingBills.isNotEmpty()) {
+                    item {
+                        UpcomingBillsCard(
+                            bills = state.upcomingBills,
+                            isBalanceHidden = isBalanceHidden,
+                            onViewAll = { rootNavigator.push(BillListScreen()) },
+                            onAddBill = { rootNavigator.push(AddBillScreen()) },
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
+                        )
+                    }
                 }
 
                 // 5. Recent Transactions List (Google Workspace, AWS, Uber for Business, Spotify)
@@ -1224,5 +1239,176 @@ class HomeScreen : Screen {
             }
         }
     }
+
+    @Composable
+    private fun UpcomingBillsCard(
+        bills: List<BillReminder>,
+        isBalanceHidden: Boolean,
+        onViewAll: () -> Unit,
+        onAddBill: () -> Unit,
+        modifier: Modifier = Modifier
+    ) {
+        Column(modifier = modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Upcoming Bills",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF111827)
+                    )
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = Color(0xFFFFDE43).copy(alpha = 0.25f),
+                        border = BorderStroke(1.dp, Color(0xFFFFDE43).copy(alpha = 0.5f))
+                    ) {
+                        Text(
+                            text = "${bills.size} upcoming",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF111827),
+                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                    modifier = Modifier.clickable(onClick = onViewAll)
+                ) {
+                    Text(
+                        text = "Manage",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF111827)
+                    )
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = "Kelola Tagihan",
+                        tint = Color(0xFF111827),
+                        modifier = Modifier.size(13.dp)
+                    )
+                }
+            }
+
+            Surface(
+                shape = RoundedCornerShape(22.dp),
+                color = Color.White,
+                border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
+                shadowElevation = 1.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
+                    bills.take(3).forEachIndexed { index, bill ->
+                        val (vectorIcon, iconBg, iconTint) = when {
+                            bill.name.contains("listrik", ignoreCase = true) || bill.name.contains("pln", ignoreCase = true) -> Triple(Icons.Default.Bolt, Color(0xFFFEF3C7), Color(0xFFD97706))
+                            bill.name.contains("wifi", ignoreCase = true) || bill.name.contains("indihome", ignoreCase = true) || bill.name.contains("biznet", ignoreCase = true) || bill.name.contains("internet", ignoreCase = true) -> Triple(Icons.Default.Wifi, Color(0xFFEFF6FF), Color(0xFF2563EB))
+                            bill.name.contains("netflix", ignoreCase = true) || bill.name.contains("movie", ignoreCase = true) || bill.name.contains("disney", ignoreCase = true) -> Triple(Icons.Default.Movie, Color(0xFFFEE2E2), Color(0xFFDC2626))
+                            bill.name.contains("spotify", ignoreCase = true) || bill.name.contains("music", ignoreCase = true) -> Triple(Icons.Default.MusicNote, Color(0xFFECFDF5), Color(0xFF059669))
+                            bill.name.contains("cloud", ignoreCase = true) || bill.name.contains("apple", ignoreCase = true) -> Triple(Icons.Default.Cloud, Color(0xFFF3E8FF), Color(0xFF9333EA))
+                            bill.name.contains("bpjs", ignoreCase = true) || bill.name.contains("sehat", ignoreCase = true) -> Triple(Icons.Default.LocalHospital, Color(0xFFECFDF5), Color(0xFF059669))
+                            bill.name.contains("sewa", ignoreCase = true) || bill.name.contains("kos", ignoreCase = true) || bill.name.contains("rumah", ignoreCase = true) -> Triple(Icons.Default.Home, Color(0xFFFFF7ED), Color(0xFFEA580C))
+                            else -> Triple(Icons.AutoMirrored.Filled.ReceiptLong, Color(0xFFF3F4F6), Color(0xFF4B5563))
+                        }
+
+                        UpcomingBillRow(
+                            icon = vectorIcon,
+                            iconBg = iconBg,
+                            iconTint = iconTint,
+                            title = bill.name,
+                            dueDateText = "Due on ${bill.dueDate}",
+                            amount = if (isBalanceHidden) "•••••" else bill.amount.format(),
+                            onClick = onViewAll
+                        )
+                        if (index < bills.take(3).size - 1) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(1.dp)
+                                    .background(Color(0xFFF3F4F6))
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun UpcomingBillRow(
+        icon: ImageVector,
+        iconBg: Color,
+        iconTint: Color,
+        title: String,
+        dueDateText: String,
+        amount: String,
+        onClick: () -> Unit
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.weight(1f, fill = false)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
+                        .background(iconBg),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = iconTint,
+                        modifier = Modifier.size(19.dp)
+                    )
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        text = title,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF111827),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = dueDateText,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF6B7280),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+
+            Text(
+                text = amount,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color(0xFF111827)
+            )
+        }
+    }
 }
+
 
