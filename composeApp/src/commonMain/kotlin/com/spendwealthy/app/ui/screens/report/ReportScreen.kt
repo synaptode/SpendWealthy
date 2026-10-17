@@ -93,6 +93,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.ui.components.CategoryPieChart
 import com.spendwealthy.app.ui.components.MonthPickerModal
 import com.spendwealthy.app.ui.components.PieChartData
+import com.spendwealthy.app.core.localization.LocalStrings
 import com.spendwealthy.app.ui.theme.AppColors
 import com.spendwealthy.app.ui.theme.AppTypography
 
@@ -333,9 +334,10 @@ class ReportScreen(
                                 },
                             contentAlignment = Alignment.Center
                         ) {
+                            val strings = LocalStrings.current
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Kembali",
+                                contentDescription = strings.back,
                                 tint = AppColors.TextMain,
                                 modifier = Modifier.size(18.dp)
                             )
@@ -343,13 +345,14 @@ class ReportScreen(
                         Spacer(Modifier.width(12.dp))
                     }
 
+                    val strings = LocalStrings.current
                     Column(
                         modifier = Modifier
                             .weight(1f, fill = false)
                             .padding(end = 10.dp)
                     ) {
                         Text(
-                            text = "Statistik & Analisis",
+                            text = strings.tabStats,
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.ExtraBold,
                             color = AppColors.TextMain,

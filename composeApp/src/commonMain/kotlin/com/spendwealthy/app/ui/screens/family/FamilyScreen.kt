@@ -41,6 +41,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.FamilyMember
 import com.spendwealthy.app.domain.model.FamilyRole
 import com.spendwealthy.app.domain.model.Money
+import com.spendwealthy.app.core.localization.LocalStrings
 import com.spendwealthy.app.ui.components.ConfettiView
 import com.spendwealthy.app.ui.theme.AppColors
 import com.spendwealthy.app.ui.theme.AppTypography
@@ -338,10 +339,11 @@ class FamilyScreen : Screen {
                             color = AppColors.Surface,
                             border = BorderStroke(1.dp, AppColors.Outline)
                         ) {
+                            val strings = LocalStrings.current
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Kembali",
+                                    contentDescription = strings.back,
                                     tint = AppColors.TextMain,
                                     modifier = Modifier.size(18.dp)
                                 )
@@ -350,13 +352,14 @@ class FamilyScreen : Screen {
                         Spacer(Modifier.width(12.dp))
                     }
 
+                    val strings = LocalStrings.current
                     Column(
                         modifier = Modifier
                             .weight(1f, fill = false)
                             .padding(end = 10.dp)
                     ) {
                         Text(
-                            text = "Tabungan Keluarga",
+                            text = strings.tabFamily,
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.ExtraBold,
                             color = AppColors.TextMain,

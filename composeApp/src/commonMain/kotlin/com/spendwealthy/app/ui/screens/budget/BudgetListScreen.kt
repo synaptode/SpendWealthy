@@ -77,6 +77,7 @@ import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.Budget
+import com.spendwealthy.app.core.localization.LocalStrings
 import com.spendwealthy.app.ui.screens.family.FamilyScreen
 import com.spendwealthy.app.ui.screens.settings.SettingsScreen
 import com.spendwealthy.app.ui.screens.wallet.AddWalletScreen
@@ -92,6 +93,7 @@ class BudgetListScreen : Screen {
         val navigator = LocalNavigator.currentOrThrow
         val rootNavigator = navigator.parent ?: navigator
         val haptic = LocalHapticFeedback.current
+        val strings = LocalStrings.current
 
         Box(modifier = Modifier.fillMaxSize().background(AppColors.Background)) {
             LazyColumn(
@@ -137,7 +139,7 @@ class BudgetListScreen : Screen {
 
                 item {
                     SectionHeader(
-                        title = "Alokasi Anggaran",
+                        title = strings.activeBudgets,
                         badge = "${state.budgets.size} aktif",
                         action = "+ Tambah",
                         onClick = {
@@ -369,8 +371,9 @@ class BudgetListScreen : Screen {
                     .weight(1f, fill = false)
                     .padding(end = 10.dp)
             ) {
+                val strings = LocalStrings.current
                 Text(
-                    text = "Portofolio & Anggaran",
+                    text = strings.tabBudget,
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.ExtraBold,
                     color = AppColors.TextMain,
