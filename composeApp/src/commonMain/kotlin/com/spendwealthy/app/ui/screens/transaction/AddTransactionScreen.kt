@@ -363,7 +363,7 @@ class AddTransactionScreen(
                                 viewModel.onEvent(AddTransactionEvent.CategorySelected(it))
                             }
                             scope.launch {
-                                snackbarHostState.showSnackbar("Struk ${receipt.merchantName} (${Money(receipt.amount, "IDR").format()}) berhasil diekstraksi!")
+                                snackbarHostState.showSnackbar("Struk ${receipt.merchantName} (${Money(receipt.amount, "IDR").formatWithSymbol()}) berhasil diekstraksi!")
                             }
                             showReceiptScanner = false
                         },

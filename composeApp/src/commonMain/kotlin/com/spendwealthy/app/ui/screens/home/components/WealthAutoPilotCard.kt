@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spendwealthy.app.domain.service.AutoPilotStatus
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 @Composable
 fun WealthAutoPilotCard(
@@ -68,12 +69,26 @@ fun WealthAutoPilotCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    Text(status.totalWealthCreated.format(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = AppColors.TextMain)
+                    Text(
+                        text = status.totalWealthCreated.formatWithSymbol(),
+                        style = AppTypography.bodyNumeric(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Black,
+                            color = AppColors.TextMain
+                        )
+                    )
                     Text("Wealth Created", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
                 }
                 
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("${status.totalOptimizationsExecuted}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = AppColors.TextMain)
+                    Text(
+                        text = "${status.totalOptimizationsExecuted}",
+                        style = AppTypography.bodyNumeric(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Black,
+                            color = AppColors.TextMain
+                        )
+                    )
                     Text("Tasks Handled", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
                 }
             }

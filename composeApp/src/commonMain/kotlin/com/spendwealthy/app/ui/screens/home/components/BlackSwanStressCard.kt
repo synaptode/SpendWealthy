@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spendwealthy.app.domain.service.StressTestResult
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 @Composable
 fun BlackSwanStressCard(
@@ -71,9 +72,11 @@ fun BlackSwanStressCard(
                 Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         "${result.survivalMonths}",
-                        style = MaterialTheme.typography.displaySmall,
-                        fontWeight = FontWeight.Black,
-                        color = statusColor
+                        style = AppTypography.displayNumeric(
+                            fontSize = 36.sp,
+                            fontWeight = FontWeight.Black,
+                            color = statusColor
+                        )
                     )
                     Text("Months Survival", style = MaterialTheme.typography.titleMedium, color = AppColors.TextMuted, modifier = Modifier.padding(bottom = 8.dp))
                 }
@@ -92,7 +95,14 @@ fun BlackSwanStressCard(
                     Icon(Icons.Default.Security, null, tint = AppColors.Error, modifier = Modifier.size(16.dp))
                     Column {
                         Text("Est. Principal Loss", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
-                        Text(result.principalLoss.format(), fontWeight = FontWeight.Black, color = AppColors.Error, fontSize = 14.sp)
+                        Text(
+                            text = result.principalLoss.formatWithSymbol(),
+                            style = AppTypography.bodyNumeric(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Black,
+                                color = AppColors.Error
+                            )
+                        )
                     }
                 }
             }

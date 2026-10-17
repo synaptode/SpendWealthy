@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spendwealthy.app.domain.service.WealthNarrative
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 @Composable
 fun WealthNarrativeBanner(
@@ -80,7 +81,14 @@ fun WealthNarrativeBanner(
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Text("Potential Wealth Gain: ", style = MaterialTheme.typography.labelMedium, color = AppColors.Success)
-                        Text("+${narrative.shadowImpact.format()}", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black, color = AppColors.Success)
+                        Text(
+                            "+${narrative.shadowImpact.formatWithSymbol()}",
+                            style = AppTypography.labelNumeric(
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Black,
+                                color = AppColors.Success
+                            )
+                        )
                     }
                 }
             }

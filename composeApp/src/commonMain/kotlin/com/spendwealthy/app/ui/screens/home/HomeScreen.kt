@@ -1320,10 +1320,12 @@ class HomeScreen : Screen {
                             color = AppColors.TextMain
                         )
                         Text(
-                            text = "${(topAlert.usagePercentage * 100).toInt()}% • ${topAlert.spent.format()} / ${topAlert.limit.format()}",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = accentColor
+                            text = "${(topAlert.usagePercentage * 100).toInt()}% • ${topAlert.spent.formatWithSymbol()} / ${topAlert.limit.formatWithSymbol()}",
+                            style = AppTypography.labelNumeric(
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = accentColor
+                            )
                         )
                     }
 

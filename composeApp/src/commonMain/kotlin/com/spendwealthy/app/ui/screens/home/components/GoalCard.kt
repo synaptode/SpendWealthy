@@ -21,8 +21,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spendwealthy.app.domain.model.Goal
+import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.ui.components.AppGlassCard
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 @Composable
 fun GoalCard(
@@ -60,9 +62,12 @@ fun GoalCard(
                             color = AppColors.TextMain
                         )
                         Text(
-                            text = "Target: ${goal.targetAmount.format()}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = AppColors.TextMuted
+                            text = "Target: ${goal.targetAmount.formatWithSymbol()}",
+                            style = AppTypography.labelNumeric(
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = AppColors.TextMuted
+                            )
                         )
                     }
                 }
@@ -70,9 +75,11 @@ fun GoalCard(
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     Text(
                         text = "${(progress * 100).toInt()}%",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Black,
-                        color = AppColors.Primary
+                        style = AppTypography.headlineNumeric(
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Black,
+                            color = AppColors.Primary
+                        )
                     )
                     Box(
                         modifier = Modifier
@@ -108,16 +115,23 @@ fun GoalCard(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
+                    val remainingAmount = (goal.targetAmount.amount - goal.currentAmount.amount).coerceAtLeast(0)
+                    val remainingMoney = Money(remainingAmount, goal.targetAmount.currency)
                     Text(
-                        text = goal.currentAmount.format(),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = AppColors.TextMain
+                        text = goal.currentAmount.formatWithSymbol(),
+                        style = AppTypography.bodyNumeric(
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.TextMain
+                        )
                     )
                     Text(
-                        text = "Left: ${(goal.targetAmount.amount - goal.currentAmount.amount).coerceAtLeast(0)}", // Simplified left
-                        style = MaterialTheme.typography.labelSmall,
-                        color = AppColors.TextMuted
+                        text = "Sisa: ${remainingMoney.formatWithSymbol()}",
+                        style = AppTypography.labelNumeric(
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = AppColors.TextMuted
+                        )
                     )
                 }
             }

@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.ui.components.AppGlassCard
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 @Composable
 fun TotalBalanceCard(
@@ -53,11 +54,12 @@ fun TotalBalanceCard(
             Spacer(modifier = Modifier.height(10.dp))
             
             Text(
-                text = balance.format(),
-                fontSize = 38.sp,
-                lineHeight = 44.sp,
-                fontWeight = FontWeight.Black,
-                color = Color.White
+                text = balance.formatWithSymbol(),
+                style = AppTypography.displayNumeric(
+                    fontSize = 36.sp,
+                    fontWeight = FontWeight.Black,
+                    color = Color.White
+                )
             )
             
             Spacer(modifier = Modifier.height(24.dp))
@@ -80,10 +82,12 @@ fun TotalBalanceCard(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = dailyAllowance.format(),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = AppColors.Accent,
-                            fontWeight = FontWeight.Black
+                            text = dailyAllowance.formatWithSymbol(),
+                            style = AppTypography.bodyNumeric(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Black,
+                                color = AppColors.Accent
+                            )
                         )
                     }
                     

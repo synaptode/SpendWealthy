@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spendwealthy.app.domain.service.WealthShieldStatus
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 @Composable
 fun WealthShieldCard(
@@ -69,16 +70,25 @@ fun WealthShieldCard(
                 Column {
                     Text(
                         "${shield.protectionLevel}%",
-                        style = MaterialTheme.typography.displaySmall,
-                        fontWeight = FontWeight.Black,
-                        color = statusColor
+                        style = AppTypography.headlineNumeric(
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Black,
+                            color = statusColor
+                        )
                     )
                     Text("Defense Integrity", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
                 }
                 
                 if (shield.isActive) {
                     Column(horizontalAlignment = Alignment.End) {
-                        Text(shield.shieldedAssets.format(), fontWeight = FontWeight.Black, color = AppColors.TextMain)
+                        Text(
+                            text = shield.shieldedAssets.formatWithSymbol(),
+                            style = AppTypography.bodyNumeric(
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Black,
+                                color = AppColors.TextMain
+                            )
+                        )
                         Text("Shielded Assets", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
                     }
                 }

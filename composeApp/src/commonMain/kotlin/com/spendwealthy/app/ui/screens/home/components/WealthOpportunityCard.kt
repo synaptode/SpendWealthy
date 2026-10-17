@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spendwealthy.app.domain.service.WealthOpportunity
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 @Composable
 fun WealthOpportunityCard(
@@ -67,7 +68,14 @@ private fun OpportunityItem(opportunity: WealthOpportunity) {
                     Text("Potential over ${opportunity.impactYears} years", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
                 }
                 
-                Text(opportunity.potentialGain.format(), fontWeight = FontWeight.Black, color = AppColors.Primary, fontSize = 16.sp)
+                Text(
+                    text = opportunity.potentialGain.formatWithSymbol(),
+                    style = AppTypography.bodyNumeric(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Black,
+                        color = AppColors.Primary
+                    )
+                )
             }
             
             Surface(
@@ -82,7 +90,7 @@ private fun OpportunityItem(opportunity: WealthOpportunity) {
                 ) {
                     Icon(Icons.Default.HourglassEmpty, null, tint = AppColors.Error, modifier = Modifier.size(14.dp))
                     Text(
-                        "Cost of waiting 30 days: ${opportunity.costOfWaiting30Days.format()}",
+                        "Cost of waiting 30 days: ${opportunity.costOfWaiting30Days.formatWithSymbol()}",
                         style = MaterialTheme.typography.labelSmall,
                         color = AppColors.Error,
                         fontWeight = FontWeight.Bold

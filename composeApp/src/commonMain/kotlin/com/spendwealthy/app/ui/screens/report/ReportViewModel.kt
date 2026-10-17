@@ -232,7 +232,7 @@ class ReportViewModel(
 
                 val insight = when {
                     transactions.isEmpty() -> "Belum ada transaksi pada $periodLabel."
-                    totalIncome <= 0L -> "Pengeluaran tercatat ${Money(totalExpense, "IDR").format()} pada $periodLabel."
+                    totalIncome <= 0L -> "Pengeluaran tercatat ${Money(totalExpense, "IDR").formatWithSymbol()} pada $periodLabel."
                     savingRate >= 0.2 -> "Bagus, saving rate kamu ${(savingRate * 100).toInt()}% pada $periodLabel."
                     savingRate >= 0.0 -> "Saving rate kamu ${(savingRate * 100).toInt()}%. Masih aman, pertahankan!"
                     else -> "Pengeluaran melebihi pemasukan pada $periodLabel. Cek kategori $topExpense untuk evaluasi."

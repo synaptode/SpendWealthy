@@ -78,6 +78,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -535,10 +536,12 @@ fun ReceiptScannerModal(
                                     color = AppColors.TextMuted
                                 )
                                 Text(
-                                    text = Money(selectedSample.amount, "IDR").format(),
-                                    fontWeight = FontWeight.Black,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = if (isDark) Color(0xFFFFDE43) else Color(0xFF111827)
+                                    text = Money(selectedSample.amount, "IDR").formatWithSymbol(),
+                                    style = AppTypography.headlineNumeric(
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = if (isDark) Color(0xFFFFDE43) else Color(0xFF111827)
+                                    )
                                 )
                             }
                         }
@@ -830,10 +833,12 @@ fun ReceiptScannerModal(
                                 }
 
                                 Text(
-                                    text = Money(parsedReceipt.amount, "IDR").format(),
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = AppColors.TextMain
+                                    text = Money(parsedReceipt.amount, "IDR").formatWithSymbol(),
+                                    style = AppTypography.bodyNumeric(
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = AppColors.TextMain
+                                    )
                                 )
                             }
                         }
@@ -863,7 +868,7 @@ fun ReceiptScannerModal(
                         )
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            text = "Catat ${Money(parsedReceipt.amount, "IDR").format()}",
+                            text = "Catat ${Money(parsedReceipt.amount, "IDR").formatWithSymbol()}",
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
                             color = Color(0xFF111827)

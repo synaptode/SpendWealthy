@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spendwealthy.app.domain.model.Goal
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 @Composable
 fun GoalCelebrationOverlay(
@@ -70,11 +71,13 @@ fun GoalCelebrationOverlay(
                     color = Color.White.copy(alpha = 0.12f)
                 ) {
                     Text(
-                        text = goal.targetAmount.format(),
+                        text = goal.targetAmount.formatWithSymbol(),
                         modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Black,
-                        color = AppColors.Accent
+                        style = AppTypography.headlineNumeric(
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Black,
+                            color = AppColors.Accent
+                        )
                     )
                 }
                 

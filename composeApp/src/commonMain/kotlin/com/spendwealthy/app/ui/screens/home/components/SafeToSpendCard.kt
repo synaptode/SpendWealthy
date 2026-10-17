@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 @Composable
 fun SafeToSpendCard(
@@ -84,10 +85,12 @@ fun SafeToSpendCard(
             Spacer(modifier = Modifier.height(14.dp))
             
             Text(
-                text = "${amount.format()} / hari",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Black,
-                color = Color(0xFFDEFF37)
+                text = "${amount.formatWithSymbol()} / hari",
+                style = AppTypography.headlineNumeric(
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.Black,
+                    color = Color(0xFFDEFF37)
+                )
             )
             
             Spacer(modifier = Modifier.height(4.dp))

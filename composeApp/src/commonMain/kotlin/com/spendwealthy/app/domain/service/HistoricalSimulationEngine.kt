@@ -43,7 +43,7 @@ class HistoricalSimulationEngine {
             actualNetWorth = actualCurrentBalance,
             simulatedNetWorth = Money(simulatedWorth, currency),
             wealthGap = Money(gap, currency),
-            keyDifferenceReason = "By following all 'Idle Cash Sweep' and 'Budget Synergy' advice over the last 90 days, you would have an additional ${Money(gap, currency).format()} in your goals."
+            keyDifferenceReason = "By following all 'Idle Cash Sweep' and 'Budget Synergy' advice over the last 90 days, you would have an additional ${Money(gap, currency).formatWithSymbol()} in your goals."
         )
     }
 }

@@ -27,6 +27,7 @@ import com.spendwealthy.app.domain.model.AutoMoveLog
 import com.spendwealthy.app.domain.model.AutoMoveStatus
 import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
@@ -108,7 +109,14 @@ class AutoMoveHistoryScreen : Screen {
                 }
                 
                 Column(horizontalAlignment = Alignment.End) {
-                    Text(log.amount.format(), fontWeight = FontWeight.Black, color = if (isSuccess) AppColors.Primary else AppColors.TextMuted)
+                    Text(
+                        text = log.amount.formatWithSymbol(),
+                        style = AppTypography.bodyNumeric(
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Black,
+                            color = if (isSuccess) AppColors.Primary else AppColors.TextMuted
+                        )
+                    )
                     Text("Baru saja", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
                 }
             }

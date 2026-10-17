@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spendwealthy.app.domain.service.LifecycleReport
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 @Composable
 fun LifetimeTrajectoryCard(
@@ -72,16 +73,25 @@ fun LifetimeTrajectoryCard(
             ) {
                 Column {
                     Text(
-                        report.monthlyRetirementIncome.format(),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Black,
-                        color = AppColors.TextMain
+                        report.monthlyRetirementIncome.formatWithSymbol(),
+                        style = AppTypography.headlineNumeric(
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Black,
+                            color = AppColors.TextMain
+                        )
                     )
                     Text("Est. Monthly Retirement Income", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
                 }
                 
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("Age ${report.retirementAge}", fontWeight = FontWeight.Black, color = AppColors.Primary, fontSize = 18.sp)
+                    Text(
+                        "Age ${report.retirementAge}",
+                        style = AppTypography.bodyNumeric(
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Black,
+                            color = AppColors.Primary
+                        )
+                    )
                     Text("Retirement Target", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
                 }
             }

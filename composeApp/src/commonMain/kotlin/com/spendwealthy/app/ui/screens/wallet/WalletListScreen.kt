@@ -60,6 +60,7 @@ import com.spendwealthy.app.ui.components.KnownBrand
 import com.spendwealthy.app.ui.components.bouncyClickable
 import com.spendwealthy.app.ui.components.tactilePress
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 class WalletListScreen : Screen {
 
@@ -98,7 +99,7 @@ class WalletListScreen : Screen {
                 if (state.wallets.isNotEmpty()) {
                     item {
                         LiquiditySummaryCard(
-                            totalFormatted = Money(totalLiquidity, "IDR").format(),
+                            totalFormatted = Money(totalLiquidity, "IDR").formatWithSymbol(),
                             walletCount = state.wallets.size
                         )
                     }
@@ -261,9 +262,11 @@ class WalletListScreen : Screen {
                         }
                         Text(
                             text = totalFormatted,
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = Color.White,
+                            style = AppTypography.headlineNumeric(
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color.White
+                            ),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -369,18 +372,22 @@ class WalletListScreen : Screen {
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
                             text = wallet.balance.formatWithSymbol(),
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = if (isDebt && wallet.balance.amount < 0) AppColors.Danger else AppColors.TextMain,
+                            style = AppTypography.bodyNumeric(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = if (isDebt && wallet.balance.amount < 0) AppColors.Danger else AppColors.TextMain
+                            ),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         if (wallet.balance.currency != "IDR") {
                             Text(
                                 text = CurrencyConverter.formatEstimatedIdr(wallet.balance),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Medium,
-                                color = AppColors.TextMuted,
+                                style = AppTypography.labelNumeric(
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = AppColors.TextMuted
+                                ),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )

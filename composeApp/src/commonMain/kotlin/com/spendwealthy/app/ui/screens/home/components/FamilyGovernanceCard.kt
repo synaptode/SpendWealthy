@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spendwealthy.app.domain.service.ConsensusRequest
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 @Composable
 fun FamilyGovernanceCard(
@@ -75,7 +76,14 @@ private fun ConsensusItem(
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {
                     Text("${request.requesterName} wants to spend", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
-                    Text(request.amount.format(), fontWeight = FontWeight.Black, fontSize = 16.sp, color = AppColors.TextMain)
+                    Text(
+                        text = request.amount.formatWithSymbol(),
+                        style = AppTypography.bodyNumeric(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Black,
+                            color = AppColors.TextMain
+                        )
+                    )
                 }
                 
                 CircularProgressIndicator(

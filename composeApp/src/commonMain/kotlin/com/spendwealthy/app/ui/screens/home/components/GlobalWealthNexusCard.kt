@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spendwealthy.app.domain.service.PortfolioAnalysis
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 import com.spendwealthy.app.core.util.format
 
 @Composable
@@ -67,16 +68,25 @@ fun GlobalWealthNexusCard(
             ) {
                 Column {
                     Text(
-                        analysis.totalValue.format(),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Black,
-                        color = AppColors.TextMain
+                        analysis.totalValue.formatWithSymbol(),
+                        style = AppTypography.headlineNumeric(
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Black,
+                            color = AppColors.TextMain
+                        )
                     )
                     Text("Consolidated Portfolio Value", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
                 }
                 
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("${(analysis.weightedYield * 100).format(1)}%", fontWeight = FontWeight.Black, color = AppColors.Success, fontSize = 18.sp)
+                    Text(
+                        text = "${(analysis.weightedYield * 100).format(1)}%",
+                        style = AppTypography.bodyNumeric(
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Black,
+                            color = AppColors.Success
+                        )
+                    )
                     Text("Avg Yield", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
                 }
             }

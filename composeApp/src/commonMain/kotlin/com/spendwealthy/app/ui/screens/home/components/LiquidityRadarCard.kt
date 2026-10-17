@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spendwealthy.app.domain.service.LiquidityReport
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 @Composable
 fun LiquidityRadarCard(
@@ -74,15 +75,24 @@ fun LiquidityRadarCard(
                 Column {
                     Text(
                         "${report.safetyScore}%",
-                        style = MaterialTheme.typography.displaySmall,
-                        fontWeight = FontWeight.Black,
-                        color = statusColor
+                        style = AppTypography.headlineNumeric(
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Black,
+                            color = statusColor
+                        )
                     )
                     Text("Safety Score", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
                 }
                 
                 Column(horizontalAlignment = Alignment.End) {
-                    Text(report.currentBuffer.format(), fontWeight = FontWeight.Black, color = AppColors.TextMain)
+                    Text(
+                        text = report.currentBuffer.formatWithSymbol(),
+                        style = AppTypography.bodyNumeric(
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Black,
+                            color = AppColors.TextMain
+                        )
+                    )
                     Text("Available Buffer", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
                 }
             }
@@ -95,7 +105,7 @@ fun LiquidityRadarCard(
             )
             
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Required: ${report.requiredBuffer.format()}", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
+                Text("Required: ${report.requiredBuffer.formatWithSymbol()}", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
                 report.criticalDate?.let {
                     Text("Gap detected: $it", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = AppColors.Error)
                 }

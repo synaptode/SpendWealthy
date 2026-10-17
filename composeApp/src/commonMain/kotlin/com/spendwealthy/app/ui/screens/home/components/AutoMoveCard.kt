@@ -14,9 +14,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.spendwealthy.app.domain.model.AutoMove
 import com.spendwealthy.app.ui.components.AppGlassCard
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 @Composable
 fun AutoMoveCard(
@@ -64,9 +66,12 @@ fun AutoMoveCard(
             
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = autoMove.amount.format(),
-                    fontWeight = FontWeight.Black,
-                    color = AppColors.Primary
+                    text = autoMove.amount.formatWithSymbol(),
+                    style = AppTypography.bodyNumeric(
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Black,
+                        color = AppColors.Primary
+                    )
                 )
                 Text(
                     text = autoMove.frequency.name.lowercase().replaceFirstChar { it.uppercase() },

@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spendwealthy.app.domain.service.WealthProjection
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 @Composable
 fun WealthProjectionCard(
@@ -79,7 +80,14 @@ fun WealthProjectionCard(
             ) {
                 Column {
                     Text("Projected Net Worth", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
-                    Text(projection.projectedNetWorthAt12Months.format(), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = AppColors.TextMain)
+                    Text(
+                        text = projection.projectedNetWorthAt12Months.formatWithSymbol(),
+                        style = AppTypography.headlineNumeric(
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Black,
+                            color = AppColors.TextMain
+                        )
+                    )
                 }
                 
                 Text(

@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.ui.components.AppGlassCard
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 @Composable
 fun GrowthProjectionCard(
@@ -47,10 +48,12 @@ fun GrowthProjectionCard(
             
             Column {
                 Text(
-                    text = annualGrowth.format(),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Black,
-                    color = AppColors.Primary
+                    text = annualGrowth.formatWithSymbol(),
+                    style = AppTypography.headlineNumeric(
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Black,
+                        color = AppColors.Primary
+                    )
                 )
                 Text(
                     text = "Potential wealth growth by May 2027",

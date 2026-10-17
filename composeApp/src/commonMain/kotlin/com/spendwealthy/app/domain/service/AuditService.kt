@@ -32,7 +32,7 @@ class AuditService {
         
         val insights = mutableListOf<String>()
         insights.add("Financial runway is currently ${resilience.runwayMonths.format(1)} months.")
-        insights.add("Projected net worth in 12 months: ${projection.projectedNetWorthAt12Months.format()}.")
+        insights.add("Projected net worth in 12 months: ${projection.projectedNetWorthAt12Months.formatWithSymbol()}.")
         
         if (telemetry.healthTrend == HealthTrend.IMPROVING) {
             insights.add("Your financial trajectory is significantly improving month-over-month.")

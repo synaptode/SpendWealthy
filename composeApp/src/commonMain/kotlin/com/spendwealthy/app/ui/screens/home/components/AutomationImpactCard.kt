@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.ui.components.AppGlassCard
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 @Composable
 fun AutomationImpactCard(
@@ -58,10 +59,12 @@ fun AutomationImpactCard(
                 }
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = impactAmount.format(),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Black,
-                    color = Color.White
+                    text = impactAmount.formatWithSymbol(),
+                    style = AppTypography.headlineNumeric(
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White
+                    )
                 )
                 Text(
                     text = "Moved to goals automatically this month",

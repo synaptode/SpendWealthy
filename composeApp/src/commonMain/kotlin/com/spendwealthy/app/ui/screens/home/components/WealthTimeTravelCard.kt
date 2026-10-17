@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spendwealthy.app.domain.service.SimulationComparison
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 @Composable
 fun WealthTimeTravelCard(
@@ -69,10 +70,12 @@ fun WealthTimeTravelCard(
             ) {
                 Column {
                     Text(
-                        comparison.wealthGap.format(),
-                        style = MaterialTheme.typography.displaySmall,
-                        fontWeight = FontWeight.Black,
-                        color = AppColors.Accent
+                        text = comparison.wealthGap.formatWithSymbol(),
+                        style = AppTypography.headlineNumeric(
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Black,
+                            color = AppColors.Accent
+                        )
                     )
                     Text("Missed Wealth Potential", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
                 }
@@ -102,8 +105,8 @@ fun WealthTimeTravelCard(
             )
             
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Actual: ${comparison.actualNetWorth.format()}", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
-                Text("Optimized: ${comparison.simulatedNetWorth.format()}", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
+                Text("Actual: ${comparison.actualNetWorth.formatWithSymbol()}", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
+                Text("Optimized: ${comparison.simulatedNetWorth.formatWithSymbol()}", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = AppColors.TextMain)
             }
         }
     }

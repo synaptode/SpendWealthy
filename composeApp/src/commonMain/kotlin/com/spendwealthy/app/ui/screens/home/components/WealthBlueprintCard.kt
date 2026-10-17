@@ -75,8 +75,8 @@ fun WealthBlueprintCard(
                         )
                         
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(allocation.currentAmount.format(), style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
-                            Text("Goal: ${allocation.targetAmount.format()}", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
+                            Text(allocation.currentAmount.formatWithSymbol(), style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
+                            Text("Goal: ${allocation.targetAmount.formatWithSymbol()}", style = MaterialTheme.typography.labelSmall, color = AppColors.TextMuted)
                         }
                     }
                 }
