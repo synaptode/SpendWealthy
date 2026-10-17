@@ -29,23 +29,23 @@ data class ReportState(
     val exportInProgress: Boolean = false,
     val isLoading: Boolean = false,
     val selectedYear: Int = 2026,
-    val selectedMonth: Int = 8
+    val selectedMonth: Int = 10
 ) : UiState {
     val selectedMonthName: String
         get() = when (selectedMonth) {
-            1 -> "January"
-            2 -> "February"
-            3 -> "March"
+            1 -> "Januari"
+            2 -> "Februari"
+            3 -> "Maret"
             4 -> "April"
-            5 -> "May"
-            6 -> "June"
-            7 -> "July"
-            8 -> "August"
+            5 -> "Mei"
+            6 -> "Juni"
+            7 -> "Juli"
+            8 -> "Agustus"
             9 -> "September"
-            10 -> "October"
+            10 -> "Oktober"
             11 -> "November"
-            12 -> "December"
-            else -> "August"
+            12 -> "Desember"
+            else -> "Bulan Ini"
         }
 }
 
@@ -85,8 +85,8 @@ class ReportViewModel(
         androidx.compose.ui.graphics.Color(0xFFF472B6)  // Pink
     )
 
-    private var selectedYear = 2026
-    private var selectedMonth = 8
+    private var selectedYear = currentMonth.year
+    private var selectedMonth = currentMonth.monthNumber
 
     init {
         loadReport()
@@ -172,7 +172,7 @@ class ReportViewModel(
     fun exportCsv() {
         screenModelScope.launch {
             _uiState.value = _uiState.value.copy(exportInProgress = true)
-            when (val result = exportMonthlyTransactionsCsvUseCase(currentMonth.year, currentMonth.monthNumber)) {
+            when (val result = exportMonthlyTransactionsCsvUseCase(selectedYear, selectedMonth)) {
                 is GatewayResult.Failure -> _effect.send(ReportEffect.ShowMessage(result.message))
                 is GatewayResult.Success -> _effect.send(ReportEffect.ShowMessage("Laporan CSV siap dibagikan."))
             }

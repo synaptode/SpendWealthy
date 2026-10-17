@@ -45,6 +45,7 @@ sealed class AddTransactionEvent : UiEvent {
     data class WalletSelected(val wallet: Wallet) : AddTransactionEvent()
     data class TargetWalletSelected(val wallet: Wallet) : AddTransactionEvent()
     data class CategorySelected(val category: Category) : AddTransactionEvent()
+    data class AddCustomCategory(val category: Category) : AddTransactionEvent()
     data class NoteChanged(val note: String) : AddTransactionEvent()
     data class SelectWalletById(val walletId: String) : AddTransactionEvent()
     object SaveClicked : AddTransactionEvent()
@@ -110,6 +111,15 @@ class AddTransactionViewModel(
             )
             is AddTransactionEvent.TargetWalletSelected -> _uiState.value = _uiState.value.copy(selectedTargetWallet = event.wallet, errorMessage = null)
             is AddTransactionEvent.CategorySelected -> _uiState.value = _uiState.value.copy(selectedCategory = event.category, errorMessage = null)
+            is AddTransactionEvent.AddCustomCategory -> {
+                screenModelScope.launch {
+                    categoryRepository.insertCategory(event.category)
+                    _uiState.value = _uiState.value.copy(
+                        selectedCategory = event.category,
+                        errorMessage = null
+                    )
+                }
+            }
             is AddTransactionEvent.NoteChanged -> _uiState.value = _uiState.value.copy(note = event.note)
             is AddTransactionEvent.SelectWalletById -> {
                 val target = _uiState.value.wallets.firstOrNull { it.id == event.walletId }

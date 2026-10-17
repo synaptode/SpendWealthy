@@ -42,6 +42,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
@@ -65,6 +66,7 @@ import kotlinx.coroutines.launch
 import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.ui.components.IndonesianThousandVisualTransformation
 import com.spendwealthy.app.ui.components.ReceiptScannerModal
+import com.spendwealthy.app.ui.components.AddCategoryModal
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -113,6 +115,7 @@ class AddTransactionScreen(
         val haptic = LocalHapticFeedback.current
         var showAmountPad by remember { mutableStateOf(true) }
         var showReceiptScanner by remember { mutableStateOf(false) }
+        var showAddCategoryModal by remember { mutableStateOf(false) }
 
         LaunchedEffect(initialType) {
             viewModel.onEvent(AddTransactionEvent.TypeChanged(initialType))
@@ -255,7 +258,8 @@ class AddTransactionScreen(
                                 values = state.categories,
                                 selected = state.selectedCategory,
                                 label = { it.name },
-                                onSelected = { viewModel.onEvent(AddTransactionEvent.CategorySelected(it)) }
+                                onSelected = { viewModel.onEvent(AddTransactionEvent.CategorySelected(it)) },
+                                onAddClick = { showAddCategoryModal = true }
                             )
                         }
                     }
@@ -364,6 +368,18 @@ class AddTransactionScreen(
                             showReceiptScanner = false
                         },
                         onDismiss = { showReceiptScanner = false }
+                    )
+                }
+
+                if (showAddCategoryModal) {
+                    AddCategoryModal(
+                        onDismiss = { showAddCategoryModal = false },
+                        onCategoryCreated = { newCategory ->
+                            viewModel.onEvent(AddTransactionEvent.AddCustomCategory(newCategory))
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Kategori '${newCategory.name}' berhasil dibuat!")
+                            }
+                        }
                     )
                 }
             }
@@ -614,18 +630,56 @@ class AddTransactionScreen(
         values: List<T>,
         selected: T?,
         label: (T) -> String,
-        onSelected: (T) -> Unit
+        onSelected: (T) -> Unit,
+        onAddClick: (() -> Unit)? = null
     ) {
         val haptic = LocalHapticFeedback.current
 
         FormSection(title = title, icon = icon) {
-            if (values.isEmpty()) {
-                EmptyPicker("Belum ada data $title")
-            } else {
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 2.dp, vertical = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 2.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                if (onAddClick != null) {
+                    item {
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = AppColors.Primary.copy(alpha = 0.15f),
+                            border = BorderStroke(1.dp, AppColors.Primary),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    onAddClick()
+                                }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = "Tambah",
+                                    tint = AppColors.TextMain,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(
+                                    text = "Baru",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = AppColors.TextMain
+                                )
+                            }
+                        }
+                    }
+                }
+
+                if (values.isEmpty() && onAddClick == null) {
+                    item {
+                        EmptyPicker("Belum ada data $title")
+                    }
+                } else {
                     items(values) { value ->
                         ChoiceChip(
                             text = label(value),
