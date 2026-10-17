@@ -20,6 +20,9 @@ data class SettingsState(
     val hasCustomPin: Boolean = false,
     val entitlement: SubscriptionEntitlement = SubscriptionEntitlement(SubscriptionPlan.FREE, true),
     val userName: String = "User",
+    val userEmail: String? = null,
+    val isLoggedIn: Boolean = false,
+    val userCurrency: String = "IDR",
     val avatarId: Int = 0,
     val privacySummary: String = "Data utama disimpan lokal di perangkat.",
     val exportStatus: String? = null
@@ -49,6 +52,9 @@ class SettingsViewModel(
                 preferenceRepository.getString(KEY_SECURITY_PIN),
                 subscriptionRepository.getEntitlement(),
                 preferenceRepository.getString("user_name"),
+                preferenceRepository.getString("user_email"),
+                preferenceRepository.getBoolean("is_logged_in"),
+                preferenceRepository.getString("user_currency"),
                 preferenceRepository.getInt("user_avatar_id")
             ) { args: Array<Any?> ->
                 val biometric = args[0] as Boolean
@@ -57,7 +63,10 @@ class SettingsViewModel(
                 val pin = args[3] as? String
                 val entitlement = args[4] as SubscriptionEntitlement
                 val name = args[5] as? String
-                val avatarId = args[6] as Int
+                val email = args[6] as? String
+                val loggedIn = args[7] as Boolean
+                val currency = args[8] as? String ?: "IDR"
+                val avatarId = args[9] as Int
 
                 SettingsState(
                     biometricEnabled = biometric,
@@ -66,12 +75,37 @@ class SettingsViewModel(
                     hasCustomPin = !pin.isNullOrBlank(),
                     entitlement = entitlement,
                     userName = name ?: "User",
+                    userEmail = email,
+                    isLoggedIn = loggedIn,
+                    userCurrency = currency,
                     avatarId = avatarId,
-                    privacySummary = "MVP ini local-first: transaksi, budget, dan tagihan berada di database lokal."
+                    privacySummary = "SpendWealthy beroperasi offline-first: enkripsi AES-256 lokal dengan sinkronisasi opsional."
                 )
             }.collectLatest { state ->
                 _uiState.value = state
             }
+        }
+    }
+
+    fun updateProfile(name: String, currency: String) {
+        screenModelScope.launch {
+            if (name.isNotBlank()) {
+                preferenceRepository.setString("user_name", name.trim())
+            }
+            if (currency.isNotBlank()) {
+                preferenceRepository.setString("user_currency", currency.trim())
+                preferenceRepository.setString("primary_currency", currency.trim())
+            }
+        }
+    }
+
+    fun logout(onLoggedOut: () -> Unit) {
+        screenModelScope.launch {
+            preferenceRepository.setBoolean("is_logged_in", false)
+            preferenceRepository.setString("user_name", "Tamu Sovereign")
+            preferenceRepository.setString("user_email", "")
+            preferenceRepository.setString("auth_token", "")
+            onLoggedOut()
         }
     }
 

@@ -72,6 +72,13 @@ import com.spendwealthy.app.ui.screens.auth.RegisterScreen
 import com.spendwealthy.app.ui.theme.AppColors
 
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -86,6 +93,8 @@ class SettingsScreen : Screen {
         val navigator = LocalNavigator.currentOrThrow
         val haptic = LocalHapticFeedback.current
         var showSetPinModal by remember { mutableStateOf(false) }
+        var showEditProfileModal by remember { mutableStateOf(false) }
+        var showLogoutDialog by remember { mutableStateOf(false) }
 
         Box(
             modifier = Modifier
@@ -166,6 +175,10 @@ class SettingsScreen : Screen {
                         onUpgrade = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             navigator.push(PaywallScreen())
+                        },
+                        onEditProfile = {
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            showEditProfileModal = true
                         }
                     )
 
@@ -177,28 +190,153 @@ class SettingsScreen : Screen {
                             border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
-                                SettingsRowItem(
-                                    title = "Ganti Akun / Masuk",
-                                    subtitle = "Masuk dengan email atau akun SpendWealthy Cloud",
-                                    icon = Icons.Default.Lock,
-                                    onClick = {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        navigator.push(LoginScreen())
+                                if (state.isLoggedIn) {
+                                    // Status Badge Terverifikasi
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(AppColors.Success.copy(alpha = 0.12f))
+                                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Shield,
+                                            contentDescription = null,
+                                            tint = AppColors.Success,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                        Spacer(Modifier.width(10.dp))
+                                        Column {
+                                            Text(
+                                                text = state.userEmail ?: "Akun Terverifikasi",
+                                                style = MaterialTheme.typography.labelMedium,
+                                                fontWeight = FontWeight.Bold,
+                                                color = AppColors.TextMain
+                                            )
+                                            Text(
+                                                text = "Sovereign Cloud Terenkripsi Aktif",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = AppColors.Success
+                                            )
+                                        }
                                     }
-                                )
-                                HorizontalDivider(
-                                    modifier = Modifier.padding(vertical = 12.dp),
-                                    color = AppColors.Outline
-                                )
-                                SettingsRowItem(
-                                    title = "Daftar Akun Baru",
-                                    subtitle = "Buat akun sovereign vault untuk sinkronisasi antar perangkat",
-                                    icon = Icons.Default.Security,
-                                    onClick = {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        navigator.push(RegisterScreen())
+
+                                    Spacer(Modifier.height(10.dp))
+
+                                    SettingsRowItem(
+                                        title = "Edit Profil & Mata Uang",
+                                        subtitle = "Nama: ${state.userName} • Mata Uang: ${state.userCurrency}",
+                                        icon = Icons.Default.Edit,
+                                        onClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                            showEditProfileModal = true
+                                        }
+                                    )
+
+                                    HorizontalDivider(
+                                        modifier = Modifier.padding(vertical = 12.dp),
+                                        color = AppColors.Outline
+                                    )
+
+                                    SettingsRowItem(
+                                        title = "Ganti Akun Lain",
+                                        subtitle = "Masuk menggunakan alamat email lain",
+                                        icon = Icons.Default.Lock,
+                                        onClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            navigator.push(LoginScreen())
+                                        }
+                                    )
+
+                                    HorizontalDivider(
+                                        modifier = Modifier.padding(vertical = 12.dp),
+                                        color = AppColors.Outline
+                                    )
+
+                                    SettingsRowItem(
+                                        title = "Keluar dari Akun",
+                                        subtitle = "Kembali ke mode penyimpanan lokal offline",
+                                        icon = Icons.AutoMirrored.Filled.Logout,
+                                        onClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            showLogoutDialog = true
+                                        }
+                                    )
+                                } else {
+                                    // Status Badge Tamu
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(AppColors.Primary.copy(alpha = 0.12f))
+                                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Lock,
+                                            contentDescription = null,
+                                            tint = AppColors.PrimaryDark,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                        Spacer(Modifier.width(10.dp))
+                                        Column {
+                                            Text(
+                                                text = "Mode Tamu / Offline-First",
+                                                style = MaterialTheme.typography.labelMedium,
+                                                fontWeight = FontWeight.Bold,
+                                                color = AppColors.TextMain
+                                            )
+                                            Text(
+                                                text = "Data disimpan di database lokal perangkat",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = AppColors.TextMuted
+                                            )
+                                        }
                                     }
-                                )
+
+                                    Spacer(Modifier.height(10.dp))
+
+                                    SettingsRowItem(
+                                        title = "Masuk ke Akun Cloud",
+                                        subtitle = "Sinkronisasi antar perangkat & backup otomatis",
+                                        icon = Icons.Default.Lock,
+                                        onClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            navigator.push(LoginScreen())
+                                        }
+                                    )
+
+                                    HorizontalDivider(
+                                        modifier = Modifier.padding(vertical = 12.dp),
+                                        color = AppColors.Outline
+                                    )
+
+                                    SettingsRowItem(
+                                        title = "Daftar Akun Baru",
+                                        subtitle = "Buat akun sovereign vault untuk sinkronisasi antar perangkat",
+                                        icon = Icons.Default.Security,
+                                        onClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            navigator.push(RegisterScreen())
+                                        }
+                                    )
+
+                                    HorizontalDivider(
+                                        modifier = Modifier.padding(vertical = 12.dp),
+                                        color = AppColors.Outline
+                                    )
+
+                                    SettingsRowItem(
+                                        title = "Ubah Nama & Mata Uang",
+                                        subtitle = "Nama: ${state.userName} • Mata Uang: ${state.userCurrency}",
+                                        icon = Icons.Default.Edit,
+                                        onClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                            showEditProfileModal = true
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
@@ -394,6 +532,65 @@ class SettingsScreen : Screen {
                     }
                 )
             }
+
+            if (showEditProfileModal) {
+                EditProfileModal(
+                    currentName = state.userName,
+                    currentCurrency = state.userCurrency,
+                    onDismiss = { showEditProfileModal = false },
+                    onSave = { name, currency ->
+                        viewModel.updateProfile(name, currency)
+                    }
+                )
+            }
+
+            if (showLogoutDialog) {
+                AlertDialog(
+                    onDismissRequest = { showLogoutDialog = false },
+                    title = {
+                        Text(
+                            text = "Konfirmasi Keluar",
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.TextMain
+                        )
+                    },
+                    text = {
+                        Text(
+                            text = "Apakah Anda yakin ingin keluar dari akun? Sesi cloud akan diakhiri dan aplikasi akan kembali ke mode penyimpanan lokal offline.",
+                            color = AppColors.TextMuted,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                showLogoutDialog = false
+                                viewModel.logout {}
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = AppColors.Danger,
+                                contentColor = Color.White
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("Keluar", fontWeight = FontWeight.Bold)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                showLogoutDialog = false
+                            }
+                        ) {
+                            Text("Batal", color = AppColors.TextMuted, fontWeight = FontWeight.SemiBold)
+                        }
+                    },
+                    containerColor = AppColors.SurfaceRaised,
+                    shape = RoundedCornerShape(22.dp)
+                )
+            }
         }
     }
 
@@ -401,7 +598,8 @@ class SettingsScreen : Screen {
     private fun ProfileSectionCard(
         userName: String,
         plan: SubscriptionPlan,
-        onUpgrade: () -> Unit
+        onUpgrade: () -> Unit,
+        onEditProfile: () -> Unit
     ) {
         val planName = when (plan) {
             SubscriptionPlan.FREE -> "Paket Free"
@@ -434,7 +632,11 @@ class SettingsScreen : Screen {
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp)
+                        modifier = Modifier
+                            .weight(1f, fill = false)
+                            .clip(RoundedCornerShape(14.dp))
+                            .clickable(onClick = onEditProfile)
+                            .padding(end = 8.dp)
                     ) {
                         Box(
                             modifier = Modifier
@@ -455,14 +657,23 @@ class SettingsScreen : Screen {
                             modifier = Modifier.weight(1f, fill = false),
                             verticalArrangement = Arrangement.spacedBy(2.dp)
                         ) {
-                            Text(
-                                text = userName,
-                                fontWeight = FontWeight.ExtraBold,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = Color.White,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = userName,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = Color.White,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Spacer(Modifier.width(6.dp))
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Edit Profil",
+                                    tint = AppColors.Primary.copy(alpha = 0.7f),
+                                    modifier = Modifier.size(14.dp)
+                                )
+                            }
                             Surface(
                                 shape = RoundedCornerShape(8.dp),
                                 color = if (plan == SubscriptionPlan.FREE) AppColors.SurfaceRaised else AppColors.Primary.copy(alpha = 0.18f),
