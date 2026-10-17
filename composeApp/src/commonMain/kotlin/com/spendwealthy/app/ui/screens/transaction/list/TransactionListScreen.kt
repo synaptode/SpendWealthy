@@ -4,6 +4,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import com.spendwealthy.app.ui.components.BrandLogo
+import com.spendwealthy.app.ui.components.KnownBrand
 import com.spendwealthy.app.ui.components.bouncyClickable
 import com.spendwealthy.app.ui.components.tactilePress
 import androidx.compose.foundation.layout.Arrangement
@@ -682,15 +684,24 @@ class TransactionListScreen : Screen {
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = vectorIcon,
-                            contentDescription = null,
-                            tint = when {
-                                isIncome -> AppColors.Success
-                                else -> Color(0xFF111827)
-                            },
-                            modifier = Modifier.size(20.dp)
-                        )
+                        val brand = KnownBrand.from(transaction.merchant.ifBlank { transaction.note })
+                        if (brand != null) {
+                            BrandLogo(
+                                brand = brand,
+                                modifier = Modifier.size(20.dp),
+                                tint = if (brand.isMonochrome) AppColors.TextMain else null
+                            )
+                        } else {
+                            Icon(
+                                imageVector = vectorIcon,
+                                contentDescription = null,
+                                tint = when {
+                                    isIncome -> AppColors.Success
+                                    else -> Color(0xFF111827)
+                                },
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
 
                     Column(modifier = Modifier.weight(1f, fill = false)) {

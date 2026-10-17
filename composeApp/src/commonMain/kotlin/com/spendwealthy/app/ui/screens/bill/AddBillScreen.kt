@@ -73,6 +73,8 @@ import com.spendwealthy.app.domain.model.RecurrenceType
 import com.spendwealthy.app.ui.components.AppAmountInput
 import com.spendwealthy.app.ui.components.AppButton
 import com.spendwealthy.app.ui.components.AppTextField
+import com.spendwealthy.app.ui.components.BrandLogo
+import com.spendwealthy.app.ui.components.KnownBrand
 import com.spendwealthy.app.ui.theme.AppColors
 
 private data class BillPreset(
@@ -83,13 +85,16 @@ private data class BillPreset(
 )
 
 private val BILL_PRESETS = listOf(
-    BillPreset("Listrik PLN", 250_000L, Icons.Default.Bolt),
-    BillPreset("WiFi Indihome / Biznet", 385_000L, Icons.Default.Wifi),
-    BillPreset("BPJS Kesehatan", 150_000L, Icons.Default.LocalHospital),
     BillPreset("Netflix", 186_000L, Icons.Default.Movie),
     BillPreset("Spotify Family", 86_900L, Icons.Default.MusicNote),
     BillPreset("iCloud Storage", 45_000L, Icons.Default.Cloud),
     BillPreset("YouTube Premium", 69_000L, Icons.Default.PlayCircle),
+    BillPreset("ChatGPT Plus", 350_000L, Icons.Default.AutoAwesome),
+    BillPreset("Google Workspace", 115_000L, Icons.Default.Cloud),
+    BillPreset("Disney+ Hotstar", 65_000L, Icons.Default.Movie),
+    BillPreset("Listrik PLN", 250_000L, Icons.Default.Bolt),
+    BillPreset("WiFi Indihome / Biznet", 385_000L, Icons.Default.Wifi),
+    BillPreset("BPJS Kesehatan", 150_000L, Icons.Default.LocalHospital),
     BillPreset("Sewa / Kos", 1_500_000L, Icons.Default.Home),
     BillPreset("Cicilan Gadget", 850_000L, Icons.Default.Smartphone)
 )
@@ -297,12 +302,21 @@ class AddBillScreen : Screen {
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Icon(
-                                imageVector = preset.iconVector,
-                                contentDescription = null,
-                                tint = if (isSelected) AppColors.Primary else AppColors.TextMuted,
-                                modifier = Modifier.size(16.dp)
-                            )
+                            val brand = KnownBrand.from(preset.name)
+                            if (brand != null) {
+                                BrandLogo(
+                                    brand = brand,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = if (brand.isMonochrome) (if (isSelected) AppColors.Primary else AppColors.TextMain) else null
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = preset.iconVector,
+                                    contentDescription = null,
+                                    tint = if (isSelected) AppColors.Primary else AppColors.TextMuted,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
                             Text(
                                 text = preset.name,
                                 style = MaterialTheme.typography.labelMedium,

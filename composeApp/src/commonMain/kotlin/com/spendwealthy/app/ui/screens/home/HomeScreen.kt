@@ -1356,12 +1356,21 @@ class HomeScreen : Screen {
                         .background(iconBg),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = iconTint,
-                        modifier = Modifier.size(20.dp)
-                    )
+                    val brand = KnownBrand.from(title)
+                    if (brand != null) {
+                        BrandLogo(
+                            brand = brand,
+                            modifier = Modifier.size(20.dp),
+                            tint = if (brand.isMonochrome) iconTint else null
+                        )
+                    } else {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = iconTint,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
 
                 Column {
