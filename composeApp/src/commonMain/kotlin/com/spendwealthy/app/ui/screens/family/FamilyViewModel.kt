@@ -42,6 +42,13 @@ data class FamilySavingsGoal(
     val transactions: List<FamilyGoalTransaction> = emptyList()
 )
 
+data class FamilyMilestoneEvent(
+    val goalTitle: String,
+    val contributorName: String,
+    val milestonePercent: Int,
+    val totalAmount: Long
+)
+
 data class FamilyState(
     val family: Family? = null,
     val sharedGoals: List<FamilySavingsGoal> = emptyList(),
@@ -52,6 +59,7 @@ data class FamilyState(
     val showCreateGoalDialog: Boolean = false,
     val selectedGoalForContribution: FamilySavingsGoal? = null,
     val selectedGoalForDetail: FamilySavingsGoal? = null,
+    val achievedMilestone: FamilyMilestoneEvent? = null,
     val selectedTab: Int = 0, // 0: Target Bersama, 1: Anggota, 2: Aktivitas
     val totalSavingsAmount: Long = 0L,
     val totalTargetAmount: Long = 0L
@@ -265,12 +273,35 @@ class FamilyViewModel(
 
                 val targetGoal = state.sharedGoals.find { it.id == goalId }
                 val goalTitle = targetGoal?.title ?: "Target Keluarga"
+                val oldAmount = targetGoal?.currentAmount ?: 0L
+                val targetAmount = (targetGoal?.targetAmount ?: 1L).coerceAtLeast(1L)
+                val oldPercent = (oldAmount * 100 / targetAmount).toInt()
+                val newAmount = oldAmount + amount
+                val newPercent = (newAmount * 100 / targetAmount).toInt()
+
+                val milestoneCrossed = when {
+                    oldPercent < 100 && newPercent >= 100 -> 100
+                    oldPercent < 75 && newPercent >= 75 -> 75
+                    oldPercent < 50 && newPercent >= 50 -> 50
+                    oldPercent < 25 && newPercent >= 25 -> 25
+                    else -> null
+                }
+
+                val milestoneEvent = milestoneCrossed?.let { percent ->
+                    FamilyMilestoneEvent(
+                        goalTitle = goalTitle,
+                        contributorName = memberName,
+                        milestonePercent = percent,
+                        totalAmount = newAmount
+                    )
+                }
+
                 val newActivity = FamilyActivity(
                     id = "act_${Clock.System.now().toEpochMilliseconds()}",
-                    type = ActivityType.CONTRIBUTION_ADDED,
+                    type = if (milestoneCrossed != null) ActivityType.GOAL_REACHED else ActivityType.CONTRIBUTION_ADDED,
                     memberName = memberName,
                     timestamp = Clock.System.now(),
-                    details = "Menyetor ke '$goalTitle'",
+                    details = if (milestoneCrossed != null) "Mencapai milestone $milestoneCrossed% untuk '$goalTitle'!" else "Menyetor ke '$goalTitle'",
                     amount = amount
                 )
 
@@ -283,10 +314,15 @@ class FamilyViewModel(
                     totalSavingsAmount = newTotalSavings,
                     showContributeDialog = false,
                     selectedGoalForContribution = null,
-                    selectedGoalForDetail = updatedDetailGoal ?: state.selectedGoalForDetail
+                    selectedGoalForDetail = updatedDetailGoal ?: state.selectedGoalForDetail,
+                    achievedMilestone = milestoneEvent
                 )
             }
         }
+    }
+
+    fun onDismissMilestoneCelebration() {
+        _uiState.update { it.copy(achievedMilestone = null) }
     }
 
     fun onOpenCreateGoalDialog() {

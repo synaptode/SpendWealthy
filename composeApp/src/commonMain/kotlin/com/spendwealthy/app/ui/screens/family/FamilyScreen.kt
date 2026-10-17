@@ -41,6 +41,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.FamilyMember
 import com.spendwealthy.app.domain.model.FamilyRole
 import com.spendwealthy.app.domain.model.Money
+import com.spendwealthy.app.ui.components.ConfettiView
 import com.spendwealthy.app.ui.theme.AppColors
 import com.spendwealthy.app.ui.theme.AppTypography
 
@@ -286,6 +287,16 @@ class FamilyScreen : Screen {
                     onContributeClick = {
                         viewModel.onDismissGoalDetail()
                         viewModel.onOpenContributeDialog(goal)
+                    }
+                )
+            }
+
+            state.achievedMilestone?.let { event ->
+                FamilyMilestoneCelebrationOverlay(
+                    event = event,
+                    onDismiss = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.onDismissMilestoneCelebration()
                     }
                 )
             }
@@ -865,6 +876,54 @@ class FamilyScreen : Screen {
                                 color = AppColors.TextMain
                             )
                         )
+                    }
+                }
+
+                // Milestone Badges Track
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    listOf(
+                        25 to "25%",
+                        50 to "50%",
+                        75 to "75%",
+                        100 to "100% 🏆"
+                    ).forEach { (mPercent, mLabel) ->
+                        val isAchieved = percentage >= mPercent
+                        Surface(
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(6.dp),
+                            color = if (isAchieved) Color(0xFF10B981).copy(alpha = 0.15f) else Color(0xFFF3F4F6)
+                        ) {
+                            Box(
+                                modifier = Modifier.padding(vertical = 3.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
+                                    if (isAchieved) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null,
+                                            tint = Color(0xFF059669),
+                                            modifier = Modifier.size(10.dp)
+                                        )
+                                    }
+                                    Text(
+                                        text = mLabel,
+                                        style = AppTypography.labelNumeric(
+                                            fontSize = 9.sp,
+                                            fontWeight = if (isAchieved) FontWeight.Bold else FontWeight.Medium,
+                                            color = if (isAchieved) Color(0xFF047857) else AppColors.TextMuted
+                                        )
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -2379,6 +2438,140 @@ class FamilyScreen : Screen {
                     }
                 }
 
+                // Milestones & Gamification Section
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    color = AppColors.SurfaceRaised,
+                    border = BorderStroke(1.dp, AppColors.Outline)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Milestone & Pencapaian",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.TextMain
+                            )
+                            val unlockedCount = listOf(25, 50, 75, 100).count { percentage >= it }
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = Color(0xFFFFDE43).copy(alpha = 0.25f)
+                            ) {
+                                Text(
+                                    text = "$unlockedCount dari 4 Tercapai",
+                                    style = AppTypography.labelNumeric(
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF92400E)
+                                    ),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                )
+                            }
+                        }
+
+                        listOf(
+                            Triple(25, "Pondasi Awal ⭐", goal.targetAmount * 25 / 100),
+                            Triple(50, "Separuh Jalan 💪", goal.targetAmount * 50 / 100),
+                            Triple(75, "Garis Akhir Menanti 🚀", goal.targetAmount * 75 / 100),
+                            Triple(100, "Target Tercapai Penuh 🏆", goal.targetAmount)
+                        ).forEach { (mPercent, mTitle, mNominal) ->
+                            val isUnlocked = percentage >= mPercent
+                            val isNextTarget = !isUnlocked && percentage < mPercent && (mPercent == 25 || percentage >= mPercent - 25)
+                            val mFormatted = Money(mNominal, "IDR").formatWithSymbol()
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .clip(CircleShape)
+                                        .background(
+                                            when {
+                                                isUnlocked -> Color(0xFF10B981)
+                                                isNextTarget -> Color(0xFFFFDE43)
+                                                else -> Color(0xFFE5E7EB)
+                                            }
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (isUnlocked) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    } else {
+                                        Text(
+                                            text = "$mPercent%",
+                                            style = AppTypography.labelNumeric(
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = if (isNextTarget) Color(0xFF111827) else AppColors.TextMuted
+                                            )
+                                        )
+                                    }
+                                }
+
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = mTitle,
+                                        fontSize = 13.sp,
+                                        fontWeight = if (isUnlocked || isNextTarget) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isUnlocked || isNextTarget) AppColors.TextMain else AppColors.TextMuted
+                                    )
+                                    Text(
+                                        text = mFormatted,
+                                        style = AppTypography.labelNumeric(
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = AppColors.TextMuted
+                                        )
+                                    )
+                                }
+
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = when {
+                                        isUnlocked -> Color(0xFF10B981).copy(alpha = 0.12f)
+                                        isNextTarget -> Color(0xFFFFDE43).copy(alpha = 0.2f)
+                                        else -> Color(0xFFF3F4F6)
+                                    }
+                                ) {
+                                    Text(
+                                        text = when {
+                                            isUnlocked -> "Tercapai ✓"
+                                            isNextTarget -> "Target Berikutnya"
+                                            else -> "Terkunci"
+                                        },
+                                        style = AppTypography.labelNumeric(
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = when {
+                                                isUnlocked -> Color(0xFF047857)
+                                                isNextTarget -> Color(0xFFB45309)
+                                                else -> AppColors.TextMuted
+                                            }
+                                        ),
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // Member Contributions Breakdown
                 if (goal.contributions.isNotEmpty()) {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -2729,6 +2922,116 @@ class FamilyScreen : Screen {
                                 color = Color(0xFF111827)
                             )
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun FamilyMilestoneCelebrationOverlay(
+        event: FamilyMilestoneEvent,
+        onDismiss: () -> Unit
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.75f))
+                .padding(24.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            ConfettiView()
+
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 440.dp)
+                    .clip(RoundedCornerShape(28.dp)),
+                shape = RoundedCornerShape(28.dp),
+                color = Color(0xFF0F172A),
+                border = BorderStroke(1.5.dp, Color(0xFFFFDE43).copy(alpha = 0.8f))
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(90.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFFFDE43)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = when (event.milestonePercent) {
+                                100 -> "🏆"
+                                75 -> "🚀"
+                                50 -> "💪"
+                                else -> "⭐"
+                            },
+                            fontSize = 44.sp
+                        )
+                    }
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = if (event.milestonePercent >= 100) "Target Keluarga Tercapai!" else "Milestone ${event.milestonePercent}% Terbuka!",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White
+                        )
+                        Text(
+                            text = "Hebat! ${event.contributorName} menyetor ke '${event.goalTitle}'",
+                            fontSize = 13.sp,
+                            color = Color.White.copy(alpha = 0.8f),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(14.dp),
+                        color = Color.White.copy(alpha = 0.1f)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Total Terkumpul Saat Ini",
+                                fontSize = 11.sp,
+                                color = Color.White.copy(alpha = 0.6f)
+                            )
+                            Text(
+                                text = Money(event.totalAmount, "IDR").formatWithSymbol(),
+                                style = AppTypography.headlineNumeric(
+                                    fontSize = 22.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color(0xFFFFDE43)
+                                )
+                            )
+                        }
+                    }
+
+                    Button(
+                        onClick = onDismiss,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFFFDE43),
+                            contentColor = Color(0xFF111827)
+                        )
+                    ) {
+                        Text(
+                            text = "Luar Biasa, Lanjutkan! 🎉",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
                     }
                 }
             }
