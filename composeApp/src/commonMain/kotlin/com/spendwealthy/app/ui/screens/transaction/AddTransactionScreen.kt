@@ -65,6 +65,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -199,30 +200,45 @@ class AddTransactionScreen(
                         .align(Alignment.BottomCenter)
                         .widthIn(max = 560.dp)
                 ) {
-                    Column(
+                    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+
+                    Surface(
                         modifier = Modifier
                             .navigationBarsPadding()
-                            .fillMaxWidth()
-                            .background(Color(0xFF090D16))
+                            .fillMaxWidth(),
+                        shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+                        color = if (isDark) Color(0xFF090D16) else Color.White,
+                        shadowElevation = 24.dp,
+                        border = BorderStroke(
+                            1.dp,
+                            if (isDark) Color(0xFF1E293B) else Color(0xFFE5E7EB)
+                        )
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(32.dp)
-                                .clickable { showAmountPad = false },
-                            contentAlignment = Alignment.Center
+                        Column(
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             Box(
-                                Modifier
-                                    .size(38.dp, 4.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.White.copy(alpha = 0.25f))
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(30.dp)
+                                    .clickable { showAmountPad = false },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Box(
+                                    Modifier
+                                        .size(38.dp, 4.dp)
+                                        .clip(CircleShape)
+                                        .background(
+                                            if (isDark) Color.White.copy(alpha = 0.25f)
+                                            else Color(0xFFD1D5DB)
+                                        )
+                                )
+                            }
+                            QuickEntryKeypad(
+                                currentValue = state.amount,
+                                onValueChange = { viewModel.onEvent(AddTransactionEvent.AmountChanged(it)) }
                             )
                         }
-                        QuickEntryKeypad(
-                            currentValue = state.amount,
-                            onValueChange = { viewModel.onEvent(AddTransactionEvent.AmountChanged(it)) }
-                        )
                     }
                 }
             }

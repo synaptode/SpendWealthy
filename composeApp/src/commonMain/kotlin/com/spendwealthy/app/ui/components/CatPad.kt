@@ -37,11 +37,14 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.graphics.luminance
 import com.spendwealthy.app.ui.theme.AppColors
 
 /**
  * High-performance, tactile Quick Entry Keypad tailored for Indonesian Fintech.
  * Features triple-zero (000), quick increment pills (+10k, +50k, +100k), and haptic feedback.
+ * Dynamically adapts to Light and Dark mode appearances.
  */
 @Composable
 fun QuickEntryKeypad(
@@ -49,6 +52,7 @@ fun QuickEntryKeypad(
     currentValue: String,
     modifier: Modifier = Modifier
 ) {
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val haptic = LocalHapticFeedback.current
 
     val quickPills = listOf(
@@ -69,11 +73,9 @@ fun QuickEntryKeypad(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
-            .background(Color(0xFF090D16))
-            .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
-            .padding(horizontal = 20.dp, vertical = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+            .padding(horizontal = 20.dp)
+            .padding(bottom = 20.dp, top = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // Quick Increment Pills
         Row(
@@ -81,12 +83,16 @@ fun QuickEntryKeypad(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             quickPills.forEach { (label, amount) ->
+                val pillBg = if (isDark) Color(0xFF131A29) else Color(0xFFF3F4F6)
+                val pillBorder = if (isDark) Color(0xFF1E293B) else Color(0xFFE5E7EB)
+                val pillText = if (isDark) Color(0xFF10B981) else Color(0xFF059669)
+
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color(0xFF131A29))
-                        .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(14.dp))
+                        .background(pillBg)
+                        .border(1.dp, pillBorder, RoundedCornerShape(14.dp))
                         .clickable {
                             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                             val current = currentValue.filter { it.isDigit() }.toLongOrNull() ?: 0L
@@ -100,7 +106,7 @@ fun QuickEntryKeypad(
                         text = label,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF10B981)
+                        color = pillText
                     )
                 }
             }
@@ -161,6 +167,7 @@ private fun QuickEntryKey(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
@@ -169,21 +176,21 @@ private fun QuickEntryKey(
     )
 
     val backgroundColor = when (key) {
-        "DEL" -> Color(0xFFF43F5E).copy(alpha = 0.16f)
-        "000" -> Color(0xFF10B981).copy(alpha = 0.16f)
-        else -> Color(0xFF131A29)
+        "DEL" -> if (isDark) Color(0xFFF43F5E).copy(alpha = 0.16f) else Color(0xFFFFF1F2)
+        "000" -> if (isDark) Color(0xFF10B981).copy(alpha = 0.16f) else Color(0xFFECFDF5)
+        else -> if (isDark) Color(0xFF131A29) else Color(0xFFF8F9FA)
     }
 
     val borderColor = when (key) {
-        "DEL" -> Color(0xFFF43F5E).copy(alpha = 0.35f)
-        "000" -> Color(0xFF10B981).copy(alpha = 0.35f)
-        else -> Color(0xFF1E293B)
+        "DEL" -> if (isDark) Color(0xFFF43F5E).copy(alpha = 0.35f) else Color(0xFFFECDD3)
+        "000" -> if (isDark) Color(0xFF10B981).copy(alpha = 0.35f) else Color(0xFFA7F3D0)
+        else -> if (isDark) Color(0xFF1E293B) else Color(0xFFE5E7EB)
     }
 
     val textColor = when (key) {
-        "DEL" -> Color(0xFFF43F5E)
-        "000" -> Color(0xFF10B981)
-        else -> Color(0xFFF8FAFC)
+        "DEL" -> if (isDark) Color(0xFFF43F5E) else Color(0xFFE11D48)
+        "000" -> if (isDark) Color(0xFF10B981) else Color(0xFF059669)
+        else -> if (isDark) Color(0xFFF8FAFC) else Color(0xFF111827)
     }
 
     Box(
