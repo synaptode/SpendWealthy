@@ -70,6 +70,7 @@ import com.spendwealthy.app.ui.screens.family.FamilyScreen
 import com.spendwealthy.app.ui.screens.settings.SettingsScreen
 import com.spendwealthy.app.ui.screens.wallet.AddWalletScreen
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 class BudgetListScreen : Screen {
 
@@ -153,7 +154,7 @@ class BudgetListScreen : Screen {
                             title = viewModel.getBudgetName(budget),
                             budget = budget,
                             usage = viewModel.getUsage(budget),
-                            remaining = viewModel.getRemaining(budget).format(),
+                            remaining = viewModel.getRemaining(budget).formatWithSymbol(),
                             viewModel = viewModel
                         )
                     }
@@ -164,7 +165,7 @@ class BudgetListScreen : Screen {
                     Spacer(Modifier.height(14.dp))
                     SectionHeader(
                         title = "Target Tabungan & Impian",
-                        badge = "3 Aktif",
+                        badge = "${state.goals.size} Aktif",
                         action = "+ Target Baru",
                         onClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -173,49 +174,78 @@ class BudgetListScreen : Screen {
                     )
                 }
 
-                item {
-                    SavingsGoalCard(
-                        title = "Dana Darurat (6 Bulan)",
-                        currentAmount = "Rp36.000.000",
-                        targetAmount = "Rp50.000.000",
-                        progress = 0.72f,
-                        icon = Icons.Default.Shield,
-                        accentColor = Color(0xFF10B981),
-                        badgeText = "72% Terkumpul",
-                        onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                if (state.goals.isEmpty()) {
+                    item {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 6.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            color = AppColors.Surface,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 24.dp, horizontal = 16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Surface(
+                                    shape = CircleShape,
+                                    color = AppColors.Primary.copy(alpha = 0.12f),
+                                    modifier = Modifier.size(44.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            imageVector = Icons.Default.Savings,
+                                            contentDescription = null,
+                                            tint = AppColors.Primary,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    }
+                                }
+                                Spacer(Modifier.height(10.dp))
+                                Text(
+                                    text = "Belum Ada Target Tabungan",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = AppColors.TextMain
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    text = "Buat target dana darurat atau impian untuk melacak kemajuan tabungan Anda.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = AppColors.TextMuted,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                )
+                            }
                         }
-                    )
-                }
+                    }
+                } else {
+                    items(state.goals, key = { it.id }) { goal ->
+                        val target = goal.targetAmount.amount.coerceAtLeast(1L)
+                        val progress = (goal.currentAmount.amount.toFloat() / target).coerceIn(0f, 1f)
+                        val pct = ((goal.currentAmount.amount.toDouble() / target) * 100).toInt()
+                        val (icon, color) = when {
+                            goal.name.contains("darurat", ignoreCase = true) || goal.name.contains("emergency", ignoreCase = true) -> Icons.Default.Shield to Color(0xFF10B981)
+                            goal.name.contains("investasi", ignoreCase = true) || goal.name.contains("saham", ignoreCase = true) -> Icons.AutoMirrored.Filled.TrendingUp to Color(0xFFD97706)
+                            else -> Icons.Default.Savings to Color(0xFF2563EB)
+                        }
 
-                item {
-                    SavingsGoalCard(
-                        title = "Investasi Saham & ETF",
-                        currentAmount = "Rp18.500.000",
-                        targetAmount = "Rp25.000.000",
-                        progress = 0.74f,
-                        icon = Icons.AutoMirrored.Filled.TrendingUp,
-                        accentColor = Color(0xFFD97706),
-                        badgeText = "74% Terkumpul",
-                        onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        }
-                    )
-                }
-
-                item {
-                    SavingsGoalCard(
-                        title = "Liburan & Healing Akhir Tahun",
-                        currentAmount = "Rp8.000.000",
-                        targetAmount = "Rp12.000.000",
-                        progress = 0.66f,
-                        icon = Icons.Default.Savings,
-                        accentColor = Color(0xFF2563EB),
-                        badgeText = "66% Terkumpul",
-                        onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        }
-                    )
+                        SavingsGoalCard(
+                            title = goal.name,
+                            currentAmount = goal.currentAmount.formatWithSymbol(),
+                            targetAmount = goal.targetAmount.formatWithSymbol(),
+                            progress = progress,
+                            icon = icon,
+                            accentColor = color,
+                            badgeText = "$pct% Terkumpul",
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            }
+                        )
+                    }
                 }
 
                 // Family Shared Savings Hub Card
@@ -372,8 +402,9 @@ class BudgetListScreen : Screen {
         onClick: () -> Unit
     ) {
         val primaryBudget = state.budgets.firstOrNull()
-        val balanceLabel = primaryBudget?.limit?.format() ?: "Rp0"
-        val remainingLabel = primaryBudget?.let { viewModel.getRemaining(it).format() } ?: "Siap Digunakan"
+        val secondBudget = state.budgets.drop(1).firstOrNull()
+        val balanceLabel = primaryBudget?.limit?.formatWithSymbol() ?: "Rp0"
+        val remainingLabel = primaryBudget?.let { viewModel.getRemaining(it).formatWithSymbol() } ?: "Siap Digunakan"
 
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
@@ -381,29 +412,32 @@ class BudgetListScreen : Screen {
         ) {
             item {
                 ObsidianPaymentCard(
-                    label = "Debit Utama",
+                    label = "Plafon Anggaran",
                     cardNumber = "•••• •••• •••• 5690",
                     amount = balanceLabel,
                     badgeText = "Sisa: $remainingLabel",
-                    network = "VISA",
+                    network = "LIMIT",
                     gradient = Brush.linearGradient(
                         colors = listOf(Color(0xFF0F172A), Color(0xFF1E293B))
                     ),
                     onClick = onClick
                 )
             }
-            item {
-                ObsidianPaymentCard(
-                    label = "Brankas Tabungan",
-                    cardNumber = "•••• •••• •••• 2488",
-                    amount = state.budgets.drop(1).firstOrNull()?.limit?.format() ?: "Rp5.000.000",
-                    badgeText = "Dilindungi",
-                    network = "GPN",
-                    gradient = Brush.linearGradient(
-                        colors = listOf(Color(0xFF064E3B), Color(0xFF022C22))
-                    ),
-                    onClick = onClick
-                )
+            if (secondBudget != null) {
+                val secondRemaining = viewModel.getRemaining(secondBudget).formatWithSymbol()
+                item {
+                    ObsidianPaymentCard(
+                        label = viewModel.getBudgetName(secondBudget),
+                        cardNumber = "•••• •••• •••• 2488",
+                        amount = secondBudget.limit.formatWithSymbol(),
+                        badgeText = "Sisa: $secondRemaining",
+                        network = "KATEGORI",
+                        gradient = Brush.linearGradient(
+                            colors = listOf(Color(0xFF064E3B), Color(0xFF022C22))
+                        ),
+                        onClick = onClick
+                    )
+                }
             }
         }
     }
@@ -508,9 +542,11 @@ class BudgetListScreen : Screen {
                         )
                         Text(
                             text = amount,
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = 16.sp,
-                            color = Color.White
+                            style = AppTypography.headlineNumeric(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color.White
+                            )
                         )
                     }
 
@@ -734,22 +770,29 @@ class BudgetListScreen : Screen {
                 ) {
                     Column {
                         Text(
-                            text = "Terpakai: ${totalSpent.format()}",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
-                            color = AppColors.TextMain
+                            text = "Terpakai: ${totalSpent.formatWithSymbol()}",
+                            style = AppTypography.bodyNumeric(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Black,
+                                color = AppColors.TextMain
+                            )
                         )
                         Text(
-                            text = "Alokasi Maksimal: ${totalAllocated.format()}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = AppColors.TextMuted
+                            text = "Alokasi Maksimal: ${totalAllocated.formatWithSymbol()}",
+                            style = AppTypography.labelNumeric(
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = AppColors.TextMuted
+                            )
                         )
                     }
                     Text(
                         text = "${(usage * 100).toInt()}%",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Black,
-                        color = accentColor
+                        style = AppTypography.headlineNumeric(
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Black,
+                            color = accentColor
+                        )
                     )
                 }
 
@@ -866,7 +909,7 @@ class BudgetListScreen : Screen {
                                 overflow = TextOverflow.Ellipsis
                             )
                             Text(
-                                text = if (isOverbudget) "Melebihi plafon: ${viewModel.getExceeded(budget).format()}" else "Sisa anggaran: $remaining",
+                                text = if (isOverbudget) "Melebihi plafon: ${viewModel.getExceeded(budget).formatWithSymbol()}" else "Sisa anggaran: $remaining",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = if (isOverbudget) FontWeight.Bold else FontWeight.Normal,
                                 color = if (isOverbudget) AppColors.Danger else AppColors.TextMuted,
@@ -878,10 +921,12 @@ class BudgetListScreen : Screen {
 
                     Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(
-                            text = budget.limit.format(),
-                            fontWeight = FontWeight.Black,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = AppColors.TextMain,
+                            text = budget.limit.formatWithSymbol(),
+                            style = AppTypography.bodyNumeric(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Black,
+                                color = AppColors.TextMain
+                            ),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -1043,8 +1088,11 @@ class BudgetListScreen : Screen {
                             )
                             Text(
                                 text = "Target: $targetAmount",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = AppColors.TextMuted,
+                                style = AppTypography.labelNumeric(
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = AppColors.TextMuted
+                                ),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -1054,9 +1102,11 @@ class BudgetListScreen : Screen {
                     Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(
                             text = currentAmount,
-                            fontWeight = FontWeight.Black,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = AppColors.TextMain,
+                            style = AppTypography.bodyNumeric(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Black,
+                                color = AppColors.TextMain
+                            ),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )

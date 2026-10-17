@@ -81,6 +81,7 @@ import com.spendwealthy.app.ui.components.CategoryPieChart
 import com.spendwealthy.app.ui.components.MonthPickerModal
 import com.spendwealthy.app.ui.components.PieChartData
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 class ReportScreen(
     private val onBackClick: (() -> Unit)? = null
@@ -535,9 +536,11 @@ class ReportScreen(
                     ) {
                         Text(
                             text = "Rasio Tabungan: $savingRatePercent%",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = savingRateColor,
+                            style = AppTypography.labelNumeric(
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = savingRateColor
+                            ),
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -551,14 +554,14 @@ class ReportScreen(
                 ) {
                     CashflowStatBox(
                         title = "Pemasukan",
-                        amount = state.totalIncome.format(),
+                        amount = state.totalIncome.formatWithSymbol(),
                         icon = Icons.AutoMirrored.Filled.TrendingUp,
                         tint = AppColors.Success,
                         modifier = Modifier.weight(1f)
                     )
                     CashflowStatBox(
                         title = "Pengeluaran",
-                        amount = state.totalExpense.format(),
+                        amount = state.totalExpense.formatWithSymbol(),
                         icon = Icons.AutoMirrored.Filled.TrendingDown,
                         tint = AppColors.Danger,
                         modifier = Modifier.weight(1f)
@@ -610,9 +613,11 @@ class ReportScreen(
                 }
                 Text(
                     text = amount,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = AppColors.TextMain,
+                    style = AppTypography.bodyNumeric(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = AppColors.TextMain
+                    ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -755,10 +760,12 @@ class ReportScreen(
                     }
 
                     Text(
-                        text = summary.amount.format(),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
-                        color = AppColors.TextMain,
+                        text = summary.amount.formatWithSymbol(),
+                        style = AppTypography.bodyNumeric(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.TextMain
+                        ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -898,9 +905,11 @@ class ReportScreen(
                     Spacer(Modifier.height(4.dp))
                     Text(
                         text = state.averageDailyExpense.formatWithSymbol(),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = AppColors.TextMain,
+                        style = AppTypography.bodyNumeric(
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.TextMain
+                        ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -962,9 +971,11 @@ class ReportScreen(
                     Spacer(Modifier.height(4.dp))
                     Text(
                         text = "${state.totalTransactionsCount} Trx",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = AppColors.TextMain,
+                        style = AppTypography.bodyNumeric(
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.TextMain
+                        ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -1118,9 +1129,11 @@ class ReportScreen(
                                     )
                                     Text(
                                         text = wallet.balance.formatWithSymbol(),
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        color = AppColors.TextMuted
+                                        style = AppTypography.labelNumeric(
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = AppColors.TextMuted
+                                        )
                                     )
                                 }
                             }

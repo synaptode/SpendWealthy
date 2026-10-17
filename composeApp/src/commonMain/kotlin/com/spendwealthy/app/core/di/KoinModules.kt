@@ -142,7 +142,7 @@ val commonModule = module {
     factory { WalletListViewModel(get()) }
     factory { (walletId: String) -> WalletDetailViewModel(walletId, get(), get()) }
     factory { AddWalletViewModel(get(), get(), get()) }
-    factory { BudgetListViewModel(get(), get(), get(), get()) }
+    factory { BudgetListViewModel(get(), get(), get(), get(), get()) }
     factory { AddBudgetViewModel(get(), get(), get(), get()) }
     factory { BillListViewModel(get(), get(), get()) }
     factory { AddBillViewModel(get(), get(), get(), get()) }

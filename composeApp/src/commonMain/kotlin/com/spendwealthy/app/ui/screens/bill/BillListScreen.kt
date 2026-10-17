@@ -78,6 +78,7 @@ import com.spendwealthy.app.ui.components.BrandLogo
 import com.spendwealthy.app.ui.components.KnownBrand
 import com.spendwealthy.app.ui.components.EmptyState
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 class BillListScreen : Screen {
 
@@ -332,9 +333,11 @@ class BillListScreen : Screen {
                         }
                         Text(
                             text = totalAmount,
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Black,
-                            color = AppColors.TextMain
+                            style = AppTypography.headlineNumeric(
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Black,
+                                color = AppColors.TextMain
+                            )
                         )
                     }
 
@@ -469,18 +472,22 @@ class BillListScreen : Screen {
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
                             text = bill.amount.formatWithSymbol(),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
-                            color = if (status == BillStatus.PAID) AppColors.Success else AppColors.TextMain,
+                            style = AppTypography.bodyNumeric(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Black,
+                                color = if (status == BillStatus.PAID) AppColors.Success else AppColors.TextMain
+                            ),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         if (bill.amount.currency != "IDR") {
                             Text(
                                 text = CurrencyConverter.formatEstimatedIdr(bill.amount),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Medium,
-                                color = AppColors.TextMuted,
+                                style = AppTypography.labelNumeric(
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = AppColors.TextMuted
+                                ),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )

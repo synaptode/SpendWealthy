@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import com.spendwealthy.app.domain.model.Goal
+import com.spendwealthy.app.domain.repository.GoalRepository
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock as KtClock
 import kotlinx.datetime.TimeZone
@@ -26,6 +28,7 @@ data class BudgetListState(
     val budgets: List<Budget> = emptyList(),
     val transactions: List<Transaction> = emptyList(),
     val categoriesById: Map<String, Category> = emptyMap(),
+    val goals: List<Goal> = emptyList(),
     val isLoading: Boolean = false
 ) : UiState
 
@@ -33,7 +36,8 @@ class BudgetListViewModel(
     private val budgetRepository: BudgetRepository,
     private val transactionRepository: TransactionRepository,
     private val budgetEngine: BudgetEngine,
-    private val categoryRepository: CategoryRepository
+    private val categoryRepository: CategoryRepository,
+    private val goalRepository: GoalRepository
 ) : ScreenModel {
 
     private val _uiState = MutableStateFlow(BudgetListState())
@@ -50,12 +54,14 @@ class BudgetListViewModel(
             combine(
                 budgetRepository.getBudgets(now.monthNumber, now.year),
                 transactionRepository.getTransactionsByDateRange(range.start, range.endInclusive),
-                categoryRepository.getCategories()
-            ) { budgets, transactions, categories ->
+                categoryRepository.getCategories(),
+                goalRepository.getGoals()
+            ) { budgets, transactions, categories, goals ->
                 _uiState.value.copy(
                     budgets = budgets,
                     transactions = transactions,
                     categoriesById = categories.associateBy { it.id },
+                    goals = goals,
                     isLoading = false
                 )
             }.collectLatest { state ->
