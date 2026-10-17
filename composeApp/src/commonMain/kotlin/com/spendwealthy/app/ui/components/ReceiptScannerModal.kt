@@ -42,17 +42,21 @@ import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.LocalGasStation
 import androidx.compose.material.icons.filled.LocalPharmacy
+import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
@@ -71,12 +75,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spendwealthy.app.domain.model.Money
+import com.spendwealthy.app.domain.model.ParsingSource
+import com.spendwealthy.app.domain.model.ReceiptLineItem
+import com.spendwealthy.app.domain.model.Wallet
+import com.spendwealthy.app.domain.service.SmartTransactionParserService
 import com.spendwealthy.app.ui.theme.AppColors
 import com.spendwealthy.app.ui.theme.AppTypography
 import kotlinx.coroutines.delay
@@ -89,7 +99,13 @@ data class ScannedReceipt(
     val amount: Long,
     val suggestedCategoryName: String,
     val note: String,
-    val icon: ImageVector
+    val icon: ImageVector,
+    val matchedWalletId: String? = null,
+    val matchedWalletName: String? = null,
+    val parsedSource: ParsingSource? = null,
+    val lineItems: List<ReceiptLineItem> = emptyList(),
+    val tax: Long = 0L,
+    val serviceCharge: Long = 0L
 )
 
 val SampleReceipts = listOf(
@@ -167,63 +183,36 @@ val SampleReceipts = listOf(
     )
 )
 
+private val smartParser = SmartTransactionParserService()
+
 /**
  * Intelligent Local AI Parser for free text and banking SMS notifications.
  */
-fun parseFreeTextReceipt(input: String): ScannedReceipt {
-    val clean = input.trim()
-    val lower = clean.lowercase()
-
-    // 1. Detect Amount (handles "35rb", "35k", "Rp 35.000", "35000", etc.)
-    var detectedAmount = 0L
-    val rbKRegex = Regex("""(\d+[\d.,]*)\s*(?:rb|k)\b""", RegexOption.IGNORE_CASE)
-    val rbKMatch = rbKRegex.find(lower)
-    if (rbKMatch != null) {
-        val numStr = rbKMatch.groupValues[1].replace(".", "").replace(",", "")
-        detectedAmount = (numStr.toDoubleOrNull() ?: 0.0).toLong() * 1000L
-    } else {
-        val rpRegex = Regex("""(?:rp\.?|idr)\s*(\d+[\d.,]*)""", RegexOption.IGNORE_CASE)
-        val rpMatch = rpRegex.find(lower)
-        if (rpMatch != null) {
-            val numStr = rpMatch.groupValues[1].replace(".", "").replace(",", "")
-            detectedAmount = numStr.toLongOrNull() ?: 0L
-        } else {
-            val numRegex = Regex("""\b\d{4,9}\b""")
-            val numMatch = numRegex.find(clean.replace(".", "").replace(",", ""))
-            if (numMatch != null) {
-                detectedAmount = numMatch.value.toLongOrNull() ?: 0L
-            }
-        }
+fun parseFreeTextReceipt(input: String, wallets: List<Wallet> = emptyList()): ScannedReceipt {
+    val parsed = smartParser.parse(input, wallets)
+    val icon = when (parsed.suggestedCategory) {
+        "Makanan & Minuman" -> Icons.Default.Restaurant
+        "Belanja" -> Icons.Default.ShoppingCart
+        "Transportasi" -> Icons.Default.DirectionsCar
+        "Kesehatan" -> Icons.Default.LocalPharmacy
+        else -> Icons.AutoMirrored.Filled.ReceiptLong
     }
-    if (detectedAmount <= 0L) detectedAmount = 50_000L
-
-    // 2. Classify Merchant & Category
-    val (merchant, category, icon) = when {
-        lower.contains("kopi") || lower.contains("fore") || lower.contains("starbucks") || lower.contains("kenangan") || lower.contains("janji jiwa") || lower.contains("cafe") ->
-            Triple("Coffee Shop", "Makanan & Minuman", Icons.Default.Restaurant)
-        lower.contains("makan") || lower.contains("resto") || lower.contains("mcd") || lower.contains("kfc") || lower.contains("hokben") || lower.contains("bakso") || lower.contains("nasi") ->
-            Triple("Restoran & Kuliner", "Makanan & Minuman", Icons.Default.Restaurant)
-        lower.contains("indomaret") || lower.contains("alfamart") || lower.contains("superindo") || lower.contains("hypermart") || lower.contains("belanja") ->
-            Triple("Minimarket & Belanja", "Belanja", Icons.Default.ShoppingCart)
-        lower.contains("tokopedia") || lower.contains("shopee") || lower.contains("lazada") || lower.contains("tiktok") ->
-            Triple("E-Commerce Online", "Belanja", Icons.Default.ShoppingCart)
-        lower.contains("bensin") || lower.contains("pertamina") || lower.contains("shell") || lower.contains("pertamax") || lower.contains("solar") ->
-            Triple("SPBU Bahan Bakar", "Transportasi", Icons.Default.LocalGasStation)
-        lower.contains("gojek") || lower.contains("grab") || lower.contains("gocar") || lower.contains("goride") || lower.contains("taxi") || lower.contains("mrt") || lower.contains("krl") || lower.contains("tol") ->
-            Triple("Transportasi & Ojek", "Transportasi", Icons.Default.DirectionsCar)
-        lower.contains("apotek") || lower.contains("obat") || lower.contains("kimia farma") || lower.contains("century") || lower.contains("guardian") || lower.contains("rs") || lower.contains("dokter") ->
-            Triple("Apotek & Medis", "Kesehatan", Icons.Default.LocalPharmacy)
-        else -> Triple("Merchant Transaksi", "Lainnya", Icons.AutoMirrored.Filled.ReceiptLong)
-    }
-
     return ScannedReceipt(
-        merchantName = merchant,
-        dateText = "Hari ini, AI Parsed",
-        itemsSummary = if (clean.length > 40) clean.take(40) + "..." else clean.ifBlank { "Item terdeteksi dari teks" },
-        amount = detectedAmount,
-        suggestedCategoryName = category,
-        note = clean.ifBlank { "Pengeluaran $merchant" },
-        icon = icon
+        merchantName = parsed.merchantName,
+        dateText = parsed.dateText,
+        itemsSummary = if (parsed.items.isNotEmpty()) {
+            parsed.items.joinToString(", ") { "${it.quantity}x ${it.name}" }
+        } else if (input.length > 40) input.take(40) + "..." else input.ifBlank { "Item terdeteksi dari teks" },
+        amount = parsed.amount,
+        suggestedCategoryName = parsed.suggestedCategory,
+        note = if (parsed.matchedWalletName != null) "${parsed.merchantName} (${parsed.matchedWalletName})" else parsed.merchantName,
+        icon = icon,
+        matchedWalletId = parsed.matchedWalletId,
+        matchedWalletName = parsed.matchedWalletName,
+        parsedSource = parsed.source,
+        lineItems = parsed.items,
+        tax = parsed.tax,
+        serviceCharge = parsed.serviceCharge
     )
 }
 
@@ -235,19 +224,21 @@ fun parseFreeTextReceipt(input: String): ScannedReceipt {
 @Composable
 fun ReceiptScannerModal(
     onReceiptScanned: (ScannedReceipt) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    wallets: List<Wallet> = emptyList()
 ) {
     val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val haptic = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
+    val clipboardManager = LocalClipboardManager.current
 
     var activeTab by remember { mutableStateOf(0) } // 0 = Scanner Viewfinder, 1 = Teks / SMS Bank
     var selectedSample by remember { mutableStateOf(SampleReceipts.first()) }
     var isScanning by remember { mutableStateOf(false) }
 
     // Free text input state
-    var freeTextInput by remember { mutableStateOf("Beli Kopi Kenangan Mantan 2x total 48rb") }
-    val parsedReceipt = remember(freeTextInput) { parseFreeTextReceipt(freeTextInput) }
+    var freeTextInput by remember { mutableStateOf("Debit BCA: 17/10 14:20 Rp 75.000 di STARBUCKS SUDIRMAN") }
+    val parsedReceipt = remember(freeTextInput, wallets) { parseFreeTextReceipt(freeTextInput, wallets) }
 
     // Laser animation
     val infiniteTransition = rememberInfiniteTransition()
@@ -731,18 +722,26 @@ fun ReceiptScannerModal(
                         )
                     )
 
-                    // Quick prompt chips
+                    // Quick prompt chips (Indonesian Banks & E-Wallets)
                     LazyRow(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         val prompts = listOf(
-                            "Kopi Fore 38rb",
-                            "Debit BCA 84.500 Alfamart",
-                            "Gojek Ride 22rb",
-                            "Makan siang Padang 45.000"
+                            "Debit BCA: 17/10 14:20 Rp 75.000 di STARBUCKS SUDIRMAN",
+                            "Livin' Mandiri: QRIS Rp 45.000 di KOPI KENANGAN",
+                            "GoPay: Pembayaran Rp35.000 ke Fore Coffee",
+                            "Superindo: 2x Apel 40.000, 1x Daging 120.000, PB1 10%",
+                            "Makan siang Padang 45rb tunai"
                         )
                         items(prompts) { prompt ->
+                            val chipLabel = when {
+                                prompt.contains("BCA") -> "BCA SMS"
+                                prompt.contains("Mandiri") -> "Mandiri QRIS"
+                                prompt.contains("GoPay") -> "GoPay Notif"
+                                prompt.contains("Superindo") -> "Struk PB1"
+                                else -> "Teks Bebas"
+                            }
                             Surface(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(10.dp))
@@ -754,13 +753,18 @@ fun ReceiptScannerModal(
                                 color = AppColors.SurfaceRaised,
                                 border = BorderStroke(1.dp, AppColors.Outline)
                             ) {
-                                Text(
-                                    text = prompt,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = AppColors.TextMuted,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                                )
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Text(
+                                        text = chipLabel,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = AppColors.TextMain
+                                    )
+                                }
                             }
                         }
                     }
@@ -792,23 +796,39 @@ fun ReceiptScannerModal(
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Text(
-                                        text = "Hasil Analisis AI:",
+                                        text = "Hasil Ekstraksi AI:",
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color(0xFF059669)
                                     )
                                 }
-                                Surface(
-                                    shape = RoundedCornerShape(6.dp),
-                                    color = Color(0xFF10B981).copy(alpha = 0.2f)
-                                ) {
-                                    Text(
-                                        text = parsedReceipt.suggestedCategoryName,
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF059669),
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                    )
+                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    parsedReceipt.parsedSource?.let { src ->
+                                        Surface(
+                                            shape = RoundedCornerShape(6.dp),
+                                            color = Color(src.badgeColorHex).copy(alpha = 0.15f)
+                                        ) {
+                                            Text(
+                                                text = src.displayName,
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color(src.badgeColorHex),
+                                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                                            )
+                                        }
+                                    }
+                                    Surface(
+                                        shape = RoundedCornerShape(6.dp),
+                                        color = Color(0xFF10B981).copy(alpha = 0.2f)
+                                    ) {
+                                        Text(
+                                            text = parsedReceipt.suggestedCategoryName,
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFF059669),
+                                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                                        )
+                                    }
                                 }
                             }
 
@@ -817,19 +837,39 @@ fun ReceiptScannerModal(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Column {
+                                Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                                     Text(
                                         text = parsedReceipt.merchantName,
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = AppColors.TextMain
                                     )
-                                    Text(
-                                        text = parsedReceipt.itemsSummary,
-                                        fontSize = 11.sp,
-                                        color = AppColors.TextMuted,
-                                        maxLines = 1
-                                    )
+                                    if (parsedReceipt.matchedWalletName != null) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.AccountBalanceWallet,
+                                                contentDescription = null,
+                                                tint = Color(0xFF0284C7),
+                                                modifier = Modifier.size(12.dp)
+                                            )
+                                            Text(
+                                                text = "Auto-Match: ${parsedReceipt.matchedWalletName}",
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = Color(0xFF0284C7)
+                                            )
+                                        }
+                                    } else {
+                                        Text(
+                                            text = parsedReceipt.itemsSummary,
+                                            fontSize = 11.sp,
+                                            color = AppColors.TextMuted,
+                                            maxLines = 1
+                                        )
+                                    }
                                 }
 
                                 Text(
@@ -840,6 +880,31 @@ fun ReceiptScannerModal(
                                         color = AppColors.TextMain
                                     )
                                 )
+                            }
+
+                            // Optional Itemized Line Items Breakdown
+                            if (parsedReceipt.lineItems.isNotEmpty()) {
+                                HorizontalDivider(color = Color(0xFF10B981).copy(alpha = 0.2f), modifier = Modifier.padding(vertical = 2.dp))
+                                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                    parsedReceipt.lineItems.forEach { item ->
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(
+                                                text = "${item.quantity}x ${item.name}",
+                                                fontSize = 11.sp,
+                                                color = AppColors.TextMain
+                                            )
+                                            Text(
+                                                text = Money(item.totalPrice, "IDR").formatWithSymbol(),
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                color = AppColors.TextMuted
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

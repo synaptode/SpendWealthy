@@ -163,6 +163,7 @@ val commonModule = module {
     factory { PaycheckSplitterViewModel(get(), get(), get(), get(), get()) }
     single { FinancialGamificationService() }
     factory { WealthScoreViewModel(get(), get(), get(), get(), get(), get()) }
+    single { SmartTransactionParserService() }
 }
 
 fun initKoin(config: (org.koin.dsl.KoinAppDeclaration)? = null) = org.koin.core.context.startKoin {

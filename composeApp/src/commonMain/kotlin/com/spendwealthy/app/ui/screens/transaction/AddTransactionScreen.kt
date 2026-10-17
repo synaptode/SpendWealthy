@@ -353,6 +353,7 @@ class AddTransactionScreen(
                 // Interactive OCR Receipt Scanner Modal
                 if (showReceiptScanner) {
                     ReceiptScannerModal(
+                        wallets = state.wallets,
                         onReceiptScanned = { receipt ->
                             viewModel.onEvent(AddTransactionEvent.AmountChanged(receipt.amount.toString()))
                             viewModel.onEvent(AddTransactionEvent.NoteChanged(receipt.note))
@@ -361,6 +362,11 @@ class AddTransactionScreen(
                             } ?: state.categories.firstOrNull()
                             category?.let {
                                 viewModel.onEvent(AddTransactionEvent.CategorySelected(it))
+                            }
+                            receipt.matchedWalletId?.let { wId ->
+                                state.wallets.find { it.id == wId }?.let { wallet ->
+                                    viewModel.onEvent(AddTransactionEvent.WalletSelected(wallet))
+                                }
                             }
                             scope.launch {
                                 snackbarHostState.showSnackbar("Struk ${receipt.merchantName} (${Money(receipt.amount, "IDR").formatWithSymbol()}) berhasil diekstraksi!")
