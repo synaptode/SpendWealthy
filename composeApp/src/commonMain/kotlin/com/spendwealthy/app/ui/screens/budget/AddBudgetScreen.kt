@@ -34,11 +34,14 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,6 +55,7 @@ import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.Category
+import com.spendwealthy.app.ui.components.AddCategoryModal
 import com.spendwealthy.app.ui.components.AppAmountInput
 import com.spendwealthy.app.ui.components.AppButton
 import com.spendwealthy.app.ui.theme.AppColors
@@ -65,6 +69,7 @@ class AddBudgetScreen : Screen {
         val navigator = LocalNavigator.currentOrThrow
         val snackbarHostState = remember { SnackbarHostState() }
         val haptic = LocalHapticFeedback.current
+        var showAddCategoryModal by remember { mutableStateOf(false) }
 
         LaunchedEffect(viewModel) {
             viewModel.effect.collect { effect ->
@@ -111,6 +116,38 @@ class AddBudgetScreen : Screen {
                                         viewModel.onEvent(AddBudgetEvent.CategorySelected(category))
                                     }
                                 )
+                            }
+                            item {
+                                Surface(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .clickable {
+                                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                            showAddCategoryModal = true
+                                        },
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = AppColors.Surface,
+                                    border = BorderStroke(1.dp, AppColors.Primary.copy(alpha = 0.5f))
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Add,
+                                            contentDescription = null,
+                                            tint = AppColors.Primary,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Text(
+                                            text = "Kategori Baru",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = AppColors.Primary,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -223,6 +260,16 @@ class AddBudgetScreen : Screen {
                     Spacer(Modifier.height(40.dp))
                 }
             }
+        }
+
+        if (showAddCategoryModal) {
+            AddCategoryModal(
+                onDismiss = { showAddCategoryModal = false },
+                onCategoryCreated = { newCategory ->
+                    viewModel.onEvent(AddBudgetEvent.AddCustomCategory(newCategory))
+                    showAddCategoryModal = false
+                }
+            )
         }
     }
 

@@ -35,6 +35,7 @@ data class AddBudgetState(
 sealed class AddBudgetEvent : UiEvent {
     data class AmountChanged(val amount: String) : AddBudgetEvent()
     data class CategorySelected(val category: Category) : AddBudgetEvent()
+    data class AddCustomCategory(val category: Category) : AddBudgetEvent()
     object SaveClicked : AddBudgetEvent()
 }
 
@@ -74,6 +75,16 @@ class AddBudgetViewModel(
         when (event) {
             is AddBudgetEvent.AmountChanged -> _uiState.value = _uiState.value.copy(amount = event.amount, errorMessage = null)
             is AddBudgetEvent.CategorySelected -> _uiState.value = _uiState.value.copy(selectedCategory = event.category, errorMessage = null)
+            is AddBudgetEvent.AddCustomCategory -> {
+                screenModelScope.launch {
+                    try {
+                        categoryRepository.insertCategory(event.category)
+                        _uiState.value = _uiState.value.copy(selectedCategory = event.category, errorMessage = null)
+                    } catch (e: Exception) {
+                        _effect.send(AddBudgetEffect.ShowError(e.message ?: "Gagal menambahkan kategori"))
+                    }
+                }
+            }
             AddBudgetEvent.SaveClicked -> saveBudget()
         }
     }
