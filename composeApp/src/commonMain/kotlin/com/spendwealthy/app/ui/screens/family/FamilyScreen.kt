@@ -436,25 +436,38 @@ class FamilyScreen : Screen {
                 }
 
                 // Balance Display
+                val savingsFontSize = when {
+                    formattedSavings.length > 16 -> 20.sp
+                    formattedSavings.length > 13 -> 23.sp
+                    formattedSavings.length > 10 -> 25.sp
+                    else -> 28.sp
+                }
+
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
                         text = "Total Tabungan Terkumpul",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = AppColors.TextMuted
+                        color = AppColors.TextMuted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = formattedSavings,
-                        fontSize = 28.sp,
+                        fontSize = savingsFontSize,
                         fontWeight = FontWeight.ExtraBold,
                         color = AppColors.TextMain,
-                        letterSpacing = (-0.5).sp
+                        letterSpacing = (-0.5).sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = "dari target total $formattedTarget ($percentage% tercapai)",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF10B981)
+                        color = Color(0xFF10B981),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 
@@ -469,14 +482,14 @@ class FamilyScreen : Screen {
                         .fillMaxWidth()
                         .height(8.dp)
                         .clip(RoundedCornerShape(4.dp))
-                        .background(Color(0xFFF3F4F6))
+                        .background(AppColors.SurfaceRaised)
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth(animatedProgress)
                             .height(8.dp)
                             .clip(RoundedCornerShape(4.dp))
-                            .background(Color(0xFFFFDE43))
+                            .background(AppColors.Primary)
                     )
                 }
 
@@ -492,7 +505,7 @@ class FamilyScreen : Screen {
                             .clip(RoundedCornerShape(14.dp))
                             .clickable(onClick = onContribute),
                         shape = RoundedCornerShape(14.dp),
-                        color = Color(0xFFFFDE43)
+                        color = AppColors.Primary
                     ) {
                         Row(
                             modifier = Modifier.padding(vertical = 11.dp, horizontal = 4.dp),
@@ -502,7 +515,7 @@ class FamilyScreen : Screen {
                             Icon(
                                 imageVector = Icons.Default.Add,
                                 contentDescription = null,
-                                tint = Color(0xFF111827),
+                                tint = AppColors.OnPrimary,
                                 modifier = Modifier.size(15.dp)
                             )
                             Spacer(Modifier.width(4.dp))
@@ -510,7 +523,7 @@ class FamilyScreen : Screen {
                                 text = "Setor",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF111827),
+                                color = AppColors.OnPrimary,
                                 maxLines = 1,
                                 softWrap = false,
                                 overflow = TextOverflow.Ellipsis
@@ -525,7 +538,8 @@ class FamilyScreen : Screen {
                             .clip(RoundedCornerShape(14.dp))
                             .clickable(onClick = onInvite),
                         shape = RoundedCornerShape(14.dp),
-                        color = Color(0xFF111827)
+                        color = AppColors.SurfaceRaised,
+                        border = BorderStroke(1.dp, AppColors.Outline)
                     ) {
                         Row(
                             modifier = Modifier.padding(vertical = 11.dp, horizontal = 4.dp),
@@ -535,7 +549,7 @@ class FamilyScreen : Screen {
                             Icon(
                                 imageVector = Icons.Default.PersonAdd,
                                 contentDescription = null,
-                                tint = Color.White,
+                                tint = AppColors.TextMain,
                                 modifier = Modifier.size(14.dp)
                             )
                             Spacer(Modifier.width(4.dp))
@@ -543,7 +557,7 @@ class FamilyScreen : Screen {
                                 text = "Undang",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White,
+                                color = AppColors.TextMain,
                                 maxLines = 1,
                                 softWrap = false,
                                 overflow = TextOverflow.Ellipsis
@@ -601,7 +615,8 @@ class FamilyScreen : Screen {
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            color = Color(0xFFF3F4F6)
+            color = AppColors.SurfaceRaised,
+            border = BorderStroke(1.dp, AppColors.Outline)
         ) {
             Row(
                 modifier = Modifier.padding(4.dp),
@@ -613,7 +628,7 @@ class FamilyScreen : Screen {
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(if (isSelected) Color.White else Color.Transparent)
+                            .background(if (isSelected) AppColors.Surface else Color.Transparent)
                             .clickable { onTabSelected(index) }
                             .padding(vertical = 10.dp),
                         contentAlignment = Alignment.Center

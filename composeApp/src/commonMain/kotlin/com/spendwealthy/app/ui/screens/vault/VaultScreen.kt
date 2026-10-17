@@ -235,7 +235,7 @@ class VaultScreen : Screen {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "Tambah Dokumen",
-                        tint = Color(0xFF090D16),
+                        tint = AppColors.OnPrimary,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -253,7 +253,7 @@ class VaultScreen : Screen {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 8.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             shape = RoundedCornerShape(24.dp),
             color = AppColors.SurfaceRaised,
             border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
@@ -263,8 +263,8 @@ class VaultScreen : Screen {
                     .background(
                         Brush.linearGradient(
                             listOf(
-                                Color(0xFF1E293B),
-                                Color(0xFF0F172A)
+                                AppColors.SurfaceRaised,
+                                AppColors.Surface
                             )
                         )
                     )
@@ -276,7 +276,10 @@ class VaultScreen : Screen {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f).padding(end = 8.dp)
+                        ) {
                             Box(
                                 modifier = Modifier
                                     .size(46.dp)
@@ -292,17 +295,24 @@ class VaultScreen : Screen {
                                 )
                             }
                             Spacer(Modifier.width(12.dp))
-                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Column(
+                                modifier = Modifier.weight(1f, fill = false),
+                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
                                 Text(
                                     text = "Sovereign Vault Shield",
                                     fontWeight = FontWeight.ExtraBold,
                                     style = MaterialTheme.typography.titleMedium,
-                                    color = AppColors.TextMain
+                                    color = AppColors.TextMain,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
                                     text = "Enkripsi AES-256 GCM • Tier $plan",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = AppColors.TextMuted
+                                    color = AppColors.TextMuted,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
@@ -317,18 +327,20 @@ class VaultScreen : Screen {
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Black,
-                                color = AppColors.Primary
+                                color = AppColors.Primary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        StatPill("Dokumen", "$documentsCount arsip")
-                        StatPill("Protokol", "E2E Enkripsi")
-                        StatPill("Status Keamanan", if (securityScore >= 70) "Sangat Kuat" else "Perlu Tinjauan")
+                        StatPill("Dokumen", "$documentsCount arsip", modifier = Modifier.weight(1f))
+                        StatPill("Protokol", "E2E Enkripsi", modifier = Modifier.weight(1f))
+                        StatPill("Status", if (securityScore >= 70) "Sangat Kuat" else "Perlu Tinjau", modifier = Modifier.weight(1f))
                     }
 
                     if (plan.equals("Free", ignoreCase = true)) {
@@ -348,7 +360,7 @@ class VaultScreen : Screen {
                                 Icon(
                                     imageVector = Icons.Default.Lock,
                                     contentDescription = null,
-                                    tint = Color(0xFF090D16),
+                                    tint = AppColors.OnPrimary,
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(Modifier.width(8.dp))
@@ -356,7 +368,9 @@ class VaultScreen : Screen {
                                     text = "Upgrade ke SpendWealthy Sovereign",
                                     fontWeight = FontWeight.Bold,
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = Color(0xFF090D16)
+                                    color = AppColors.OnPrimary,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
@@ -367,18 +381,25 @@ class VaultScreen : Screen {
     }
 
     @Composable
-    private fun StatPill(label: String, value: String) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    private fun StatPill(label: String, value: String, modifier: Modifier = Modifier) {
+        Column(
+            modifier = modifier,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text(
                 text = value,
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.bodyMedium,
-                color = AppColors.TextMain
+                color = AppColors.TextMain,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
-                color = AppColors.TextMuted
+                color = AppColors.TextMuted,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
@@ -392,7 +413,7 @@ class VaultScreen : Screen {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -427,7 +448,7 @@ class VaultScreen : Screen {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 5.dp),
+                .padding(horizontal = 16.dp, vertical = 5.dp),
             shape = RoundedCornerShape(18.dp),
             color = AppColors.Surface,
             border = androidx.compose.foundation.BorderStroke(
@@ -459,17 +480,25 @@ class VaultScreen : Screen {
 
                 Spacer(Modifier.width(14.dp))
 
-                Column(Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 8.dp)
+                ) {
                     Text(
                         text = document.name,
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = AppColors.TextMain
+                        color = AppColors.TextMain,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = "${document.type.name} • ${document.expiryDate?.let { "Kedaluwarsa: $it" } ?: "Permanen"}",
                         style = MaterialTheme.typography.labelSmall,
-                        color = if (isWarning) AppColors.Danger else AppColors.TextMuted
+                        color = if (isWarning) AppColors.Danger else AppColors.TextMuted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 

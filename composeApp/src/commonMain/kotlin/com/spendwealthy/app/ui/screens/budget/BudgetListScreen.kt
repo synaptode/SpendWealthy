@@ -217,13 +217,15 @@ class BudgetListScreen : Screen {
                     Surface(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
                             .clip(RoundedCornerShape(20.dp))
                             .clickable {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 rootNavigator.push(FamilyScreen())
                             },
                         shape = RoundedCornerShape(20.dp),
-                        color = Color(0xFF111827)
+                        color = AppColors.SurfaceRaised,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
                     ) {
                         Row(
                             modifier = Modifier.padding(18.dp),
@@ -233,24 +235,27 @@ class BudgetListScreen : Screen {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(14.dp),
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f).padding(end = 8.dp)
                             ) {
                                 Box(
                                     modifier = Modifier
                                         .size(46.dp)
                                         .clip(CircleShape)
-                                        .background(Color(0xFFFFDE43).copy(alpha = 0.25f)),
+                                        .background(AppColors.Primary.copy(alpha = 0.25f)),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Groups,
                                         contentDescription = null,
-                                        tint = Color(0xFFFFDE43),
+                                        tint = AppColors.Primary,
                                         modifier = Modifier.size(22.dp)
                                     )
                                 }
 
-                                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                Column(
+                                    modifier = Modifier.weight(1f, fill = false),
+                                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                                ) {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -259,17 +264,19 @@ class BudgetListScreen : Screen {
                                             text = "Tabungan Keluarga",
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 15.sp,
-                                            color = Color.White
+                                            color = AppColors.TextMain,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
                                         )
                                         Surface(
                                             shape = RoundedCornerShape(6.dp),
-                                            color = Color(0xFFFFDE43)
+                                            color = AppColors.Primary
                                         ) {
                                             Text(
                                                 text = "Bersama",
                                                 fontSize = 10.sp,
                                                 fontWeight = FontWeight.ExtraBold,
-                                                color = Color(0xFF111827),
+                                                color = AppColors.OnPrimary,
                                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                             )
                                         }
@@ -279,8 +286,10 @@ class BudgetListScreen : Screen {
                                         text = "Nabung bareng pasangan & keluarga untuk wujudkan target impian bersama.",
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Medium,
-                                        color = Color.White.copy(alpha = 0.7f),
-                                        lineHeight = 15.sp
+                                        color = AppColors.TextMuted,
+                                        lineHeight = 15.sp,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
                             }
@@ -288,7 +297,7 @@ class BudgetListScreen : Screen {
                             Icon(
                                 imageVector = Icons.Default.ChevronRight,
                                 contentDescription = null,
-                                tint = Color(0xFFFFDE43),
+                                tint = AppColors.Primary,
                                 modifier = Modifier.size(22.dp)
                             )
                         }
@@ -303,7 +312,7 @@ class BudgetListScreen : Screen {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -341,7 +350,7 @@ class BudgetListScreen : Screen {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "Tambah Kartu",
-                        tint = Color(0xFF090D16),
+                        tint = AppColors.OnPrimary,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -360,7 +369,7 @@ class BudgetListScreen : Screen {
         val remainingLabel = primaryBudget?.let { viewModel.getRemaining(it).format() } ?: "Siap Digunakan"
 
         LazyRow(
-            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 10.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
@@ -520,7 +529,7 @@ class BudgetListScreen : Screen {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 10.dp),
+                .padding(horizontal = 16.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             ControlActionButton(
@@ -582,7 +591,9 @@ class BudgetListScreen : Screen {
                     text = label,
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.SemiBold,
-                    color = AppColors.TextMain
+                    color = AppColors.TextMain,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
@@ -598,7 +609,7 @@ class BudgetListScreen : Screen {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 14.dp),
+                .padding(horizontal = 16.dp, vertical = 14.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -671,7 +682,7 @@ class BudgetListScreen : Screen {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 6.dp),
+                .padding(horizontal = 16.dp, vertical = 6.dp),
             shape = RoundedCornerShape(20.dp),
             color = AppColors.Surface,
             border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
@@ -687,7 +698,7 @@ class BudgetListScreen : Screen {
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f).padding(end = 8.dp)
                     ) {
                         Box(
                             modifier = Modifier
@@ -704,17 +715,24 @@ class BudgetListScreen : Screen {
                             )
                         }
                         Spacer(Modifier.width(12.dp))
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Column(
+                            modifier = Modifier.weight(1f, fill = false),
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
                             Text(
                                 text = title,
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = AppColors.TextMain
+                                color = AppColors.TextMain,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                             Text(
                                 text = "Sisa anggaran: $remaining",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = AppColors.TextMuted
+                                color = AppColors.TextMuted,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
@@ -724,7 +742,9 @@ class BudgetListScreen : Screen {
                             text = budget.limit.format(),
                             fontWeight = FontWeight.Black,
                             style = MaterialTheme.typography.bodyLarge,
-                            color = AppColors.TextMain
+                            color = AppColors.TextMain,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Surface(
                             shape = RoundedCornerShape(6.dp),
@@ -735,7 +755,9 @@ class BudgetListScreen : Screen {
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = accentColor,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
@@ -833,7 +855,7 @@ class BudgetListScreen : Screen {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 6.dp)
+                .padding(horizontal = 16.dp, vertical = 6.dp)
                 .clip(RoundedCornerShape(20.dp))
                 .clickable(onClick = onClick),
             shape = RoundedCornerShape(20.dp),
@@ -851,7 +873,7 @@ class BudgetListScreen : Screen {
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f).padding(end = 8.dp)
                     ) {
                         Box(
                             modifier = Modifier
@@ -868,17 +890,24 @@ class BudgetListScreen : Screen {
                             )
                         }
                         Spacer(Modifier.width(12.dp))
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Column(
+                            modifier = Modifier.weight(1f, fill = false),
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
                             Text(
                                 text = title,
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = AppColors.TextMain
+                                color = AppColors.TextMain,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                             Text(
                                 text = "Target: $targetAmount",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = AppColors.TextMuted
+                                color = AppColors.TextMuted,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
@@ -888,7 +917,9 @@ class BudgetListScreen : Screen {
                             text = currentAmount,
                             fontWeight = FontWeight.Black,
                             style = MaterialTheme.typography.bodyLarge,
-                            color = AppColors.TextMain
+                            color = AppColors.TextMain,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Surface(
                             shape = RoundedCornerShape(6.dp),
@@ -899,7 +930,9 @@ class BudgetListScreen : Screen {
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = accentColor,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }

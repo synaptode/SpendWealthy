@@ -93,7 +93,7 @@ class BillListScreen : Screen {
                     .fillMaxSize()
                     .widthIn(max = 680.dp)
                     .windowInsetsPadding(WindowInsets.statusBars),
-                contentPadding = PaddingValues(start = 24.dp, top = 12.dp, end = 24.dp, bottom = 140.dp),
+                contentPadding = PaddingValues(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 140.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
@@ -250,7 +250,7 @@ class BillListScreen : Screen {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "Tambah Tagihan",
-                        tint = Color(0xFF090D16),
+                        tint = AppColors.OnPrimary,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -271,8 +271,8 @@ class BillListScreen : Screen {
                     .background(
                         Brush.linearGradient(
                             listOf(
-                                Color(0xFF1E293B),
-                                Color(0xFF0F172A)
+                                AppColors.SurfaceRaised,
+                                AppColors.Surface
                             )
                         )
                     )
@@ -370,7 +370,7 @@ class BillListScreen : Screen {
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f).padding(end = 8.dp)
                     ) {
                         Box(
                             modifier = Modifier
@@ -387,12 +387,17 @@ class BillListScreen : Screen {
                             )
                         }
                         Spacer(Modifier.width(14.dp))
-                        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Column(
+                            modifier = Modifier.weight(1f, fill = false),
+                            verticalArrangement = Arrangement.spacedBy(3.dp)
+                        ) {
                             Text(
                                 text = bill.name,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = AppColors.TextMain
+                                color = AppColors.TextMain,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -401,7 +406,9 @@ class BillListScreen : Screen {
                                 Text(
                                     text = "Jatuh tempo: ${bill.dueDate}",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = AppColors.TextMuted
+                                    color = AppColors.TextMuted,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                                 Box(
                                     modifier = Modifier
@@ -413,7 +420,9 @@ class BillListScreen : Screen {
                                     text = recurrenceLabel,
                                     style = MaterialTheme.typography.labelSmall,
                                     color = AppColors.TextMuted,
-                                    fontWeight = FontWeight.SemiBold
+                                    fontWeight = FontWeight.SemiBold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
@@ -423,7 +432,9 @@ class BillListScreen : Screen {
                         text = bill.amount.format(),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Black,
-                        color = if (status == BillStatus.PAID) AppColors.Success else AppColors.TextMain
+                        color = if (status == BillStatus.PAID) AppColors.Success else AppColors.TextMain,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 
@@ -452,7 +463,9 @@ class BillListScreen : Screen {
                                 text = statusLabel,
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = statusColor
+                                color = statusColor,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
@@ -473,14 +486,16 @@ class BillListScreen : Screen {
                                 Icon(
                                     imageVector = Icons.Default.Check,
                                     contentDescription = null,
-                                    tint = Color(0xFF090D16),
+                                    tint = AppColors.OnPrimary,
                                     modifier = Modifier.size(15.dp)
                                 )
                                 Text(
                                     text = "Tandai Lunas",
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF090D16)
+                                    color = AppColors.OnPrimary,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
