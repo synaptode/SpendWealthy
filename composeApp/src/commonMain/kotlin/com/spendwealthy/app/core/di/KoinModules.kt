@@ -90,8 +90,8 @@ val commonModule = module {
     factory { RescheduleBillRemindersUseCase(get(), get()) }
     factory { ExportMonthlyTransactionsCsvUseCase(get(), get(), get(), get()) }
 
-    // Screen Models
-    factory { AppViewModel(get(), get(), get()) }
+    // App-level State / Screen Models
+    single { AppViewModel(get(), get(), get()) }
     factory { OnboardingViewModel(get(), get(), get(), get(), get()) }
     factory {
         HomeViewModel(
