@@ -8,9 +8,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
@@ -30,7 +32,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -1044,6 +1045,7 @@ class FamilyScreen : Screen {
         }
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun ContributeToGoalDialog(
         goals: List<FamilySavingsGoal>,
@@ -1056,218 +1058,231 @@ class FamilyScreen : Screen {
         var selectedMemberName by remember { mutableStateOf(members.firstOrNull()?.name ?: "Alex Pratama") }
         var amountText by remember { mutableStateOf("1000000") }
 
-        Dialog(onDismissRequest = onDismiss) {
-            Surface(
+        ModalBottomSheet(
+            onDismissRequest = onDismiss,
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+            containerColor = AppColors.Surface,
+            dragHandle = {
+                Box(
+                    modifier = Modifier
+                        .padding(vertical = 12.dp)
+                        .width(36.dp)
+                        .height(4.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFE5E7EB))
+                )
+            }
+        ) {
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .widthIn(max = 480.dp),
-                shape = RoundedCornerShape(24.dp),
-                color = AppColors.Surface
+                    .widthIn(max = 540.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 36.dp)
+                    .navigationBarsPadding(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    Text(
+                        text = "Setor Tabungan Bersama",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.TextMain
+                    )
+                    Surface(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .clickable(onClick = onDismiss),
+                        shape = CircleShape,
+                        color = AppColors.SurfaceRaised,
+                        border = BorderStroke(1.dp, AppColors.Outline)
                     ) {
-                        Text(
-                            text = "Setor Tabungan Bersama",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = AppColors.TextMain
-                        )
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Tutup",
+                                tint = AppColors.TextMain,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                }
+
+                // Pilih Target
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        text = "Pilih Target Impian",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.TextMuted
+                    )
+
+                    goals.forEach { g ->
+                        val isSelected = g.id == selectedGoalId
                         Surface(
                             modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .clickable(onClick = onDismiss),
-                            shape = CircleShape,
-                            color = AppColors.SurfaceRaised,
-                            border = BorderStroke(1.dp, AppColors.Outline)
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { selectedGoalId = g.id },
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (isSelected) Color(0xFFFFDE43).copy(alpha = 0.2f) else Color(0xFFF9FAFB),
+                            border = BorderStroke(1.dp, if (isSelected) Color(0xFFFFDE43) else AppColors.Outline)
                         ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Tutup",
-                                    tint = AppColors.TextMain,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                        }
-                    }
-
-                    // Pilih Target
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(
-                            text = "Pilih Target Impian",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = AppColors.TextMuted
-                        )
-
-                        goals.forEach { g ->
-                            val isSelected = g.id == selectedGoalId
-                            Surface(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .clickable { selectedGoalId = g.id },
-                                shape = RoundedCornerShape(12.dp),
-                                color = if (isSelected) Color(0xFFFFDE43).copy(alpha = 0.2f) else Color(0xFFF9FAFB),
-                                border = BorderStroke(1.dp, if (isSelected) Color(0xFFFFDE43) else AppColors.Outline)
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = g.title,
-                                        fontSize = 13.sp,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                        color = AppColors.TextMain
-                                    )
-                                    if (isSelected) {
-                                        Icon(
-                                            imageVector = Icons.Default.CheckCircle,
-                                            contentDescription = null,
-                                            tint = Color(0xFF111827),
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Pilih Anggota Penyetor
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(
-                            text = "Penyetor",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = AppColors.TextMuted
-                        )
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            members.forEach { m ->
-                                val isSelected = m.name == selectedMemberName
-                                Surface(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(10.dp))
-                                        .clickable { selectedMemberName = m.name },
-                                    shape = RoundedCornerShape(10.dp),
-                                    color = if (isSelected) Color(0xFF111827) else Color(0xFFF3F4F6)
-                                ) {
-                                    Box(
-                                        modifier = Modifier.padding(vertical = 8.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = m.name.split(" ").firstOrNull() ?: m.name,
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = if (isSelected) Color.White else AppColors.TextMain
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Input Nominal
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(
-                            text = "Nominal Setoran (Rp)",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = AppColors.TextMuted
-                        )
-
-                        OutlinedTextField(
-                            value = amountText,
-                            onValueChange = { amountText = it.filter { char -> char.isDigit() } },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            shape = RoundedCornerShape(12.dp)
-                        )
-
-                        // Quick Nominal Pills
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            listOf(500_000L, 1_000_000L, 2_500_000L, 5_000_000L).forEach { pillAmount ->
-                                val label = if (pillAmount >= 1_000_000L) "${pillAmount / 1_000_000L} Jt" else "${pillAmount / 1_000L} Rb"
-                                Surface(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .clickable { amountText = pillAmount.toString() },
-                                    shape = RoundedCornerShape(8.dp),
-                                    color = Color(0xFFF3F4F6)
-                                ) {
-                                    Box(
-                                        modifier = Modifier.padding(vertical = 6.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = label,
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = AppColors.TextMain
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Action Buttons (Batal & Konfirmasi)
-                    val amountLong = amountText.toLongOrNull() ?: 0L
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        OutlinedButton(
-                            onClick = onDismiss,
-                            modifier = Modifier.weight(1f).height(48.dp),
-                            shape = RoundedCornerShape(14.dp),
-                            border = BorderStroke(1.dp, AppColors.Outline)
-                        ) {
-                            Text("Batal", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = AppColors.TextMuted)
-                        }
-
-                        Surface(
-                            modifier = Modifier
-                                .weight(1.5f)
-                                .height(48.dp)
-                                .clip(RoundedCornerShape(14.dp))
-                                .clickable(enabled = amountLong > 0 && selectedGoalId.isNotBlank()) {
-                                    onConfirm(selectedGoalId, selectedMemberName, amountLong)
-                                },
-                            shape = RoundedCornerShape(14.dp),
-                            color = if (amountLong > 0 && selectedGoalId.isNotBlank()) Color(0xFFFFDE43) else Color(0xFFE5E7EB)
-                        ) {
-                            Box(
-                                contentAlignment = Alignment.Center
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "Konfirmasi Setor",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (amountLong > 0 && selectedGoalId.isNotBlank()) Color(0xFF111827) else Color(0xFF9CA3AF)
+                                    text = g.title,
+                                    fontSize = 13.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                    color = AppColors.TextMain
                                 )
+                                if (isSelected) {
+                                    Icon(
+                                        imageVector = Icons.Default.CheckCircle,
+                                        contentDescription = null,
+                                        tint = Color(0xFF111827),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
                             }
+                        }
+                    }
+                }
+
+                // Pilih Anggota Penyetor
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        text = "Penyetor",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.TextMuted
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        members.forEach { m ->
+                            val isSelected = m.name == selectedMemberName
+                            Surface(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .clickable { selectedMemberName = m.name },
+                                shape = RoundedCornerShape(10.dp),
+                                color = if (isSelected) Color(0xFF111827) else Color(0xFFF3F4F6)
+                            ) {
+                                Box(
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = m.name.split(" ").firstOrNull() ?: m.name,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isSelected) Color.White else AppColors.TextMain
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Input Nominal
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        text = "Nominal Setoran (Rp)",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.TextMuted
+                    )
+
+                    OutlinedTextField(
+                        value = amountText,
+                        onValueChange = { amountText = it.filter { char -> char.isDigit() } },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    // Quick Nominal Pills
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        listOf(500_000L, 1_000_000L, 2_500_000L, 5_000_000L).forEach { pillAmount ->
+                            val label = if (pillAmount >= 1_000_000L) "${pillAmount / 1_000_000L} Jt" else "${pillAmount / 1_000L} Rb"
+                            Surface(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable { amountText = pillAmount.toString() },
+                                shape = RoundedCornerShape(8.dp),
+                                color = Color(0xFFF3F4F6)
+                            ) {
+                                Box(
+                                    modifier = Modifier.padding(vertical = 6.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = label,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = AppColors.TextMain
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Action Buttons (Batal & Konfirmasi)
+                val amountLong = amountText.toLongOrNull() ?: 0L
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        border = BorderStroke(1.dp, AppColors.Outline)
+                    ) {
+                        Text("Batal", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = AppColors.TextMuted)
+                    }
+
+                    Surface(
+                        modifier = Modifier
+                            .weight(1.5f)
+                            .height(48.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .clickable(enabled = amountLong > 0 && selectedGoalId.isNotBlank()) {
+                                onConfirm(selectedGoalId, selectedMemberName, amountLong)
+                            },
+                        shape = RoundedCornerShape(14.dp),
+                        color = if (amountLong > 0 && selectedGoalId.isNotBlank()) Color(0xFFFFDE43) else Color(0xFFE5E7EB)
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Konfirmasi Setor",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (amountLong > 0 && selectedGoalId.isNotBlank()) Color(0xFF111827) else Color(0xFF9CA3AF)
+                            )
                         }
                     }
                 }
@@ -1275,6 +1290,7 @@ class FamilyScreen : Screen {
         }
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun CreateSharedGoalDialog(
         onDismiss: () -> Unit,
@@ -1285,162 +1301,175 @@ class FamilyScreen : Screen {
         var targetDate by remember { mutableStateOf("Desember 2026") }
         var selectedCategory by remember { mutableStateOf("Holiday") }
 
-        Dialog(onDismissRequest = onDismiss) {
-            Surface(
+        ModalBottomSheet(
+            onDismissRequest = onDismiss,
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+            containerColor = AppColors.Surface,
+            dragHandle = {
+                Box(
+                    modifier = Modifier
+                        .padding(vertical = 12.dp)
+                        .width(36.dp)
+                        .height(4.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFE5E7EB))
+                )
+            }
+        ) {
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .widthIn(max = 480.dp),
-                shape = RoundedCornerShape(24.dp),
-                color = AppColors.Surface
+                    .widthIn(max = 540.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 36.dp)
+                    .navigationBarsPadding(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    Text(
+                        text = "Target Baru Keluarga",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.TextMain
+                    )
+                    Surface(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .clickable(onClick = onDismiss),
+                        shape = CircleShape,
+                        color = AppColors.SurfaceRaised,
+                        border = BorderStroke(1.dp, AppColors.Outline)
                     ) {
-                        Text(
-                            text = "Target Baru Keluarga",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = AppColors.TextMain
-                        )
-                        Surface(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .clickable(onClick = onDismiss),
-                            shape = CircleShape,
-                            color = AppColors.SurfaceRaised,
-                            border = BorderStroke(1.dp, AppColors.Outline)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Tutup",
-                                    tint = AppColors.TextMain,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Tutup",
+                                tint = AppColors.TextMain,
+                                modifier = Modifier.size(18.dp)
+                            )
                         }
                     }
+                }
 
-                    // Nama Target
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("Nama Target", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMuted)
-                        OutlinedTextField(
-                            value = title,
-                            onValueChange = { title = it },
-                            placeholder = { Text("Contoh: Renovasi Rumah Impian") },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                    }
+                // Nama Target
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Nama Target", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMuted)
+                    OutlinedTextField(
+                        value = title,
+                        onValueChange = { title = it },
+                        placeholder = { Text("Contoh: Renovasi Rumah Impian") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
 
-                    // Kategori
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Kategori", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMuted)
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            listOf(
-                                Pair("Holiday", "Liburan"),
-                                Pair("Education", "Pendidikan"),
-                                Pair("Property", "Properti"),
-                                Pair("Emergency", "Darurat")
-                            ).forEach { (catKey, catLabel) ->
-                                val isSelected = selectedCategory == catKey
-                                Surface(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(10.dp))
-                                        .clickable { selectedCategory = catKey },
-                                    shape = RoundedCornerShape(10.dp),
-                                    color = if (isSelected) Color(0xFF111827) else Color(0xFFF3F4F6)
+                // Kategori
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("Kategori", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMuted)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        listOf(
+                            Pair("Holiday", "Liburan"),
+                            Pair("Education", "Pendidikan"),
+                            Pair("Property", "Properti"),
+                            Pair("Emergency", "Darurat")
+                        ).forEach { (catKey, catLabel) ->
+                            val isSelected = selectedCategory == catKey
+                            Surface(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .clickable { selectedCategory = catKey },
+                                shape = RoundedCornerShape(10.dp),
+                                color = if (isSelected) Color(0xFF111827) else Color(0xFFF3F4F6)
+                            ) {
+                                Box(
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    Box(
-                                        modifier = Modifier.padding(vertical = 8.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = catLabel,
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = if (isSelected) Color.White else AppColors.TextMain
-                                        )
-                                    }
+                                    Text(
+                                        text = catLabel,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isSelected) Color.White else AppColors.TextMain
+                                    )
                                 }
                             }
                         }
                     }
+                }
 
-                    // Target Nominal
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("Target Nominal (Rp)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMuted)
-                        OutlinedTextField(
-                            value = targetAmountText,
-                            onValueChange = { targetAmountText = it.filter { c -> c.isDigit() } },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                    }
-
-                    // Target Waktu
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("Target Waktu", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMuted)
-                        OutlinedTextField(
-                            value = targetDate,
-                            onValueChange = { targetDate = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                    }
-
-                    // Action Buttons (Batal & Simpan)
-                    val targetLong = targetAmountText.toLongOrNull() ?: 0L
-                    Row(
+                // Target Nominal
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Target Nominal (Rp)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMuted)
+                    OutlinedTextField(
+                        value = targetAmountText,
+                        onValueChange = { targetAmountText = it.filter { c -> c.isDigit() } },
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        OutlinedButton(
-                            onClick = onDismiss,
-                            modifier = Modifier.weight(1f).height(48.dp),
-                            shape = RoundedCornerShape(14.dp),
-                            border = BorderStroke(1.dp, AppColors.Outline)
-                        ) {
-                            Text("Batal", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = AppColors.TextMuted)
-                        }
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
 
-                        Surface(
-                            modifier = Modifier
-                                .weight(1.5f)
-                                .height(48.dp)
-                                .clip(RoundedCornerShape(14.dp))
-                                .clickable(enabled = title.isNotBlank() && targetLong > 0) {
-                                    onConfirm(title, targetLong, targetDate, selectedCategory)
-                                },
-                            shape = RoundedCornerShape(14.dp),
-                            color = if (title.isNotBlank() && targetLong > 0) Color(0xFFFFDE43) else Color(0xFFE5E7EB)
+                // Target Waktu
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Target Waktu", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AppColors.TextMuted)
+                    OutlinedTextField(
+                        value = targetDate,
+                        onValueChange = { targetDate = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
+
+                // Action Buttons (Batal & Simpan)
+                val targetLong = targetAmountText.toLongOrNull() ?: 0L
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        border = BorderStroke(1.dp, AppColors.Outline)
+                    ) {
+                        Text("Batal", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = AppColors.TextMuted)
+                    }
+
+                    Surface(
+                        modifier = Modifier
+                            .weight(1.5f)
+                            .height(48.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .clickable(enabled = title.isNotBlank() && targetLong > 0) {
+                                onConfirm(title, targetLong, targetDate, selectedCategory)
+                            },
+                        shape = RoundedCornerShape(14.dp),
+                        color = if (title.isNotBlank() && targetLong > 0) Color(0xFFFFDE43) else Color(0xFFE5E7EB)
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center
                         ) {
-                            Box(
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "Simpan Target",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (title.isNotBlank() && targetLong > 0) Color(0xFF111827) else Color(0xFF9CA3AF)
-                                )
-                            }
+                            Text(
+                                text = "Simpan Target",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (title.isNotBlank() && targetLong > 0) Color(0xFF111827) else Color(0xFF9CA3AF)
+                            )
                         }
                     }
                 }
@@ -1448,6 +1477,7 @@ class FamilyScreen : Screen {
         }
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun InviteMemberDialog(
         familyName: String,
@@ -1456,172 +1486,185 @@ class FamilyScreen : Screen {
     ) {
         var copied by remember { mutableStateOf(false) }
 
-        Dialog(onDismissRequest = onDismiss) {
-            Surface(
+        ModalBottomSheet(
+            onDismissRequest = onDismiss,
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+            containerColor = AppColors.Surface,
+            dragHandle = {
+                Box(
+                    modifier = Modifier
+                        .padding(vertical = 12.dp)
+                        .width(36.dp)
+                        .height(4.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFE5E7EB))
+                )
+            }
+        ) {
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .widthIn(max = 480.dp),
-                shape = RoundedCornerShape(24.dp),
-                color = AppColors.Surface
+                    .widthIn(max = 540.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 36.dp)
+                    .navigationBarsPadding(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Undang Anggota Keluarga",
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = AppColors.TextMain
-                        )
-                        Surface(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .clickable(onClick = onDismiss),
-                            shape = CircleShape,
-                            color = AppColors.SurfaceRaised,
-                            border = BorderStroke(1.dp, AppColors.Outline)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Tutup",
-                                    tint = AppColors.TextMain,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                        }
-                    }
-
                     Text(
-                        text = "Bagikan kode unik di bawah ini ke pasangan atau anggota keluarga untuk mulai menabung bersama.",
-                        fontSize = 12.sp,
-                        color = AppColors.TextMuted,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        text = "Undang Anggota Keluarga",
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.TextMain
                     )
-
-                    // Code Card
-                    Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        color = Color(0xFF111827)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(18.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Text(
-                                text = "KODE RUANG KELUARGA",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White.copy(alpha = 0.6f)
-                            )
-                            Text(
-                                text = "FAM-PRATAMA-889",
-                                fontSize = 22.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = Color(0xFFFFDE43),
-                                letterSpacing = 2.sp
-                            )
-                        }
-                    }
-
-                    // Copy Link Button
                     Surface(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable { copied = true },
-                        shape = RoundedCornerShape(12.dp),
-                        color = Color(0xFFF3F4F6)
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .clickable(onClick = onDismiss),
+                        shape = CircleShape,
+                        color = AppColors.SurfaceRaised,
+                        border = BorderStroke(1.dp, AppColors.Outline)
                     ) {
-                        Row(
-                            modifier = Modifier.padding(vertical = 12.dp),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                        Box(contentAlignment = Alignment.Center) {
                             Icon(
-                                imageVector = if (copied) Icons.Default.Check else Icons.Default.ContentCopy,
-                                contentDescription = null,
-                                tint = if (copied) Color(0xFF10B981) else Color(0xFF111827),
-                                modifier = Modifier.size(16.dp)
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Tutup",
+                                tint = AppColors.TextMain,
+                                modifier = Modifier.size(18.dp)
                             )
-                            Spacer(Modifier.width(8.dp))
+                        }
+                    }
+                }
+
+                Text(
+                    text = "Bagikan kode unik di bawah ini ke pasangan atau anggota keluarga untuk mulai menabung bersama.",
+                    fontSize = 12.sp,
+                    color = AppColors.TextMuted,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+
+                // Code Card
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color(0xFF111827)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(18.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = "KODE RUANG KELUARGA",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White.copy(alpha = 0.6f)
+                        )
+                        Text(
+                            text = "FAM-PRATAMA-889",
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color(0xFFFFDE43),
+                            letterSpacing = 2.sp
+                        )
+                    }
+                }
+
+                // Copy Link Button
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable { copied = true },
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color(0xFFF3F4F6)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(vertical = 12.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = if (copied) Icons.Default.Check else Icons.Default.ContentCopy,
+                            contentDescription = null,
+                            tint = if (copied) Color(0xFF10B981) else Color(0xFF111827),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = if (copied) "Tautan Tersalin ke Clipboard!" else "Salin Tautan Undangan",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (copied) Color(0xFF10B981) else Color(0xFF111827)
+                        )
+                    }
+                }
+
+                HorizontalDivider(color = AppColors.Outline)
+
+                // Quick Simulate Button for Testing / Demo
+                Text(
+                    text = "Mode Pratinjau (Simulasi Backend):",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = AppColors.TextMuted
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(10.dp))
+                            .clickable {
+                                onSimulateJoin("Dewi Pratama", "dewi@pratama.id", FamilyRole.MEMBER)
+                            },
+                        shape = RoundedCornerShape(10.dp),
+                        color = Color(0xFFFFDE43).copy(alpha = 0.25f)
+                    ) {
+                        Box(
+                            modifier = Modifier.padding(vertical = 10.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Text(
-                                text = if (copied) "Tautan Tersalin ke Clipboard!" else "Salin Tautan Undangan",
-                                fontSize = 13.sp,
+                                text = "+ Tambah Ibu/Anak",
+                                fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = if (copied) Color(0xFF10B981) else Color(0xFF111827)
+                                color = Color(0xFF111827)
                             )
                         }
                     }
 
-                    HorizontalDivider(color = AppColors.Outline)
-
-                    // Quick Simulate Button for Testing / Demo
-                    Text(
-                        text = "Mode Pratinjau (Simulasi Backend):",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = AppColors.TextMuted
-                    )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(10.dp))
+                            .clickable {
+                                onSimulateJoin("Kakek Hadi", "hadi@pratama.id", FamilyRole.VIEWER)
+                            },
+                        shape = RoundedCornerShape(10.dp),
+                        color = Color(0xFFF3F4F6)
                     ) {
-                        Surface(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(10.dp))
-                                .clickable {
-                                    onSimulateJoin("Dewi Pratama", "dewi@pratama.id", FamilyRole.MEMBER)
-                                },
-                            shape = RoundedCornerShape(10.dp),
-                            color = Color(0xFFFFDE43).copy(alpha = 0.25f)
+                        Box(
+                            modifier = Modifier.padding(vertical = 10.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Box(
-                                modifier = Modifier.padding(vertical = 10.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "+ Tambah Ibu/Anak",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF111827)
-                                )
-                            }
-                        }
-
-                        Surface(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(10.dp))
-                                .clickable {
-                                    onSimulateJoin("Kakek Hadi", "hadi@pratama.id", FamilyRole.VIEWER)
-                                },
-                            shape = RoundedCornerShape(10.dp),
-                            color = Color(0xFFF3F4F6)
-                        ) {
-                            Box(
-                                modifier = Modifier.padding(vertical = 10.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "+ Tambah Pemantau",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = AppColors.TextMain
-                                )
-                            }
+                            Text(
+                                text = "+ Tambah Pemantau",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.TextMain
+                            )
                         }
                     }
                 }
@@ -1629,126 +1672,140 @@ class FamilyScreen : Screen {
         }
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun MemberActionDialog(
         member: FamilyMember,
         onDismiss: () -> Unit,
         onRoleChange: (FamilyRole) -> Unit
     ) {
-        Dialog(onDismissRequest = onDismiss) {
-            Surface(
+        ModalBottomSheet(
+            onDismissRequest = onDismiss,
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+            containerColor = AppColors.Surface,
+            dragHandle = {
+                Box(
+                    modifier = Modifier
+                        .padding(vertical = 12.dp)
+                        .width(36.dp)
+                        .height(4.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFE5E7EB))
+                )
+            }
+        ) {
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .widthIn(max = 480.dp),
-                shape = RoundedCornerShape(24.dp),
-                color = AppColors.Surface
+                    .widthIn(max = 540.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 36.dp)
+                    .navigationBarsPadding(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    Text(
+                        text = "Kelola Hak Akses",
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.TextMain
+                    )
+                    Surface(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .clickable(onClick = onDismiss),
+                        shape = CircleShape,
+                        color = AppColors.SurfaceRaised,
+                        border = BorderStroke(1.dp, AppColors.Outline)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Tutup",
+                                tint = AppColors.TextMain,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                }
+
+                // Member Info
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFFFDE43).copy(alpha = 0.25f)),
+                        contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Kelola Hak Akses",
-                            fontSize = 17.sp,
+                            text = member.name.take(1).uppercase(),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF111827)
+                        )
+                    }
+
+                    Column {
+                        Text(
+                            text = member.name,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = AppColors.TextMain
                         )
-                        Surface(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .clickable(onClick = onDismiss),
-                            shape = CircleShape,
-                            color = AppColors.SurfaceRaised,
-                            border = BorderStroke(1.dp, AppColors.Outline)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Tutup",
-                                    tint = AppColors.TextMain,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                        }
+                        Text(
+                            text = member.email,
+                            fontSize = 11.sp,
+                            color = AppColors.TextMuted
+                        )
                     }
-
-                    // Member Info
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(44.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFFFDE43).copy(alpha = 0.25f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = member.name.take(1).uppercase(),
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF111827)
-                            )
-                        }
-
-                        Column {
-                            Text(
-                                text = member.name,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = AppColors.TextMain
-                            )
-                            Text(
-                                text = member.email,
-                                fontSize = 11.sp,
-                                color = AppColors.TextMuted
-                            )
-                        }
-                    }
-
-                    HorizontalDivider(color = AppColors.Outline)
-
-                    Text(
-                        text = "Pilih Tingkat Akses:",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = AppColors.TextMuted
-                    )
-
-                    // Role 1: Admin
-                    RoleOptionRow(
-                        title = "Pengelola Keuangan (Admin)",
-                        description = "Bisa menambah target, mengundang anggota, dan menyetor dana.",
-                        icon = Icons.Default.Shield,
-                        isSelected = member.role == FamilyRole.ADMIN,
-                        onClick = { onRoleChange(FamilyRole.ADMIN) }
-                    )
-
-                    // Role 2: Member
-                    RoleOptionRow(
-                        title = "Anggota Tabungan (Member)",
-                        description = "Bisa menyetor tabungan dan melihat progres target bersama.",
-                        icon = Icons.Default.Person,
-                        isSelected = member.role == FamilyRole.MEMBER,
-                        onClick = { onRoleChange(FamilyRole.MEMBER) }
-                    )
-
-                    // Role 3: Viewer
-                    RoleOptionRow(
-                        title = "Pemantau Saja (Viewer)",
-                        description = "Hanya dapat memantau progres tanpa akses mengubah target.",
-                        icon = Icons.Default.Visibility,
-                        isSelected = member.role == FamilyRole.VIEWER,
-                        onClick = { onRoleChange(FamilyRole.VIEWER) }
-                    )
                 }
+
+                HorizontalDivider(color = AppColors.Outline)
+
+                Text(
+                    text = "Pilih Tingkat Akses:",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = AppColors.TextMuted
+                )
+
+                // Role 1: Admin
+                RoleOptionRow(
+                    title = "Pengelola Keuangan (Admin)",
+                    description = "Bisa menambah target, mengundang anggota, dan menyetor dana.",
+                    icon = Icons.Default.Shield,
+                    isSelected = member.role == FamilyRole.ADMIN,
+                    onClick = { onRoleChange(FamilyRole.ADMIN) }
+                )
+
+                // Role 2: Member
+                RoleOptionRow(
+                    title = "Anggota Tabungan (Member)",
+                    description = "Bisa menyetor tabungan dan melihat progres target bersama.",
+                    icon = Icons.Default.Person,
+                    isSelected = member.role == FamilyRole.MEMBER,
+                    onClick = { onRoleChange(FamilyRole.MEMBER) }
+                )
+
+                // Role 3: Viewer
+                RoleOptionRow(
+                    title = "Pemantau Saja (Viewer)",
+                    description = "Hanya dapat memantau progres tanpa akses mengubah target.",
+                    icon = Icons.Default.Visibility,
+                    isSelected = member.role == FamilyRole.VIEWER,
+                    onClick = { onRoleChange(FamilyRole.VIEWER) }
+                )
             }
         }
     }

@@ -19,14 +19,17 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.AutoAwesome
@@ -38,8 +41,10 @@ import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -61,8 +66,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.ui.theme.AppColors
 import kotlinx.coroutines.delay
@@ -122,6 +125,7 @@ val SampleReceipts = listOf(
  * Features an animated laser scanner viewfinder, sample receipt selectors,
  * and automatic extraction of merchant, nominal, and category.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReceiptScannerModal(
     onReceiptScanned: (ScannedReceipt) -> Unit,
@@ -146,37 +150,33 @@ fun ReceiptScannerModal(
         )
     )
 
-    Dialog(
+    ModalBottomSheet(
         onDismissRequest = { if (!isScanning) onDismiss() },
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.65f))
-                .clickable(enabled = !isScanning) { onDismiss() },
-            contentAlignment = Alignment.BottomCenter
-        ) {
-            Surface(
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        containerColor = if (isDark) Color(0xFF090D16) else Color.White,
+        dragHandle = {
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .widthIn(max = 560.dp)
-                    .clickable(enabled = false) { /* stop propagation */ },
-                shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
-                color = if (isDark) Color(0xFF090D16) else Color.White,
-                shadowElevation = 24.dp,
-                border = BorderStroke(
-                    1.dp,
-                    if (isDark) Color(0xFF1E293B) else Color(0xFFE5E7EB)
-                )
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
+                    .padding(vertical = 12.dp)
+                    .width(36.dp)
+                    .height(4.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFE5E7EB))
+            )
+        }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .widthIn(max = 560.dp)
+                .align(Alignment.CenterHorizontally)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 36.dp)
+                .navigationBarsPadding(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
                     // Top Handle Bar & Close
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -483,8 +483,6 @@ fun ReceiptScannerModal(
                             }
                         }
                     }
-                }
-            }
         }
     }
 }
