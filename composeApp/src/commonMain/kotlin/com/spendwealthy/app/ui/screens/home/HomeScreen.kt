@@ -73,6 +73,7 @@ import com.spendwealthy.app.ui.screens.home.components.GoalContributionDialog
 import com.spendwealthy.app.ui.screens.report.ReportScreen
 import com.spendwealthy.app.ui.screens.transaction.AddTransactionScreen
 import com.spendwealthy.app.ui.screens.transaction.list.TransactionListScreen
+import com.spendwealthy.app.ui.screens.settings.SettingsScreen
 import com.spendwealthy.app.ui.screens.wallet.AddWalletScreen
 import com.spendwealthy.app.ui.screens.wallet.WalletListScreen
 import com.spendwealthy.app.ui.theme.AppColors
@@ -138,9 +139,10 @@ class HomeScreen : Screen {
                 // 1. Top Bar: Greeting ("Good Morning, Khailena") & Month Dropdown ("August ▾")
                 item {
                     ModernFintechHeader(
-                        userName = state.userName.ifBlank { "Khailena" },
+                        userName = state.userName.ifBlank { "Alex Pratama" },
                         selectedMonthName = selectedMonthName,
                         onMonthClick = { showMonthPicker = true },
+                        onProfileClick = { rootNavigator.push(SettingsScreen()) },
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
                     )
                 }
@@ -230,6 +232,7 @@ class HomeScreen : Screen {
         userName: String,
         selectedMonthName: String,
         onMonthClick: () -> Unit,
+        onProfileClick: () -> Unit = {},
         modifier: Modifier = Modifier
     ) {
         val haptic = LocalHapticFeedback.current
@@ -244,11 +247,15 @@ class HomeScreen : Screen {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Stylish Profile Avatar
+                // Stylish Profile Avatar (Clickable to Settings)
                 Box(
                     modifier = Modifier
                         .size(44.dp)
                         .clip(CircleShape)
+                        .clickable {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onProfileClick()
+                        }
                         .background(Color(0xFFE5E7EB))
                         .border(1.5.dp, Color.White, CircleShape),
                     contentAlignment = Alignment.Center
