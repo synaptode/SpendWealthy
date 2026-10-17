@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -323,7 +324,7 @@ class AddBudgetScreen : Screen {
     private fun FormSection(
         title: String,
         icon: androidx.compose.ui.graphics.vector.ImageVector,
-        content: @Composable () -> Unit
+        content: @Composable ColumnScope.() -> Unit
     ) {
         Column(
             modifier = Modifier
@@ -359,7 +360,11 @@ class AddBudgetScreen : Screen {
                 color = AppColors.Surface,
                 border = BorderStroke(1.dp, AppColors.Outline)
             ) {
-                Box(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
                     content()
                 }
             }

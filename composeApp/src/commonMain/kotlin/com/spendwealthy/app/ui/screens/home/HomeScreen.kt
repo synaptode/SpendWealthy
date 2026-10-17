@@ -209,7 +209,7 @@ class HomeScreen : Screen {
                         totalIncome = state.totalIncome,
                         totalExpense = state.totalExpense,
                         isBalanceHidden = isBalanceHidden,
-                        onViewDetails = { rootNavigator.push(ReportScreen()) },
+                        onViewDetails = { rootNavigator.push(ReportScreen(onBackClick = { if (rootNavigator.canPop) rootNavigator.pop() })) },
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
                     )
                 }
@@ -739,7 +739,10 @@ class HomeScreen : Screen {
         modifier: Modifier = Modifier
     ) {
         Surface(
-            modifier = modifier.fillMaxWidth(),
+            modifier = modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(24.dp))
+                .clickable(onClick = onViewDetails),
             shape = RoundedCornerShape(24.dp),
             color = Color.White,
             border = BorderStroke(1.dp, Color(0xFFE5E7EB)),

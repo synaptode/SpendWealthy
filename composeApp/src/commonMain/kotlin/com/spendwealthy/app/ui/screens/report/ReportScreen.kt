@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,6 +26,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.AutoAwesome
@@ -64,12 +66,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.ui.components.CategoryPieChart
 import com.spendwealthy.app.ui.components.MonthPickerModal
 import com.spendwealthy.app.ui.components.PieChartData
 import com.spendwealthy.app.ui.theme.AppColors
 
-class ReportScreen : Screen {
+class ReportScreen(
+    private val onBackClick: (() -> Unit)? = null
+) : Screen {
 
     @Composable
     override fun Content() {
@@ -79,6 +85,8 @@ class ReportScreen : Screen {
         val haptic = LocalHapticFeedback.current
         var selectedTab by remember { mutableStateOf(1) } // 0: Income, 1: Expense (Default Expense to match Reference 4)
         var showMonthPicker by remember { mutableStateOf(false) }
+        val navigator = LocalNavigator.currentOrThrow
+        val canGoBack = onBackClick != null || navigator.canPop
 
         LaunchedEffect(viewModel) {
             viewModel.effect.collect { effect ->
@@ -110,12 +118,20 @@ class ReportScreen : Screen {
                     .padding(padding)
                     .background(AppColors.Background)
                     .windowInsetsPadding(WindowInsets.statusBars),
-                contentPadding = PaddingValues(start = 20.dp, top = 12.dp, end = 20.dp, bottom = 140.dp),
+                contentPadding = PaddingValues(start = 20.dp, top = 12.dp, end = 20.dp, bottom = if (canGoBack) 40.dp else 140.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // 1. Header (Matching Reference 4: "Statistics" + Month Selector Pill)
                 item {
                     ReportHeader(
+                        canGoBack = canGoBack,
+                        onBack = {
+                            if (onBackClick != null) {
+                                onBackClick.invoke()
+                            } else if (navigator.canPop) {
+                                navigator.pop()
+                            }
+                        },
                         selectedMonthName = state.selectedMonthName,
                         onSelectMonth = { showMonthPicker = true },
                         onExport = {
@@ -202,6 +218,8 @@ class ReportScreen : Screen {
 
     @Composable
     private fun ReportHeader(
+        canGoBack: Boolean,
+        onBack: () -> Unit,
         selectedMonthName: String,
         onSelectMonth: () -> Unit,
         onExport: () -> Unit,
@@ -216,15 +234,42 @@ class ReportScreen : Screen {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Statistics",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = AppColors.TextMain,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp)
-            )
+            ) {
+                if (canGoBack) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(AppColors.Surface)
+                            .border(1.dp, AppColors.Outline.copy(alpha = 0.6f), CircleShape)
+                            .clickable {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                onBack()
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Kembali",
+                            tint = AppColors.TextMain,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    Spacer(Modifier.width(12.dp))
+                }
+
+                Text(
+                    text = "Statistics",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = AppColors.TextMain,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
