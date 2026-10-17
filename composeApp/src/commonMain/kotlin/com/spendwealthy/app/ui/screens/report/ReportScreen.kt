@@ -55,6 +55,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
@@ -298,10 +299,15 @@ class ReportScreen : Screen {
         selectedTab: Int,
         onTabSelected: (Int) -> Unit
     ) {
+        val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+        val containerBg = if (isDark) AppColors.SurfaceRaised else Color(0xFFF3F4F6)
+        val activeBg = if (isDark) AppColors.Primary else Color(0xFF111827)
+        val activeTextColor = if (isDark) Color(0xFF10140D) else Color.White
+
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
-            color = Color(0xFFF3F4F6)
+            color = containerBg
         ) {
             Row(
                 modifier = Modifier
@@ -314,7 +320,7 @@ class ReportScreen : Screen {
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(20.dp))
-                        .background(if (selectedTab == 0) Color(0xFF111827) else Color.Transparent)
+                        .background(if (selectedTab == 0) activeBg else Color.Transparent)
                         .clickable { onTabSelected(0) }
                         .padding(vertical = 10.dp),
                     contentAlignment = Alignment.Center
@@ -323,7 +329,7 @@ class ReportScreen : Screen {
                         text = "Income",
                         fontSize = 13.sp,
                         fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Medium,
-                        color = if (selectedTab == 0) Color.White else AppColors.TextMuted
+                        color = if (selectedTab == 0) activeTextColor else AppColors.TextMuted
                     )
                 }
 
@@ -332,7 +338,7 @@ class ReportScreen : Screen {
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(20.dp))
-                        .background(if (selectedTab == 1) Color(0xFF111827) else Color.Transparent)
+                        .background(if (selectedTab == 1) activeBg else Color.Transparent)
                         .clickable { onTabSelected(1) }
                         .padding(vertical = 10.dp),
                     contentAlignment = Alignment.Center
@@ -341,7 +347,7 @@ class ReportScreen : Screen {
                         text = "Expense",
                         fontSize = 13.sp,
                         fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Medium,
-                        color = if (selectedTab == 1) Color.White else AppColors.TextMuted
+                        color = if (selectedTab == 1) activeTextColor else AppColors.TextMuted
                     )
                 }
             }
@@ -372,7 +378,8 @@ class ReportScreen : Screen {
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.weight(1f, fill = false).padding(end = 6.dp)
                     ) {
                         Box(
                             modifier = Modifier
@@ -385,7 +392,9 @@ class ReportScreen : Screen {
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = AppColors.TextMuted,
-                            letterSpacing = 0.5.sp
+                            letterSpacing = 0.5.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                     Surface(
@@ -398,7 +407,9 @@ class ReportScreen : Screen {
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = savingRateColor,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -510,7 +521,8 @@ class ReportScreen : Screen {
                     style = MaterialTheme.typography.bodySmall,
                     color = AppColors.TextMain,
                     fontWeight = FontWeight.SemiBold,
-                    lineHeight = 18.sp
+                    lineHeight = 18.sp,
+                    modifier = Modifier.weight(1f)
                 )
             }
         }
@@ -573,7 +585,8 @@ class ReportScreen : Screen {
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.weight(1f).padding(end = 8.dp)
                     ) {
                         Box(
                             modifier = Modifier
@@ -590,18 +603,22 @@ class ReportScreen : Screen {
                             )
                         }
 
-                        Column {
+                        Column(modifier = Modifier.weight(1f, fill = false)) {
                             Text(
                                 text = summary.categoryName,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = AppColors.TextMain
+                                color = AppColors.TextMain,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                             Text(
                                 text = "$percentageInt% of total ${if (isIncome) "income" else "expense"}",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = AppColors.TextMuted
+                                color = AppColors.TextMuted,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
@@ -610,16 +627,21 @@ class ReportScreen : Screen {
                         text = summary.amount.format(),
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp,
-                        color = AppColors.TextMain
+                        color = AppColors.TextMain,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
+
+                val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+                val trackBg = if (isDark) AppColors.Dark.Surface else Color(0xFFF3F4F6)
 
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(6.dp)
                         .clip(RoundedCornerShape(3.dp))
-                        .background(Color(0xFFF3F4F6))
+                        .background(trackBg)
                 ) {
                     Box(
                         modifier = Modifier
