@@ -16,12 +16,27 @@ class ExportMonthlyTransactionsCsvUseCase(
 ) {
     suspend operator fun invoke(year: Int, month: Int): GatewayResult<Unit> {
         val range = monthRange(year, month)
-        val transactions = transactionRepository.getTransactionsByDateRange(range.start, range.endInclusive)
+        val label = "transactions-$year-${month.toString().padStart(2, '0')}"
+        return exportRange(range.start, range.endInclusive, label = label)
+    }
+
+    suspend fun exportRange(
+        startDate: kotlinx.datetime.LocalDate,
+        endDate: kotlinx.datetime.LocalDate,
+        label: String = "transactions",
+        walletId: String? = null
+    ): GatewayResult<Unit> {
+        val allTransactions = transactionRepository.getTransactionsByDateRange(startDate, endDate)
             .firstOrNull()
             .orEmpty()
+        val transactions = if (walletId != null) {
+            allTransactions.filter { it.walletId == walletId }
+        } else {
+            allTransactions
+        }
         val categories = categoryRepository.getCategories().firstOrNull().orEmpty()
         val csv = csvReportExporter.exportTransactions(transactions, categories)
-        val fileName = "spendwealthy-transactions-$year-${month.toString().padStart(2, '0')}.csv"
+        val fileName = "spendwealthy-$label.csv"
 
         return fileShareGateway.shareTextFile(
             fileName = fileName,

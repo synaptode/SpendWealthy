@@ -97,6 +97,8 @@ import com.spendwealthy.app.ui.screens.settings.SettingsScreen
 import com.spendwealthy.app.domain.model.FamilyMember
 import com.spendwealthy.app.ui.screens.family.FamilyScreen
 import com.spendwealthy.app.ui.screens.home.components.FamilyGovernanceCard
+import com.spendwealthy.app.domain.model.CurrencyConverter
+import com.spendwealthy.app.ui.screens.budget.BudgetListScreen
 import com.spendwealthy.app.ui.screens.wallet.AddWalletScreen
 import com.spendwealthy.app.ui.screens.wallet.WalletListScreen
 import com.spendwealthy.app.ui.theme.AppColors
@@ -220,6 +222,17 @@ class HomeScreen : Screen {
                         onViewDetails = { rootNavigator.push(ReportScreen(onBackClick = { if (rootNavigator.canPop) rootNavigator.pop() })) },
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
                     )
+                }
+
+                // 3.5. Proactive Budget Health Alert Card
+                if (state.criticalBudgetAlerts.isNotEmpty()) {
+                    item {
+                        BudgetHealthAlertCard(
+                            alerts = state.criticalBudgetAlerts,
+                            onViewBudgets = { rootNavigator.push(BudgetListScreen()) },
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+                        )
+                    }
                 }
 
                 // 4. My Wallets / Accounts Carousel
@@ -1021,48 +1034,58 @@ class HomeScreen : Screen {
                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 6.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Euro Account Card (Vector Public/Globe Icon)
-                item {
-                    FintechAccountCard(
-                        icon = Icons.Default.Public,
-                        iconBg = Color(0xFFEFF6FF),
-                        iconTint = Color(0xFF2563EB),
-                        title = "Euro account",
-                        maskedNumber = "1580 **** 9086",
-                        balance = "€3,450.86",
-                        isBalanceHidden = isBalanceHidden
-                    )
-                }
-
-                // US Dollar Card (Vector CreditCard Icon)
-                item {
-                    FintechAccountCard(
-                        icon = Icons.Default.CreditCard,
-                        iconBg = Color(0xFFECFDF5),
-                        iconTint = Color(0xFF059669),
-                        title = "US Dollar",
-                        maskedNumber = "4821 **** 1024",
-                        balance = "$40,500.80",
-                        isBalanceHidden = isBalanceHidden
-                    )
-                }
-
-                // User's custom wallets (Vector AccountBalanceWallet Icon or KnownBrand logo)
+                // 1. User's custom wallets (Priority 1)
                 items(wallets) { wallet ->
                     val brand = KnownBrand.from(wallet.name)
+                    val isForeign = wallet.balance.currency != "IDR"
+                    val displayBalance = if (isForeign) wallet.balance.formatWithSymbol() else wallet.balance.format()
+                    val subtitle = if (isForeign) CurrencyConverter.formatEstimatedIdr(wallet.balance) else null
+
                     FintechAccountCard(
                         icon = Icons.Default.AccountBalanceWallet,
                         brand = brand,
                         iconBg = if (brand != null) Color(0xFFF9FAFB) else Color(0xFFF3F4F6),
                         iconTint = Color(0xFF111827),
                         title = wallet.name,
-                        maskedNumber = "Account • Active",
-                        balance = wallet.balance.format(),
+                        maskedNumber = if (isForeign) "${wallet.balance.currency} • Kurs Live" else "Account • Active",
+                        balance = displayBalance,
+                        secondaryBalance = subtitle,
                         isBalanceHidden = isBalanceHidden
                     )
                 }
 
-                // Add Wallet Action Card
+                // 2. Global Multi-Currency Discovery Cards (If user has not yet created foreign accounts)
+                if (wallets.none { it.balance.currency == "EUR" }) {
+                    item {
+                        FintechAccountCard(
+                            icon = Icons.Default.Public,
+                            iconBg = Color(0xFFEFF6FF),
+                            iconTint = Color(0xFF2563EB),
+                            title = "Euro Account",
+                            maskedNumber = "EUR • Kurs Live",
+                            balance = "€3.450",
+                            secondaryBalance = "≈ Rp60.375.000",
+                            isBalanceHidden = isBalanceHidden
+                        )
+                    }
+                }
+
+                if (wallets.none { it.balance.currency == "USD" }) {
+                    item {
+                        FintechAccountCard(
+                            icon = Icons.Default.CreditCard,
+                            iconBg = Color(0xFFECFDF5),
+                            iconTint = Color(0xFF059669),
+                            title = "US Dollar",
+                            maskedNumber = "USD • Kurs Live",
+                            balance = "$2,500",
+                            secondaryBalance = "≈ Rp40.625.000",
+                            isBalanceHidden = isBalanceHidden
+                        )
+                    }
+                }
+
+                // 3. Add Wallet Action Card
                 item {
                     Surface(
                         modifier = Modifier
@@ -1114,11 +1137,12 @@ class HomeScreen : Screen {
         maskedNumber: String,
         balance: String,
         isBalanceHidden: Boolean,
+        secondaryBalance: String? = null,
         brand: KnownBrand? = null
     ) {
         Surface(
             modifier = Modifier
-                .width(250.dp)
+                .width(260.dp)
                 .height(86.dp)
                 .tactilePress(pressedScale = 0.96f),
             shape = RoundedCornerShape(18.dp),
@@ -1176,12 +1200,165 @@ class HomeScreen : Screen {
 
                 Spacer(modifier = Modifier.width(10.dp))
 
-                Text(
-                    text = if (isBalanceHidden) "••••••" else balance,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF111827)
-                )
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = if (isBalanceHidden) "••••••" else balance,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF111827)
+                    )
+                    if (!isBalanceHidden && secondaryBalance != null) {
+                        Text(
+                            text = secondaryBalance,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF10B981)
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun BudgetHealthAlertCard(
+        alerts: List<BudgetAlertInfo>,
+        onViewBudgets: () -> Unit,
+        modifier: Modifier = Modifier
+    ) {
+        val hasOverbudget = alerts.any { it.isOverbudget }
+        val topAlert = alerts.firstOrNull() ?: return
+        val cardBorderColor = if (hasOverbudget) Color(0xFFF43F5E).copy(alpha = 0.45f) else Color(0xFFF59E0B).copy(alpha = 0.45f)
+        val badgeBg = if (hasOverbudget) Color(0xFFF43F5E).copy(alpha = 0.14f) else Color(0xFFF59E0B).copy(alpha = 0.14f)
+        val accentColor = if (hasOverbudget) Color(0xFFF43F5E) else Color(0xFFF59E0B)
+
+        Surface(
+            modifier = modifier
+                .fillMaxWidth()
+                .bouncyClickable(
+                    pressedScale = 0.98f,
+                    hapticType = HapticFeedbackType.LongPress,
+                    onClick = onViewBudgets
+                ),
+            shape = RoundedCornerShape(20.dp),
+            color = AppColors.Surface,
+            border = BorderStroke(1.dp, cardBorderColor),
+            shadowElevation = 2.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(badgeBg),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = if (hasOverbudget) Icons.Default.Warning else Icons.AutoMirrored.Filled.TrendingUp,
+                                contentDescription = null,
+                                tint = accentColor,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        Column {
+                            Text(
+                                text = if (hasOverbudget) "Peringatan Plafon Anggaran 🚨" else "Mendekati Batas Anggaran ⚠️",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.TextMain
+                            )
+                            Text(
+                                text = "${alerts.size} pos anggaran membutuhkan perhatian",
+                                fontSize = 11.sp,
+                                color = AppColors.TextMuted
+                            )
+                        }
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = badgeBg
+                    ) {
+                        Text(
+                            text = if (hasOverbudget) "Kritis" else "Waspada",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = accentColor,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+
+                // Progress Bar for top alert
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = topAlert.categoryName,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = AppColors.TextMain
+                        )
+                        Text(
+                            text = "${(topAlert.usagePercentage * 100).toInt()}% • ${topAlert.spent.format()} / ${topAlert.limit.format()}",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = accentColor
+                        )
+                    }
+
+                    val progressFraction = topAlert.usagePercentage.toFloat().coerceIn(0f, 1f)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(3.dp))
+                            .background(AppColors.Outline)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(fraction = progressFraction)
+                                .height(6.dp)
+                                .clip(RoundedCornerShape(3.dp))
+                                .background(
+                                    Brush.horizontalGradient(
+                                        if (hasOverbudget) listOf(Color(0xFFF59E0B), Color(0xFFF43F5E))
+                                        else listOf(Color(0xFF10B981), Color(0xFFF59E0B))
+                                    )
+                                )
+                        )
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Kelola Anggaran →",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.Primary
+                    )
+                }
             }
         }
     }

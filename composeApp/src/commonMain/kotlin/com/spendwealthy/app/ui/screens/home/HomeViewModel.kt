@@ -20,6 +20,15 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 
+data class BudgetAlertInfo(
+    val categoryId: String?,
+    val categoryName: String,
+    val limit: Money,
+    val spent: Money,
+    val usagePercentage: Double,
+    val isOverbudget: Boolean
+)
+
 data class HomeState(
     val userName: String = "User",
     val userAvatarId: Int = 0,
@@ -29,6 +38,7 @@ data class HomeState(
     val safeToSpend: Money = Money.zero(),
     val dailyAllowance: Money = Money.zero(),
     val budgetUsage: Double = 0.0,
+    val criticalBudgetAlerts: List<BudgetAlertInfo> = emptyList(),
     val upcomingBills: List<BillReminder> = emptyList(),
     val recentTransactions: List<Transaction> = emptyList(),
     val daysUntilPayday: Int = 0,
@@ -123,7 +133,8 @@ class HomeViewModel(
     private val estateEngine: EstateIntelligenceEngine,
     private val liquidityEngine: LiquiditySimulationEngine,
     private val scoreEngine: WealthScoreEngine,
-    private val stressEngine: StressTestEngine
+    private val stressEngine: StressTestEngine,
+    private val categoryRepository: CategoryRepository
 ) : ScreenModel {
     private val _uiState = MutableStateFlow(HomeState())
     val uiState: StateFlow<HomeState> = _uiState.asStateFlow()
@@ -139,6 +150,7 @@ class HomeViewModel(
     private var currentBills: List<BillReminder> = emptyList()
     private var currentFamily: Family? = null
     private var currentGoals: List<Goal> = emptyList()
+    private var currentCategories: Map<String, Category> = emptyMap()
 
     init {
         observeData()
@@ -204,6 +216,12 @@ class HomeViewModel(
                 recomputeState()
             }
         }
+        screenModelScope.launch {
+            categoryRepository.getCategories().collect { categories ->
+                currentCategories = categories.associateBy { it.id }
+                recomputeState()
+            }
+        }
     }
 
     private fun recomputeState() {
@@ -217,7 +235,7 @@ class HomeViewModel(
         val goals = currentGoals
         val scenario = _selectedScenario.value
 
-        val totalBalance = wallets.sumOf { it.balance.amount }
+        val totalBalance = wallets.sumOf { CurrencyConverter.toIdr(it.balance) }
         val income = transactions.filter { it.type == TransactionType.INCOME }.sumOf { it.amount.amount }
         val expense = transactions.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount.amount }
         val unpaidBills = bills
@@ -232,6 +250,25 @@ class HomeViewModel(
         val spentMap = transactions.filter { it.type == TransactionType.EXPENSE }
             .groupBy { it.categoryId }
             .mapValues { (_, tList) -> tList.sumOf { it.amount.amount } }
+
+        val criticalBudgetAlerts = budgets.filter { it.categoryId != null }.mapNotNull { budget ->
+            val spent = spentMap[budget.categoryId] ?: 0L
+            val limit = budget.limit.amount
+            if (limit > 0L) {
+                val usage = spent.toDouble() / limit.toDouble()
+                if (usage >= 0.8) {
+                    val catName = budget.categoryId?.let { currentCategories[it]?.name } ?: "Kategori"
+                    BudgetAlertInfo(
+                        categoryId = budget.categoryId,
+                        categoryName = catName,
+                        limit = budget.limit,
+                        spent = Money(spent, budget.limit.currency),
+                        usagePercentage = usage,
+                        isOverbudget = usage >= 1.0
+                    )
+                } else null
+            } else null
+        }.sortedByDescending { it.usagePercentage }
 
         val safeResult = safeToSpendEngine.calculateAdvanced(
             totalLiquidity = Money(totalBalance, "IDR"),
@@ -399,6 +436,7 @@ class HomeViewModel(
                 safeToSpend = safeToSpend,
                 dailyAllowance = dailyAllowance,
                 budgetUsage = budgetUsage,
+                criticalBudgetAlerts = criticalBudgetAlerts,
                 upcomingBills = unpaidBills.take(3),
                 recentTransactions = transactionsWithFamily.take(5),
                 daysUntilPayday = (range.endInclusive.dayOfMonth - now.dayOfMonth).coerceAtLeast(0),

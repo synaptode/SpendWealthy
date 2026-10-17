@@ -40,6 +40,7 @@ import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -144,12 +145,16 @@ class BudgetListScreen : Screen {
                         )
                     }
                 } else {
+                    item {
+                        BudgetHealthOverviewCard(viewModel = viewModel)
+                    }
                     items(state.budgets, key = { it.id }) { budget ->
                         BudgetEnvelopeCard(
                             title = viewModel.getBudgetName(budget),
                             budget = budget,
                             usage = viewModel.getUsage(budget),
-                            remaining = viewModel.getRemaining(budget).format()
+                            remaining = viewModel.getRemaining(budget).format(),
+                            viewModel = viewModel
                         )
                     }
                 }
@@ -658,12 +663,134 @@ class BudgetListScreen : Screen {
     }
 
     @Composable
+    private fun BudgetHealthOverviewCard(
+        viewModel: BudgetListViewModel
+    ) {
+        val totalAllocated = viewModel.totalAllocated
+        val totalSpent = viewModel.totalSpent
+        val usage = viewModel.overallUsagePercentage
+        val criticalCount = viewModel.criticalBudgetsCount
+        val warningCount = viewModel.warningBudgetsCount
+
+        val (accentColor, badgeBg, statusText) = when {
+            criticalCount > 0 -> Triple(
+                AppColors.Danger,
+                Color(0xFFF43F5E).copy(alpha = 0.15f),
+                "$criticalCount Pos Overbudget 🚨"
+            )
+            warningCount > 0 -> Triple(
+                AppColors.Warning,
+                Color(0xFFF59E0B).copy(alpha = 0.15f),
+                "$warningCount Pos Waspada (80%+) ⚠️"
+            )
+            else -> Triple(
+                AppColors.Primary,
+                AppColors.Primary.copy(alpha = 0.15f),
+                "Semua Anggaran Sehat ✅"
+            )
+        }
+
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 6.dp),
+            shape = RoundedCornerShape(20.dp),
+            color = AppColors.SurfaceRaised,
+            border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.3f))
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Ringkasan Plafon Bulanan",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.TextMuted
+                    )
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = badgeBg
+                    ) {
+                        Text(
+                            text = statusText,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = accentColor,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                        )
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    Column {
+                        Text(
+                            text = "Terpakai: ${totalSpent.format()}",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Black,
+                            color = AppColors.TextMain
+                        )
+                        Text(
+                            text = "Alokasi Maksimal: ${totalAllocated.format()}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = AppColors.TextMuted
+                        )
+                    }
+                    Text(
+                        text = "${(usage * 100).toInt()}%",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Black,
+                        color = accentColor
+                    )
+                }
+
+                val progressFraction = usage.toFloat().coerceIn(0f, 1f)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(8.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(AppColors.Outline)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(progressFraction)
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(
+                                Brush.horizontalGradient(
+                                    when {
+                                        criticalCount > 0 -> listOf(Color(0xFFF59E0B), Color(0xFFF43F5E))
+                                        warningCount > 0 -> listOf(Color(0xFF10B981), Color(0xFFF59E0B))
+                                        else -> listOf(Color(0xFF10B981), Color(0xFF34D399), Color(0xFFDEFF37))
+                                    }
+                                )
+                            )
+                    )
+                }
+            }
+        }
+    }
+
+    @Composable
     private fun BudgetEnvelopeCard(
         title: String,
         budget: Budget,
         usage: Double,
-        remaining: String
+        remaining: String,
+        viewModel: BudgetListViewModel
     ) {
+        val isOverbudget = usage >= 1.0
+        val isWarning = usage >= 0.8 && !isOverbudget
         val progress = usage.toFloat().coerceIn(0f, 1f)
         val animatedProgress by animateFloatAsState(
             targetValue = progress,
@@ -672,12 +799,12 @@ class BudgetListScreen : Screen {
 
         val percentageInt = (usage * 100).toInt()
         val (accentColor, progressBrush, statusLabel) = when {
-            usage >= 0.9 -> Triple(
+            isOverbudget -> Triple(
                 AppColors.Danger,
-                Brush.horizontalGradient(listOf(Color(0xFFF43F5E), Color(0xFFE11D48))),
-                "Hampir Penuh"
+                Brush.horizontalGradient(listOf(Color(0xFFF43F5E), Color(0xFFBE123C))),
+                "Overbudget"
             )
-            usage >= 0.7 -> Triple(
+            isWarning -> Triple(
                 AppColors.Warning,
                 Brush.horizontalGradient(listOf(Color(0xFFF59E0B), Color(0xFFFBBF24))),
                 "Waspada"
@@ -696,7 +823,7 @@ class BudgetListScreen : Screen {
                 .tactilePress(pressedScale = 0.97f),
             shape = RoundedCornerShape(20.dp),
             color = AppColors.Surface,
-            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline)
+            border = androidx.compose.foundation.BorderStroke(1.dp, if (isOverbudget) Color(0xFFF43F5E).copy(alpha = 0.5f) else AppColors.Outline)
         ) {
             Column(
                 modifier = Modifier.padding(18.dp),
@@ -719,7 +846,7 @@ class BudgetListScreen : Screen {
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Payments,
+                                imageVector = if (isOverbudget) Icons.Default.Warning else Icons.Default.Payments,
                                 contentDescription = null,
                                 tint = accentColor,
                                 modifier = Modifier.size(20.dp)
@@ -739,9 +866,10 @@ class BudgetListScreen : Screen {
                                 overflow = TextOverflow.Ellipsis
                             )
                             Text(
-                                text = "Sisa anggaran: $remaining",
+                                text = if (isOverbudget) "Melebihi plafon: ${viewModel.getExceeded(budget).format()}" else "Sisa anggaran: $remaining",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = AppColors.TextMuted,
+                                fontWeight = if (isOverbudget) FontWeight.Bold else FontWeight.Normal,
+                                color = if (isOverbudget) AppColors.Danger else AppColors.TextMuted,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -762,7 +890,7 @@ class BudgetListScreen : Screen {
                             color = accentColor.copy(alpha = 0.15f)
                         ) {
                             Text(
-                                text = "$statusLabel • $percentageInt%",
+                                text = if (isOverbudget) "🚨 Overbudget (+${percentageInt - 100}%)" else "$statusLabel • $percentageInt%",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = accentColor,

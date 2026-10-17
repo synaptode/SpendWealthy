@@ -133,6 +133,7 @@ val commonModule = module {
             ,
             get(),
             get(),
+            get(),
             get()
         )
     }
@@ -145,7 +146,7 @@ val commonModule = module {
     factory { AddBudgetViewModel(get(), get(), get(), get()) }
     factory { BillListViewModel(get(), get(), get()) }
     factory { AddBillViewModel(get(), get(), get(), get()) }
-    factory { ReportViewModel(get(), get(), get()) }
+    factory { ReportViewModel(get(), get(), get(), get()) }
     factory { SettingsViewModel(get(), get(), get(), get(), get()) }
     factory { VaultViewModel(get(), get()) }
     factory { AddDocumentViewModel(get()) }

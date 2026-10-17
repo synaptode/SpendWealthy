@@ -19,17 +19,35 @@ import kotlinx.datetime.Clock as KtClock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
+import com.spendwealthy.app.core.util.pastMonthsRange
+import com.spendwealthy.app.core.util.yearRange
+import com.spendwealthy.app.domain.model.Wallet
+import com.spendwealthy.app.domain.repository.WalletRepository
+
+enum class PeriodPreset(val label: String) {
+    THIS_MONTH("Bulan Ini"),
+    LAST_MONTH("Bulan Lalu"),
+    LAST_3_MONTHS("3 Bulan"),
+    THIS_YEAR("Tahun Ini")
+}
+
 data class ReportState(
     val categorySummaries: List<CategorySummary> = emptyList(),
     val incomeCategorySummaries: List<CategorySummary> = emptyList(),
     val totalIncome: Money = Money.zero(),
     val totalExpense: Money = Money.zero(),
     val savingRate: Double = 0.0,
+    val averageDailyExpense: Money = Money.zero(),
+    val topExpenseCategoryName: String? = null,
+    val totalTransactionsCount: Int = 0,
     val insight: String = "Belum ada transaksi bulan ini.",
     val exportInProgress: Boolean = false,
     val isLoading: Boolean = false,
     val selectedYear: Int = 2026,
-    val selectedMonth: Int = 10
+    val selectedMonth: Int = 10,
+    val selectedPeriodPreset: PeriodPreset = PeriodPreset.THIS_MONTH,
+    val wallets: List<Wallet> = emptyList(),
+    val selectedWalletId: String? = null
 ) : UiState {
     val selectedMonthName: String
         get() = when (selectedMonth) {
@@ -47,6 +65,9 @@ data class ReportState(
             12 -> "Desember"
             else -> "Bulan Ini"
         }
+
+    val selectedWalletName: String
+        get() = wallets.firstOrNull { it.id == selectedWalletId }?.name ?: "Semua Dompet"
 }
 
 sealed class ReportEffect : UiEffect {
@@ -64,6 +85,7 @@ data class CategorySummary(
 class ReportViewModel(
     private val transactionRepository: TransactionRepository,
     private val categoryRepository: CategoryRepository,
+    private val walletRepository: WalletRepository,
     private val exportMonthlyTransactionsCsvUseCase: ExportMonthlyTransactionsCsvUseCase
 ) : ScreenModel {
 
@@ -87,6 +109,8 @@ class ReportViewModel(
 
     private var selectedYear = currentMonth.year
     private var selectedMonth = currentMonth.monthNumber
+    private var selectedPeriod: PeriodPreset = PeriodPreset.THIS_MONTH
+    private var selectedWalletId: String? = null
 
     init {
         loadReport()
@@ -95,19 +119,72 @@ class ReportViewModel(
     fun setMonth(year: Int, month: Int) {
         selectedYear = year
         selectedMonth = month
+        selectedPeriod = PeriodPreset.THIS_MONTH
+        loadReport()
+    }
+
+    fun setPeriodPreset(preset: PeriodPreset) {
+        selectedPeriod = preset
+        val now = currentMonth
+        when (preset) {
+            PeriodPreset.THIS_MONTH -> {
+                selectedYear = now.year
+                selectedMonth = now.monthNumber
+            }
+            PeriodPreset.LAST_MONTH -> {
+                if (now.monthNumber == 1) {
+                    selectedYear = now.year - 1
+                    selectedMonth = 12
+                } else {
+                    selectedYear = now.year
+                    selectedMonth = now.monthNumber - 1
+                }
+            }
+            PeriodPreset.LAST_3_MONTHS -> {
+                selectedYear = now.year
+                selectedMonth = now.monthNumber
+            }
+            PeriodPreset.THIS_YEAR -> {
+                selectedYear = now.year
+                selectedMonth = now.monthNumber
+            }
+        }
+        loadReport()
+    }
+
+    fun selectWallet(walletId: String?) {
+        selectedWalletId = walletId
         loadReport()
     }
 
     private fun loadReport() {
-        val range = monthRange(selectedYear, selectedMonth)
-        
+        val range = when (selectedPeriod) {
+            PeriodPreset.THIS_MONTH -> monthRange(selectedYear, selectedMonth)
+            PeriodPreset.LAST_MONTH -> monthRange(selectedYear, selectedMonth)
+            PeriodPreset.LAST_3_MONTHS -> pastMonthsRange(selectedYear, selectedMonth, 3)
+            PeriodPreset.THIS_YEAR -> yearRange(selectedYear)
+        }
+        val daysInPeriod = (range.endInclusive.toEpochDays() - range.start.toEpochDays() + 1).coerceAtLeast(1)
+
         screenModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, selectedYear = selectedYear, selectedMonth = selectedMonth)
-            
+            _uiState.value = _uiState.value.copy(
+                isLoading = true,
+                selectedYear = selectedYear,
+                selectedMonth = selectedMonth,
+                selectedPeriodPreset = selectedPeriod,
+                selectedWalletId = selectedWalletId
+            )
+
             combine(
                 transactionRepository.getTransactionsByDateRange(range.start, range.endInclusive),
-                categoryRepository.getCategories()
-            ) { transactions, categories ->
+                categoryRepository.getCategories(),
+                walletRepository.getWallets()
+            ) { allTransactions, categories, wallets ->
+                val transactions = if (selectedWalletId != null) {
+                    allTransactions.filter { it.walletId == selectedWalletId }
+                } else {
+                    allTransactions
+                }
                 val categoryMap = categories.associateBy { it.id }
                 val expenses = transactions.filter { it.type == TransactionType.EXPENSE }
                 val incomes = transactions.filter { it.type == TransactionType.INCOME }
@@ -118,7 +195,8 @@ class ReportViewModel(
                 } else {
                     0.0
                 }
-                
+                val avgDaily = totalExpense / daysInPeriod
+
                 val summaries = expenses.groupBy { it.categoryId }.entries.mapIndexed { index, (catId, trans) ->
                     val sum = trans.sumOf { it.amount.amount }
                     val category = categoryMap[catId]
@@ -143,25 +221,40 @@ class ReportViewModel(
                     )
                 }.sortedByDescending { it.amount.amount }
 
-                val insight = when {
-                    transactions.isEmpty() -> "Belum ada transaksi bulan ini. Mulai dari catatan kecil dulu."
-                    totalIncome <= 0L -> "Pengeluaran tercatat ${Money(totalExpense, "IDR").format()} bulan ini. Tambahkan income agar saving rate bisa dihitung."
-                    savingRate >= 0.2 -> "Bagus, saving rate kamu ${(savingRate * 100).toInt()}% bulan ini."
-                    savingRate >= 0.0 -> "Saving rate kamu ${(savingRate * 100).toInt()}%. Masih aman, tapi ruang menabung tipis."
-                    else -> "Pengeluaran melebihi income bulan ini. Cek kategori terbesar untuk prioritas evaluasi."
+                val topExpense = summaries.firstOrNull()?.categoryName
+
+                val periodLabel = when (selectedPeriod) {
+                    PeriodPreset.THIS_MONTH -> "bulan ini"
+                    PeriodPreset.LAST_MONTH -> "bulan lalu"
+                    PeriodPreset.LAST_3_MONTHS -> "3 bulan terakhir"
+                    PeriodPreset.THIS_YEAR -> "tahun ini"
                 }
-                
+
+                val insight = when {
+                    transactions.isEmpty() -> "Belum ada transaksi pada $periodLabel."
+                    totalIncome <= 0L -> "Pengeluaran tercatat ${Money(totalExpense, "IDR").format()} pada $periodLabel."
+                    savingRate >= 0.2 -> "Bagus, saving rate kamu ${(savingRate * 100).toInt()}% pada $periodLabel."
+                    savingRate >= 0.0 -> "Saving rate kamu ${(savingRate * 100).toInt()}%. Masih aman, pertahankan!"
+                    else -> "Pengeluaran melebihi pemasukan pada $periodLabel. Cek kategori $topExpense untuk evaluasi."
+                }
+
                 ReportState(
                     categorySummaries = summaries,
                     incomeCategorySummaries = incomeSummaries,
                     totalIncome = Money(totalIncome, "IDR"),
                     totalExpense = Money(totalExpense, "IDR"),
                     savingRate = savingRate,
+                    averageDailyExpense = Money(avgDaily, "IDR"),
+                    topExpenseCategoryName = topExpense,
+                    totalTransactionsCount = transactions.size,
                     insight = insight,
                     exportInProgress = _uiState.value.exportInProgress,
                     isLoading = false,
                     selectedYear = selectedYear,
-                    selectedMonth = selectedMonth
+                    selectedMonth = selectedMonth,
+                    selectedPeriodPreset = selectedPeriod,
+                    wallets = wallets,
+                    selectedWalletId = selectedWalletId
                 )
             }.collectLatest { state ->
                 _uiState.value = state
@@ -170,9 +263,22 @@ class ReportViewModel(
     }
 
     fun exportCsv() {
+        val range = when (selectedPeriod) {
+            PeriodPreset.THIS_MONTH -> monthRange(selectedYear, selectedMonth)
+            PeriodPreset.LAST_MONTH -> monthRange(selectedYear, selectedMonth)
+            PeriodPreset.LAST_3_MONTHS -> pastMonthsRange(selectedYear, selectedMonth, 3)
+            PeriodPreset.THIS_YEAR -> yearRange(selectedYear)
+        }
+        val label = "laporan-${selectedPeriod.name.lowercase()}-$selectedYear"
+
         screenModelScope.launch {
             _uiState.value = _uiState.value.copy(exportInProgress = true)
-            when (val result = exportMonthlyTransactionsCsvUseCase(selectedYear, selectedMonth)) {
+            when (val result = exportMonthlyTransactionsCsvUseCase.exportRange(
+                startDate = range.start,
+                endDate = range.endInclusive,
+                label = label,
+                walletId = selectedWalletId
+            )) {
                 is GatewayResult.Failure -> _effect.send(ReportEffect.ShowMessage(result.message))
                 is GatewayResult.Success -> _effect.send(ReportEffect.ShowMessage("Laporan CSV siap dibagikan."))
             }

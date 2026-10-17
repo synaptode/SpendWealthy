@@ -40,18 +40,68 @@ data class Money(
     fun isNegative() = amount < 0L
 
     /**
-     * Simple formatting for IDR. 
-     * In a production app, this should probably use platform-specific formatters 
-     * or a more robust common-main formatting logic.
+     * Formatting for IDR and other currencies.
      */
     fun format(privacyMode: Boolean = false): String {
         if (privacyMode) return "Rp ••••••"
         return when (currency) {
             "IDR" -> {
-                val formatted = amount.toString().reversed().chunked(3).joinToString(".").reversed()
-                "Rp$formatted"
+                val isNegative = amount < 0
+                val absAmount = kotlin.math.abs(amount)
+                val formatted = absAmount.toString().reversed().chunked(3).joinToString(".").reversed()
+                if (isNegative) "-Rp$formatted" else "Rp$formatted"
             }
             else -> "$currency $amount"
         }
+    }
+
+    /**
+     * Enhanced international formatting with currency symbols ($250, €1.500, S$80, etc.).
+     */
+    fun formatWithSymbol(privacyMode: Boolean = false): String {
+        if (privacyMode) return "Rp ••••••"
+        val isNegative = amount < 0
+        val absAmount = kotlin.math.abs(amount)
+        val formattedThousands = absAmount.toString().reversed().chunked(3).joinToString(".").reversed()
+        val formattedComma = absAmount.toString().reversed().chunked(3).joinToString(",").reversed()
+        val sign = if (isNegative) "-" else ""
+
+        return when (currency) {
+            "IDR" -> "${sign}Rp$formattedThousands"
+            "USD" -> "${sign}$$formattedComma"
+            "EUR" -> "${sign}€$formattedThousands"
+            "SGD" -> "${sign}S$$formattedComma"
+            "JPY" -> "${sign}¥$formattedComma"
+            "GBP" -> "${sign}£$formattedComma"
+            "AUD" -> "${sign}A$$formattedComma"
+            else -> "$sign$currency $formattedThousands"
+        }
+    }
+}
+
+/**
+ * Standard exchange rate estimates for multi-currency conversion to IDR.
+ */
+object CurrencyConverter {
+    val ratesToIdr: Map<String, Double> = mapOf(
+        "IDR" to 1.0,
+        "USD" to 16250.0,
+        "EUR" to 17500.0,
+        "SGD" to 12400.0,
+        "JPY" to 108.0,
+        "GBP" to 20800.0,
+        "AUD" to 10700.0
+    )
+
+    fun toIdr(money: Money): Long {
+        if (money.currency == "IDR") return money.amount
+        val rate = ratesToIdr[money.currency] ?: 1.0
+        return (money.amount * rate).toLong()
+    }
+
+    fun formatEstimatedIdr(money: Money): String {
+        if (money.currency == "IDR") return money.format()
+        val idrAmount = toIdr(money)
+        return "≈ ${Money(idrAmount, "IDR").format()}"
     }
 }

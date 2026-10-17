@@ -6,6 +6,7 @@ import com.spendwealthy.app.core.architecture.UiState
 import com.spendwealthy.app.core.util.monthRange
 import com.spendwealthy.app.domain.model.Budget
 import com.spendwealthy.app.domain.model.Category
+import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.domain.model.Transaction
 import com.spendwealthy.app.domain.repository.BudgetRepository
 import com.spendwealthy.app.domain.repository.CategoryRepository
@@ -68,6 +69,33 @@ class BudgetListViewModel(
     }
 
     fun getRemaining(budget: Budget) = budgetEngine.calculateRemainingAmount(budget, _uiState.value.transactions)
+
+    fun getSpent(budget: Budget) = budgetEngine.calculateSpentAmount(budget, _uiState.value.transactions)
+
+    fun getExceeded(budget: Budget): Money {
+        val spent = getSpent(budget)
+        val diff = spent.amount - budget.limit.amount
+        return if (diff > 0) Money(diff, budget.limit.currency) else Money.zero(budget.limit.currency)
+    }
+
+    val totalAllocated: Money
+        get() = Money(_uiState.value.budgets.sumOf { it.limit.amount }, "IDR")
+
+    val totalSpent: Money
+        get() = Money(_uiState.value.budgets.sumOf { getSpent(it).amount }, "IDR")
+
+    val overallUsagePercentage: Double
+        get() {
+            val total = totalAllocated.amount
+            if (total == 0L) return 0.0
+            return totalSpent.amount.toDouble() / total.toDouble()
+        }
+
+    val criticalBudgetsCount: Int
+        get() = _uiState.value.budgets.count { getUsage(it) >= 1.0 }
+
+    val warningBudgetsCount: Int
+        get() = _uiState.value.budgets.count { getUsage(it) >= 0.8 && getUsage(it) < 1.0 }
 
     fun getBudgetName(budget: Budget): String {
         return budget.categoryId?.let { _uiState.value.categoriesById[it]?.name } ?: "Total bulan ini"
