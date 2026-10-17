@@ -248,17 +248,25 @@ class TransactionListScreen : Screen {
                 Spacer(Modifier.width(12.dp))
             }
 
-            Column {
+            Column(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .padding(end = 8.dp)
+            ) {
                 Text(
                     text = "Buku Kas & Riwayat",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = AppColors.TextMain
+                    color = AppColors.TextMain,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = "Pantau setiap rupiah yang keluar & masuk",
                     fontSize = 12.sp,
-                    color = AppColors.TextMuted
+                    color = AppColors.TextMuted,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
@@ -401,7 +409,7 @@ class TransactionListScreen : Screen {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Column {
+                    Column(modifier = Modifier.weight(1f).padding(end = 6.dp)) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -412,18 +420,23 @@ class TransactionListScreen : Screen {
                                 tint = AppColors.Success,
                                 modifier = Modifier.size(14.dp)
                             )
-                            Text("Pemasukan", fontSize = 12.sp, color = AppColors.TextMuted)
+                            Text("Pemasukan", fontSize = 12.sp, color = AppColors.TextMuted, maxLines = 1)
                         }
                         Text(
                             text = income,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = AppColors.Success,
-                            modifier = Modifier.padding(top = 2.dp)
+                            modifier = Modifier.padding(top = 2.dp),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
 
-                    Column(horizontalAlignment = Alignment.End) {
+                    Column(
+                        modifier = Modifier.weight(1f).padding(start = 6.dp),
+                        horizontalAlignment = Alignment.End
+                    ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -434,14 +447,16 @@ class TransactionListScreen : Screen {
                                 tint = AppColors.Danger,
                                 modifier = Modifier.size(14.dp)
                             )
-                            Text("Pengeluaran", fontSize = 12.sp, color = AppColors.TextMuted)
+                            Text("Pengeluaran", fontSize = 12.sp, color = AppColors.TextMuted, maxLines = 1)
                         }
                         Text(
                             text = expense,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = AppColors.TextMain,
-                            modifier = Modifier.padding(top = 2.dp)
+                            modifier = Modifier.padding(top = 2.dp),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -642,7 +657,7 @@ class TransactionListScreen : Screen {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f).padding(end = 8.dp)
                 ) {
                     Box(
                         modifier = Modifier
@@ -668,7 +683,7 @@ class TransactionListScreen : Screen {
                         )
                     }
 
-                    Column {
+                    Column(modifier = Modifier.weight(1f, fill = false)) {
                         Text(
                             text = transaction.note.ifBlank {
                                 transaction.merchant.ifBlank {
@@ -684,7 +699,9 @@ class TransactionListScreen : Screen {
                         Text(
                             text = "${transaction.date}",
                             fontSize = 11.sp,
-                            color = AppColors.TextMuted
+                            color = AppColors.TextMuted,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -697,7 +714,9 @@ class TransactionListScreen : Screen {
                         isIncome -> AppColors.Success
                         isTransfer -> AppColors.TextMain
                         else -> AppColors.TextMain
-                    }
+                    },
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
