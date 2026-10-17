@@ -88,45 +88,47 @@ class MainScreen : Screen {
         val rootNavigator = LocalNavigator.currentOrThrow
 
         TabNavigator(HomeTab) {
-            Scaffold(
-                contentWindowInsets = WindowInsets(0, 0, 0, 0),
-                bottomBar = {
-                    FloatingBottomDock(rootNavigator)
-                }
-            ) { padding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(AppColors.Background),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                // Content scrolls freely across the full screen height behind the floating dock
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(padding)
-                        .background(AppColors.Background),
-                    contentAlignment = Alignment.TopCenter
+                        .widthIn(max = 680.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .widthIn(max = 680.dp)
-                    ) {
-                        val tabNavigator = LocalTabNavigator.current
-                        AnimatedContent(
-                            targetState = tabNavigator.current,
-                            transitionSpec = { MotionSpecs.TabTransition },
-                            label = "TabTransitionAnimation"
-                        ) { targetTab ->
-                            targetTab.Content()
-                        }
+                    val tabNavigator = LocalTabNavigator.current
+                    AnimatedContent(
+                        targetState = tabNavigator.current,
+                        transitionSpec = { MotionSpecs.TabTransition },
+                        label = "TabTransitionAnimation"
+                    ) { targetTab ->
+                        targetTab.Content()
                     }
                 }
+
+                // Floating glass dock overlaid at the bottom
+                FloatingBottomDock(
+                    rootNavigator = rootNavigator,
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                )
             }
         }
     }
 
     @Composable
-    private fun FloatingBottomDock(rootNavigator: Navigator) {
+    private fun FloatingBottomDock(
+        rootNavigator: Navigator,
+        modifier: Modifier = Modifier
+    ) {
         val haptic = LocalHapticFeedback.current
         val tabNavigator = LocalTabNavigator.current
 
         Box(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
                 .padding(horizontal = 20.dp, vertical = 12.dp),
@@ -138,9 +140,9 @@ class MainScreen : Screen {
                     .widthIn(max = 440.dp)
                     .height(64.dp),
                 shape = RoundedCornerShape(32.dp),
-                color = Color(0xFF111827),
-                shadowElevation = 20.dp,
-                border = BorderStroke(1.dp, Color(0xFF1F2937).copy(alpha = 0.9f))
+                color = Color(0xFF111827).copy(alpha = 0.78f),
+                shadowElevation = 16.dp,
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.18f))
             ) {
                 Row(
                     modifier = Modifier
