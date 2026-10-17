@@ -256,41 +256,56 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.weight(1f, fill = false).padding(end = 6.dp)
                         ) {
                             Box(
                                 modifier = Modifier
                                     .size(8.dp)
                                     .clip(CircleShape)
-                                    .background(Color(0xFFFFDE43))
+                                    .background(AppColors.Primary)
                             )
                             Text(
                                 text = "SALDO SAAT INI",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White.copy(alpha = 0.7f),
-                                letterSpacing = 0.5.sp
+                                letterSpacing = 0.5.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                         Surface(
                             shape = RoundedCornerShape(10.dp),
-                            color = Color(0xFFFFDE43)
+                            color = AppColors.Primary
                         ) {
                             Text(
                                 text = typeLabel,
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = Color(0xFF111827),
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                color = AppColors.OnPrimary,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
 
+                    val balanceStr = wallet.balance.format()
+                    val balanceFontSize = when {
+                        balanceStr.length > 15 -> 22.sp
+                        balanceStr.length > 12 -> 25.sp
+                        balanceStr.length > 9 -> 28.sp
+                        else -> 32.sp
+                    }
+
                     Text(
-                        text = wallet.balance.format(),
-                        style = MaterialTheme.typography.headlineLarge,
+                        text = balanceStr,
+                        fontSize = balanceFontSize,
                         fontWeight = FontWeight.ExtraBold,
-                        color = if (isDebt && wallet.balance.amount < 0) AppColors.Danger else Color.White
+                        color = if (isDebt && wallet.balance.amount < 0) AppColors.Danger else Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -315,7 +330,7 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(if (!isFamily) Color(0xFFFFDE43) else Color.Transparent)
+                        .background(if (!isFamily) AppColors.Primary else Color.Transparent)
                         .padding(vertical = 10.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -323,14 +338,15 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                         text = "Pribadi",
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.labelMedium,
-                        color = if (!isFamily) Color(0xFF111827) else AppColors.TextMuted
+                        color = if (!isFamily) AppColors.OnPrimary else AppColors.TextMuted,
+                        maxLines = 1
                     )
                 }
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(if (isFamily) Color(0xFFFFDE43) else Color.Transparent)
+                        .background(if (isFamily) AppColors.Primary else Color.Transparent)
                         .padding(vertical = 10.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -338,7 +354,8 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                         text = "Ruang Keluarga",
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.labelMedium,
-                        color = if (isFamily) Color(0xFF111827) else AppColors.TextMuted
+                        color = if (isFamily) AppColors.OnPrimary else AppColors.TextMuted,
+                        maxLines = 1
                     )
                 }
             }
@@ -375,7 +392,7 @@ data class WalletDetailScreen(val walletId: String) : Screen {
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f).padding(end = 8.dp)
                 ) {
                     Box(
                         modifier = Modifier
@@ -392,17 +409,21 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                         )
                     }
                     Spacer(Modifier.width(12.dp))
-                    Column {
+                    Column(modifier = Modifier.weight(1f, fill = false)) {
                         Text(
                             text = transaction.note.ifBlank { transaction.merchant.ifBlank { transaction.type.name } },
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = AppColors.TextMain
+                            color = AppColors.TextMain,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = transaction.date.toString(),
                             style = MaterialTheme.typography.labelSmall,
-                            color = AppColors.TextMuted
+                            color = AppColors.TextMuted,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -411,7 +432,9 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                     text = "${if (isIncome) "+" else "-"}${transaction.amount.format()}",
                     fontWeight = FontWeight.ExtraBold,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = if (isIncome) AppColors.Success else AppColors.TextMain
+                    color = if (isIncome) AppColors.Success else AppColors.TextMain,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
