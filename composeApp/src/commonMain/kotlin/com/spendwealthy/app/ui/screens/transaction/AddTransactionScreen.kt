@@ -45,7 +45,6 @@ import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Icon
@@ -67,6 +66,7 @@ import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.ui.components.IndonesianThousandVisualTransformation
 import com.spendwealthy.app.ui.components.ReceiptScannerModal
 import com.spendwealthy.app.ui.components.AddCategoryModal
+import com.spendwealthy.app.ui.components.bouncyClickable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -388,8 +388,6 @@ class AddTransactionScreen(
 
     @Composable
     private fun AddTransactionHeader(onClose: () -> Unit) {
-        val haptic = LocalHapticFeedback.current
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -403,10 +401,11 @@ class AddTransactionScreen(
                     .clip(CircleShape)
                     .background(AppColors.Surface)
                     .border(1.dp, AppColors.Outline.copy(alpha = 0.6f), CircleShape)
-                    .clickable {
-                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        onClose()
-                    },
+                    .bouncyClickable(
+                        pressedScale = 0.90f,
+                        hapticType = HapticFeedbackType.LongPress,
+                        onClick = onClose
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, "Kembali", tint = AppColors.TextMain, modifier = Modifier.size(18.dp))
@@ -435,20 +434,7 @@ class AddTransactionScreen(
                 )
             }
 
-            Box(
-                modifier = Modifier
-                    .size(42.dp)
-                    .clip(CircleShape)
-                    .background(AppColors.Surface)
-                    .border(1.dp, AppColors.Outline.copy(alpha = 0.6f), CircleShape)
-                    .clickable {
-                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        onClose()
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Default.Close, "Tutup", tint = AppColors.TextMain, modifier = Modifier.size(18.dp))
-            }
+            Spacer(Modifier.size(42.dp))
         }
     }
 
