@@ -169,6 +169,17 @@ class TransactionListViewModelTest {
         assertEquals(1, viewModel.uiState.value.filteredTransactions.size)
         assertEquals("tx_2", viewModel.uiState.value.filteredTransactions.first().id)
     }
+
+    @Test
+    fun testCategoryEntitiesLoadedInState() = runTest(testDispatcher) {
+        val viewModel = TransactionListViewModel(fakeTransactionRepo, deleteUseCase, fakeCategoryRepo)
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals(2, state.categoryEntities.size)
+        assertEquals("cat_food", state.categoryEntities[0].id)
+        assertEquals("cat_salary", state.categoryEntities[1].id)
+    }
 }
 
 private class FakeTransactionRepository : TransactionRepository {

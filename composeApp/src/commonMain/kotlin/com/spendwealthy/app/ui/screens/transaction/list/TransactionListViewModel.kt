@@ -3,6 +3,7 @@ package com.spendwealthy.app.ui.screens.transaction.list
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.spendwealthy.app.core.architecture.UiState
+import com.spendwealthy.app.domain.model.Category
 import com.spendwealthy.app.domain.model.Transaction
 import com.spendwealthy.app.domain.model.TransactionType
 import com.spendwealthy.app.domain.repository.CategoryRepository
@@ -30,6 +31,7 @@ data class TransactionListState(
     val transactions: List<Transaction> = emptyList(),
     val filteredTransactions: List<Transaction> = emptyList(),
     val categoryFilterItems: List<CategoryFilterItem> = listOf(CategoryFilterItem(null, "Semua")),
+    val categoryEntities: List<Category> = emptyList(),
     val selectedCategoryId: String? = null,
     val selectedType: TransactionType? = null,
     val selectedYear: Int? = null,
@@ -71,12 +73,13 @@ class TransactionListViewModel(
                 val categoryItems = listOf(CategoryFilterItem(null, "Semua")) + dbCategories.map {
                     CategoryFilterItem(id = it.id, name = it.name, iconName = it.iconName)
                 }
-                Pair(transactions, categoryItems)
-            }.collectLatest { (transactions, categoryItems) ->
+                Triple(transactions, categoryItems, dbCategories)
+            }.collectLatest { (transactions, categoryItems, dbCategories) ->
                 val current = _uiState.value
                 _uiState.value = current.copy(
                     transactions = transactions,
                     categoryFilterItems = categoryItems,
+                    categoryEntities = dbCategories,
                     filteredTransactions = filterTransactions(
                         transactions = transactions,
                         query = current.searchQuery,

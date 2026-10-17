@@ -294,6 +294,8 @@ class HomeScreen : Screen {
             if (currentTx != null) {
                 TransactionDetailModal(
                     transaction = currentTx,
+                    wallets = state.wallets,
+                    categories = state.categories,
                     onDelete = { id -> viewModel.deleteTransaction(id) },
                     onDismiss = { selectedTransaction = null }
                 )

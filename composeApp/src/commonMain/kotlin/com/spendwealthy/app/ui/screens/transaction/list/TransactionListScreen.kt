@@ -316,6 +316,7 @@ class TransactionListScreen : Screen {
             if (currentSelected != null) {
                 TransactionDetailModal(
                     transaction = currentSelected,
+                    categories = state.categoryEntities,
                     onDelete = { id -> viewModel.deleteTransaction(id) },
                     onDismiss = { selectedTransaction = null }
                 )

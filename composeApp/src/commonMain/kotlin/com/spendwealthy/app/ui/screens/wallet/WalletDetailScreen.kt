@@ -159,6 +159,7 @@ data class WalletDetailScreen(val walletId: String) : Screen {
             if (currentSelected != null) {
                 TransactionDetailModal(
                     transaction = currentSelected,
+                    wallets = listOfNotNull(state.wallet),
                     onDelete = { id -> viewModel.deleteTransaction(id) },
                     onDismiss = { selectedTransaction = null }
                 )
