@@ -27,8 +27,27 @@ data class ReportState(
     val savingRate: Double = 0.0,
     val insight: String = "Belum ada transaksi bulan ini.",
     val exportInProgress: Boolean = false,
-    val isLoading: Boolean = false
-) : UiState
+    val isLoading: Boolean = false,
+    val selectedYear: Int = 2026,
+    val selectedMonth: Int = 8
+) : UiState {
+    val selectedMonthName: String
+        get() = when (selectedMonth) {
+            1 -> "January"
+            2 -> "February"
+            3 -> "March"
+            4 -> "April"
+            5 -> "May"
+            6 -> "June"
+            7 -> "July"
+            8 -> "August"
+            9 -> "September"
+            10 -> "October"
+            11 -> "November"
+            12 -> "December"
+            else -> "August"
+        }
+}
 
 sealed class ReportEffect : UiEffect {
     data class ShowMessage(val message: String) : ReportEffect()
@@ -66,15 +85,24 @@ class ReportViewModel(
         androidx.compose.ui.graphics.Color(0xFFF472B6)  // Pink
     )
 
+    private var selectedYear = 2026
+    private var selectedMonth = 8
+
     init {
         loadReport()
     }
 
+    fun setMonth(year: Int, month: Int) {
+        selectedYear = year
+        selectedMonth = month
+        loadReport()
+    }
+
     private fun loadReport() {
-        val range = monthRange(currentMonth.year, currentMonth.monthNumber)
+        val range = monthRange(selectedYear, selectedMonth)
         
         screenModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+            _uiState.value = _uiState.value.copy(isLoading = true, selectedYear = selectedYear, selectedMonth = selectedMonth)
             
             combine(
                 transactionRepository.getTransactionsByDateRange(range.start, range.endInclusive),
@@ -131,7 +159,9 @@ class ReportViewModel(
                     savingRate = savingRate,
                     insight = insight,
                     exportInProgress = _uiState.value.exportInProgress,
-                    isLoading = false
+                    isLoading = false,
+                    selectedYear = selectedYear,
+                    selectedMonth = selectedMonth
                 )
             }.collectLatest { state ->
                 _uiState.value = state

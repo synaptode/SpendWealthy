@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import com.spendwealthy.app.ui.components.CategoryPieChart
+import com.spendwealthy.app.ui.components.MonthPickerModal
 import com.spendwealthy.app.ui.components.PieChartData
 import com.spendwealthy.app.ui.theme.AppColors
 
@@ -75,6 +76,7 @@ class ReportScreen : Screen {
         val snackbarHostState = remember { SnackbarHostState() }
         val haptic = LocalHapticFeedback.current
         var selectedTab by remember { mutableStateOf(1) } // 0: Income, 1: Expense (Default Expense to match Reference 4)
+        var showMonthPicker by remember { mutableStateOf(false) }
 
         LaunchedEffect(viewModel) {
             viewModel.effect.collect { effect ->
@@ -82,6 +84,17 @@ class ReportScreen : Screen {
                     is ReportEffect.ShowMessage -> snackbarHostState.showSnackbar(effect.message)
                 }
             }
+        }
+
+        if (showMonthPicker) {
+            MonthPickerModal(
+                selectedYear = state.selectedYear,
+                selectedMonth = state.selectedMonth,
+                onMonthSelected = { year, month ->
+                    viewModel.setMonth(year, month)
+                },
+                onDismiss = { showMonthPicker = false }
+            )
         }
 
         Scaffold(
@@ -101,6 +114,8 @@ class ReportScreen : Screen {
                 // 1. Header (Matching Reference 4: "Statistics" + Month Selector Pill)
                 item {
                     ReportHeader(
+                        selectedMonthName = state.selectedMonthName,
+                        onSelectMonth = { showMonthPicker = true },
                         onExport = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             viewModel.exportCsv()
@@ -173,7 +188,12 @@ class ReportScreen : Screen {
     }
 
     @Composable
-    private fun ReportHeader(onExport: () -> Unit, loading: Boolean) {
+    private fun ReportHeader(
+        selectedMonthName: String,
+        onSelectMonth: () -> Unit,
+        onExport: () -> Unit,
+        loading: Boolean
+    ) {
         val haptic = LocalHapticFeedback.current
 
         Row(
@@ -201,6 +221,7 @@ class ReportScreen : Screen {
                     border = BorderStroke(1.dp, AppColors.Outline),
                     modifier = Modifier.clickable {
                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        onSelectMonth()
                     }
                 ) {
                     Row(
@@ -209,7 +230,7 @@ class ReportScreen : Screen {
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Text(
-                            text = "August",
+                            text = selectedMonthName,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = AppColors.TextMain

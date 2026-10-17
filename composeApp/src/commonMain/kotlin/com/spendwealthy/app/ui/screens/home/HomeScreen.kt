@@ -65,6 +65,8 @@ import com.spendwealthy.app.domain.model.Transaction
 import com.spendwealthy.app.domain.model.TransactionType
 import com.spendwealthy.app.domain.model.Wallet
 import com.spendwealthy.app.ui.components.GoalCelebrationOverlay
+import com.spendwealthy.app.ui.components.MONTH_NAMES
+import com.spendwealthy.app.ui.components.MonthPickerModal
 import com.spendwealthy.app.ui.screens.bill.BillListScreen
 import com.spendwealthy.app.ui.screens.home.components.GoalContributionDialog
 import com.spendwealthy.app.ui.screens.report.ReportScreen
@@ -94,6 +96,10 @@ class HomeScreen : Screen {
         var isBalanceHidden by remember { mutableStateOf(false) }
         var selectedGoalForContribution by remember { mutableStateOf<Goal?>(null) }
         var achievedGoalForCelebration by remember { mutableStateOf<Goal?>(null) }
+        var selectedYear by remember { mutableStateOf(2026) }
+        var selectedMonth by remember { mutableStateOf(8) }
+        var showMonthPicker by remember { mutableStateOf(false) }
+        val selectedMonthName = MONTH_NAMES.getOrNull(selectedMonth - 1) ?: "August"
 
         LaunchedEffect(viewModel) {
             viewModel.effect.collect { effect ->
@@ -102,6 +108,18 @@ class HomeScreen : Screen {
                     is HomeEffect.ShowError -> { /* Error handling */ }
                 }
             }
+        }
+
+        if (showMonthPicker) {
+            MonthPickerModal(
+                selectedYear = selectedYear,
+                selectedMonth = selectedMonth,
+                onMonthSelected = { year, month ->
+                    selectedYear = year
+                    selectedMonth = month
+                },
+                onDismiss = { showMonthPicker = false }
+            )
         }
 
         Box(
@@ -119,6 +137,8 @@ class HomeScreen : Screen {
                 item {
                     ModernFintechHeader(
                         userName = state.userName.ifBlank { "Khailena" },
+                        selectedMonthName = selectedMonthName,
+                        onMonthClick = { showMonthPicker = true },
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
                     )
                 }
@@ -195,8 +215,12 @@ class HomeScreen : Screen {
     @Composable
     private fun ModernFintechHeader(
         userName: String,
+        selectedMonthName: String,
+        onMonthClick: () -> Unit,
         modifier: Modifier = Modifier
     ) {
+        val haptic = LocalHapticFeedback.current
+
         Row(
             modifier = modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -257,7 +281,12 @@ class HomeScreen : Screen {
                 shape = RoundedCornerShape(20.dp),
                 color = Color.White,
                 border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
-                modifier = Modifier.clip(RoundedCornerShape(20.dp))
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .clickable {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        onMonthClick()
+                    }
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
@@ -265,7 +294,7 @@ class HomeScreen : Screen {
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
-                        text = "August",
+                        text = selectedMonthName,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color(0xFF111827)
