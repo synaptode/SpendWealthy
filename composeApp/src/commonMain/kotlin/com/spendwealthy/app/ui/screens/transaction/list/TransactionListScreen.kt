@@ -70,6 +70,7 @@ import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.spendwealthy.app.domain.model.CurrencyConverter
 import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.domain.model.Transaction
 import com.spendwealthy.app.domain.model.TransactionType
@@ -106,10 +107,10 @@ class TransactionListScreen : Screen {
 
         val totalIncome = state.filteredTransactions
             .filter { it.type == TransactionType.INCOME }
-            .sumOf { it.amount.amount }
+            .sumOf { CurrencyConverter.toIdr(it.amount) }
         val totalExpense = state.filteredTransactions
             .filter { it.type == TransactionType.EXPENSE }
-            .sumOf { it.amount.amount }
+            .sumOf { CurrencyConverter.toIdr(it.amount) }
         val netCashflow = totalIncome - totalExpense
 
         Box(
@@ -134,9 +135,9 @@ class TransactionListScreen : Screen {
                 // 2. Summary Card (Matching Reference 2 - Clean Minimalist Light Card)
                 item {
                     SummaryCard(
-                        income = Money(totalIncome, "IDR").format(),
-                        expense = Money(totalExpense, "IDR").format(),
-                        net = Money(netCashflow, "IDR").format(),
+                        income = Money(totalIncome, "IDR").formatWithSymbol(),
+                        expense = Money(totalExpense, "IDR").formatWithSymbol(),
+                        net = Money(netCashflow, "IDR").formatWithSymbol(),
                         isSurplus = netCashflow >= 0,
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
                     )
@@ -727,18 +728,30 @@ class TransactionListScreen : Screen {
                     }
                 }
 
-                Text(
-                    text = (if (isIncome) "+ " else if (isTransfer) "" else "- ") + transaction.amount.format(),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = when {
-                        isIncome -> AppColors.Success
-                        isTransfer -> AppColors.TextMain
-                        else -> AppColors.TextMain
-                    },
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = (if (isIncome) "+ " else if (isTransfer) "" else "- ") + transaction.amount.formatWithSymbol(),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = when {
+                            isIncome -> AppColors.Success
+                            isTransfer -> AppColors.TextMain
+                            else -> AppColors.TextMain
+                        },
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    if (transaction.amount.currency != "IDR") {
+                        Text(
+                            text = CurrencyConverter.formatEstimatedIdr(transaction.amount),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = AppColors.TextMuted,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
             }
         }
     }

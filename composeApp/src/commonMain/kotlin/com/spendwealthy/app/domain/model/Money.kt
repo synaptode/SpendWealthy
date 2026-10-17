@@ -100,8 +100,8 @@ object CurrencyConverter {
     }
 
     fun formatEstimatedIdr(money: Money): String {
-        if (money.currency == "IDR") return money.format()
+        if (money.currency == "IDR") return money.formatWithSymbol()
         val idrAmount = toIdr(money)
-        return "≈ ${Money(idrAmount, "IDR").format()}"
+        return "≈ ${Money(idrAmount, "IDR").formatWithSymbol()}"
     }
 }

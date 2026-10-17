@@ -30,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.spendwealthy.app.domain.model.CurrencyConverter
 import com.spendwealthy.app.domain.model.Transaction
 import com.spendwealthy.app.domain.model.TransactionType
 import com.spendwealthy.app.ui.theme.AppColors
@@ -179,7 +180,7 @@ fun TransactionDetailModal(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Text(
-                        text = (if (isIncome) "+ " else if (isTransfer) "⇄ " else "- ") + transaction.amount.format(),
+                        text = (if (isIncome) "+ " else if (isTransfer) "⇄ " else "- ") + transaction.amount.formatWithSymbol(),
                         fontSize = 28.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = when {
@@ -188,6 +189,16 @@ fun TransactionDetailModal(
                         },
                         letterSpacing = (-0.5).sp
                     )
+
+                    if (transaction.amount.currency != "IDR") {
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = CurrencyConverter.formatEstimatedIdr(transaction.amount),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(6.dp))
 

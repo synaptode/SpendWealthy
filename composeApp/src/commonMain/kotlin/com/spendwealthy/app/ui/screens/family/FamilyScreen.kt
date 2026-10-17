@@ -38,6 +38,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.FamilyMember
 import com.spendwealthy.app.domain.model.FamilyRole
+import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.ui.theme.AppColors
 
 class FamilyScreen : Screen {
@@ -361,8 +362,8 @@ class FamilyScreen : Screen {
         onAddGoal: () -> Unit
     ) {
         val percentage = if (totalTarget > 0) ((totalSavings.toFloat() / totalTarget.toFloat()) * 100).toInt() else 0
-        val formattedSavings = "Rp " + totalSavings.toString().reversed().chunked(3).joinToString(".").reversed()
-        val formattedTarget = "Rp " + totalTarget.toString().reversed().chunked(3).joinToString(".").reversed()
+        val formattedSavings = Money(totalSavings, "IDR").formatWithSymbol()
+        val formattedTarget = Money(totalTarget, "IDR").formatWithSymbol()
 
         Surface(
             modifier = Modifier.fillMaxWidth(),
@@ -681,8 +682,8 @@ class FamilyScreen : Screen {
             else -> Color(0xFF111827)
         }
 
-        val formattedCurrent = "Rp " + goal.currentAmount.toString().reversed().chunked(3).joinToString(".").reversed()
-        val formattedTarget = "Rp " + goal.targetAmount.toString().reversed().chunked(3).joinToString(".").reversed()
+        val formattedCurrent = Money(goal.currentAmount, "IDR").formatWithSymbol()
+        val formattedTarget = Money(goal.targetAmount, "IDR").formatWithSymbol()
 
         Surface(
             modifier = Modifier.fillMaxWidth(),

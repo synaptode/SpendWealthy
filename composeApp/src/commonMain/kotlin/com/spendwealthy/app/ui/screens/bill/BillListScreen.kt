@@ -71,6 +71,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.BillReminder
 import com.spendwealthy.app.domain.model.BillStatus
+import com.spendwealthy.app.domain.model.CurrencyConverter
 import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.domain.model.RecurrenceType
 import com.spendwealthy.app.ui.components.BrandLogo
@@ -91,7 +92,7 @@ class BillListScreen : Screen {
         var billToPay by remember { mutableStateOf<BillReminder?>(null) }
 
         val unpaidBills = state.bills.filter { viewModel.statusOf(it) != BillStatus.PAID }
-        val totalUnpaidAmount = unpaidBills.sumOf { it.amount.amount }
+        val totalUnpaidAmount = unpaidBills.sumOf { CurrencyConverter.toIdr(it.amount) }
 
         Box(
             modifier = Modifier.fillMaxSize().background(AppColors.Background),
@@ -121,7 +122,7 @@ class BillListScreen : Screen {
                 if (unpaidBills.isNotEmpty()) {
                     item {
                         BillSummaryBanner(
-                            totalAmount = Money(totalUnpaidAmount, "IDR").format(),
+                            totalAmount = Money(totalUnpaidAmount, "IDR").formatWithSymbol(),
                             count = unpaidBills.size
                         )
                     }
@@ -465,14 +466,26 @@ class BillListScreen : Screen {
                         }
                     }
 
-                    Text(
-                        text = bill.amount.format(),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Black,
-                        color = if (status == BillStatus.PAID) AppColors.Success else AppColors.TextMain,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = bill.amount.formatWithSymbol(),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Black,
+                            color = if (status == BillStatus.PAID) AppColors.Success else AppColors.TextMain,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        if (bill.amount.currency != "IDR") {
+                            Text(
+                                text = CurrencyConverter.formatEstimatedIdr(bill.amount),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Medium,
+                                color = AppColors.TextMuted,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
                 }
 
                 Row(
@@ -588,7 +601,7 @@ class BillListScreen : Screen {
                             color = Color(0xFF111827)
                         )
                         Text(
-                            text = "Bayar ${bill.name} • ${bill.amount.format()}",
+                            text = "Bayar ${bill.name} • ${bill.amount.formatWithSymbol()}",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = Color(0xFFB45309)
@@ -667,8 +680,13 @@ class BillListScreen : Screen {
                                             fontSize = 15.sp,
                                             color = Color(0xFF111827)
                                         )
+                                        val walletBalanceStr = if (wallet.balance.currency != "IDR") {
+                                            "Saldo: ${wallet.balance.formatWithSymbol()} (${CurrencyConverter.formatEstimatedIdr(wallet.balance)})"
+                                        } else {
+                                            "Saldo: ${wallet.balance.formatWithSymbol()}"
+                                        }
                                         Text(
-                                            text = "Saldo: ${wallet.balance.format()}",
+                                            text = walletBalanceStr,
                                             fontSize = 12.sp,
                                             color = AppColors.TextMuted
                                         )

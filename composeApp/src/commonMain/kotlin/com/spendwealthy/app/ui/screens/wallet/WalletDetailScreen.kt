@@ -56,6 +56,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.spendwealthy.app.domain.model.CurrencyConverter
 import com.spendwealthy.app.domain.model.Transaction
 import com.spendwealthy.app.domain.model.TransactionType
 import com.spendwealthy.app.domain.model.WalletType
@@ -336,7 +337,7 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                         }
                     }
 
-                    val balanceStr = wallet.balance.format()
+                    val balanceStr = wallet.balance.formatWithSymbol()
                     val balanceFontSize = when {
                         balanceStr.length > 15 -> 22.sp
                         balanceStr.length > 12 -> 25.sp
@@ -352,6 +353,17 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
+
+                    if (wallet.balance.currency != "IDR") {
+                        Text(
+                            text = CurrencyConverter.formatEstimatedIdr(wallet.balance),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White.copy(alpha = 0.75f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
 
                     // Quick Action Buttons
                     Row(
@@ -605,14 +617,26 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                     }
                 }
 
-                Text(
-                    text = "${if (isIncome) "+" else "-"}${transaction.amount.format()}",
-                    fontWeight = FontWeight.ExtraBold,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = if (isIncome) AppColors.Success else AppColors.TextMain,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "${if (isIncome) "+" else "-"}${transaction.amount.formatWithSymbol()}",
+                        fontWeight = FontWeight.ExtraBold,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (isIncome) AppColors.Success else AppColors.TextMain,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    if (transaction.amount.currency != "IDR") {
+                        Text(
+                            text = CurrencyConverter.formatEstimatedIdr(transaction.amount),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Medium,
+                            color = AppColors.TextMuted,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
             }
         }
     }

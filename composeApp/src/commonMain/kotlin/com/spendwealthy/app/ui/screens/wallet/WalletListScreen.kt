@@ -50,6 +50,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.spendwealthy.app.domain.model.CurrencyConverter
 import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.domain.model.Wallet
 import com.spendwealthy.app.domain.model.WalletType
@@ -71,7 +72,7 @@ class WalletListScreen : Screen {
 
         val totalLiquidity = state.wallets
             .filter { it.type != WalletType.PAYLATER && it.type != WalletType.CREDIT_CARD }
-            .sumOf { it.balance.amount }
+            .sumOf { CurrencyConverter.toIdr(it.balance) }
 
         Box(modifier = Modifier.fillMaxSize().background(AppColors.Background)) {
             LazyColumn(
@@ -365,14 +366,26 @@ class WalletListScreen : Screen {
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = wallet.balance.format(),
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = if (isDebt && wallet.balance.amount < 0) AppColors.Danger else AppColors.TextMain,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = wallet.balance.formatWithSymbol(),
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = if (isDebt && wallet.balance.amount < 0) AppColors.Danger else AppColors.TextMain,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        if (wallet.balance.currency != "IDR") {
+                            Text(
+                                text = CurrencyConverter.formatEstimatedIdr(wallet.balance),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Medium,
+                                color = AppColors.TextMuted,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
                     Spacer(Modifier.width(8.dp))
                     Icon(
                         imageVector = Icons.Default.ChevronRight,
