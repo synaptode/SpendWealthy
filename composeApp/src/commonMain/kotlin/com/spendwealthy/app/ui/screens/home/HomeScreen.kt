@@ -99,6 +99,9 @@ import com.spendwealthy.app.domain.model.CurrencyConverter
 import com.spendwealthy.app.ui.screens.budget.BudgetListScreen
 import com.spendwealthy.app.ui.screens.wallet.AddWalletScreen
 import com.spendwealthy.app.ui.screens.wallet.WalletListScreen
+import com.spendwealthy.app.ui.screens.family.FamilyScreen
+import com.spendwealthy.app.ui.screens.simulator.PurchaseSimulatorBottomSheet
+import com.spendwealthy.app.ui.screens.simulator.PurchaseSimulatorViewModel
 import com.spendwealthy.app.ui.theme.AppColors
 import com.spendwealthy.app.ui.theme.AppTypography
 
@@ -124,6 +127,7 @@ class HomeScreen : Screen {
         var achievedGoalForCelebration by remember { mutableStateOf<Goal?>(null) }
         val now = remember { kotlinx.datetime.Clock.System.now().toLocalDateTime(kotlinx.datetime.TimeZone.currentSystemDefault()) }
         var showMonthPicker by remember { mutableStateOf(false) }
+        var showPurchaseSimulator by remember { mutableStateOf(false) }
         val selectedMonth = state.selectedMonth
         val selectedYear = state.selectedYear
         val selectedMonthName = if (selectedMonth != null && selectedYear != null) {
@@ -153,6 +157,27 @@ class HomeScreen : Screen {
                 },
                 onDismiss = { showMonthPicker = false },
                 allowAll = true
+            )
+        }
+
+        if (showPurchaseSimulator) {
+            val simViewModel = koinScreenModel<PurchaseSimulatorViewModel>()
+            PurchaseSimulatorBottomSheet(
+                viewModel = simViewModel,
+                onDismiss = { showPurchaseSimulator = false },
+                onProceedToTransaction = { itemName, amount, walletId ->
+                    showPurchaseSimulator = false
+                    rootNavigator.push(
+                        AddTransactionScreen(
+                            initialType = TransactionType.EXPENSE,
+                            initialWalletId = walletId
+                        )
+                    )
+                },
+                onConvertToGoal = { _, _ ->
+                    showPurchaseSimulator = false
+                    rootNavigator.push(FamilyScreen())
+                }
             )
         }
 
@@ -207,13 +232,14 @@ class HomeScreen : Screen {
                     )
                 }
 
-                // 2.1 Quick Actions Row (Send, Receive, Swap, Deposit)
+                // 2.1 Quick Actions Row (Send, Receive, Swap, Deposit, Simulasi)
                 item {
                     QuickActionsRow(
                         onSend = { rootNavigator.push(AddTransactionScreen(TransactionType.EXPENSE)) },
                         onReceive = { rootNavigator.push(AddTransactionScreen(TransactionType.INCOME)) },
                         onSwap = { rootNavigator.push(AddTransactionScreen(TransactionType.TRANSFER)) },
                         onDeposit = { rootNavigator.push(AddTransactionScreen(TransactionType.INCOME)) },
+                        onSimulate = { showPurchaseSimulator = true },
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
                     )
                 }
@@ -586,13 +612,14 @@ class HomeScreen : Screen {
         onReceive: () -> Unit,
         onSwap: () -> Unit,
         onDeposit: () -> Unit,
+        onSimulate: () -> Unit,
         modifier: Modifier = Modifier
     ) {
         val haptic = LocalHapticFeedback.current
 
         Row(
             modifier = modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 1. Send Action (Expense)
@@ -642,6 +669,18 @@ class HomeScreen : Screen {
                     onDeposit()
                 }
             )
+
+            // 5. Purchase Simulator Action ("Boleh Beli?")
+            QuickActionItem(
+                label = "Simulasi",
+                icon = Icons.Default.ShoppingBag,
+                backgroundColor = Color(0xFFF3F4F6),
+                iconColor = Color(0xFF111827),
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onSimulate()
+                }
+            )
         }
     }
 
@@ -664,7 +703,7 @@ class HomeScreen : Screen {
         ) {
             Box(
                 modifier = Modifier
-                    .size(52.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .background(backgroundColor),
                 contentAlignment = Alignment.Center
@@ -673,12 +712,12 @@ class HomeScreen : Screen {
                     imageVector = icon,
                     contentDescription = label,
                     tint = iconColor,
-                    modifier = Modifier.size(22.dp)
+                    modifier = Modifier.size(20.dp)
                 )
             }
             Text(
                 text = label,
-                fontSize = 12.sp,
+                fontSize = 11.sp,
                 fontWeight = FontWeight.Medium,
                 color = Color(0xFF111827)
             )
