@@ -69,7 +69,7 @@ fun TransactionDetailModal(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
         dragHandle = {
             Box(
                 modifier = Modifier
@@ -77,7 +77,7 @@ fun TransactionDetailModal(
                     .width(36.dp)
                     .height(4.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFE5E7EB))
+                    .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
             )
         }
     ) {
@@ -99,13 +99,13 @@ fun TransactionDetailModal(
                     text = "Detail Transaksi",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF111827)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Surface(
                     shape = CircleShape,
-                    color = AppColors.SurfaceRaised,
-                    border = BorderStroke(1.dp, AppColors.Outline),
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
                     modifier = Modifier
                         .size(36.dp)
                         .clip(CircleShape)
@@ -118,7 +118,7 @@ fun TransactionDetailModal(
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Tutup",
-                            tint = AppColors.TextMain,
+                            tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -131,8 +131,8 @@ fun TransactionDetailModal(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(22.dp),
-                color = Color(0xFFF9FAFB),
-                border = BorderStroke(1.dp, Color(0xFFE5E7EB))
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f))
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),
@@ -144,9 +144,9 @@ fun TransactionDetailModal(
                             .clip(CircleShape)
                             .background(
                                 when {
-                                    isIncome -> Color(0xFFECFDF5)
-                                    isTransfer -> Color(0xFFEFF6FF)
-                                    else -> Color(0xFFF3F4F6)
+                                    isIncome -> AppColors.EmeraldGreen.copy(alpha = 0.15f)
+                                    isTransfer -> Color(0xFF3B82F6).copy(alpha = 0.15f)
+                                    else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
                                 }
                             ),
                         contentAlignment = Alignment.Center
@@ -155,9 +155,9 @@ fun TransactionDetailModal(
                             imageVector = vectorIcon,
                             contentDescription = null,
                             tint = when {
-                                isIncome -> Color(0xFF059669)
-                                isTransfer -> Color(0xFF2563EB)
-                                else -> Color(0xFF111827)
+                                isIncome -> AppColors.EmeraldGreen
+                                isTransfer -> Color(0xFF3B82F6)
+                                else -> MaterialTheme.colorScheme.onSurface
                             },
                             modifier = Modifier.size(26.dp)
                         )
@@ -170,8 +170,8 @@ fun TransactionDetailModal(
                         fontSize = 28.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = when {
-                            isIncome -> Color(0xFF059669)
-                            else -> Color(0xFF111827)
+                            isIncome -> AppColors.EmeraldGreen
+                            else -> MaterialTheme.colorScheme.onSurface
                         },
                         letterSpacing = (-0.5).sp
                     )
@@ -181,9 +181,9 @@ fun TransactionDetailModal(
                     Surface(
                         shape = RoundedCornerShape(12.dp),
                         color = when {
-                            isIncome -> Color(0xFFECFDF5)
-                            isTransfer -> Color(0xFFEFF6FF)
-                            else -> Color(0xFFF3F4F6)
+                            isIncome -> AppColors.EmeraldGreen.copy(alpha = 0.12f)
+                            isTransfer -> Color(0xFF3B82F6).copy(alpha = 0.12f)
+                            else -> MaterialTheme.colorScheme.outline.copy(alpha = 0.25f)
                         }
                     ) {
                         Text(
@@ -195,9 +195,9 @@ fun TransactionDetailModal(
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = when {
-                                isIncome -> Color(0xFF059669)
-                                isTransfer -> Color(0xFF2563EB)
-                                else -> Color(0xFF374151)
+                                isIncome -> AppColors.EmeraldGreen
+                                isTransfer -> Color(0xFF3B82F6)
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant
                             },
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                         )
@@ -211,8 +211,8 @@ fun TransactionDetailModal(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
-                color = Color.White,
-                border = BorderStroke(1.dp, Color(0xFFE5E7EB))
+                color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f))
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     DetailRow(
@@ -220,19 +220,28 @@ fun TransactionDetailModal(
                         value = transaction.note.ifBlank { "Tanpa catatan" },
                         isPrimary = true
                     )
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp), color = Color(0xFFF3F4F6))
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 10.dp),
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.25f)
+                    )
                     DetailRow(
                         label = "Merchant / Toko",
                         value = transaction.merchant.ifBlank { "-" },
                         isPrimary = false
                     )
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp), color = Color(0xFFF3F4F6))
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 10.dp),
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.25f)
+                    )
                     DetailRow(
                         label = "Tanggal",
                         value = "${transaction.date}",
                         isPrimary = false
                     )
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp), color = Color(0xFFF3F4F6))
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 10.dp),
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.25f)
+                    )
                     DetailRow(
                         label = "ID Transaksi",
                         value = transaction.id.take(8).uppercase(),
@@ -255,8 +264,8 @@ fun TransactionDetailModal(
                             showDeleteConfirm = true
                         },
                     shape = RoundedCornerShape(16.dp),
-                    color = Color(0xFFFEE2E2),
-                    border = BorderStroke(1.dp, Color(0xFFFCA5A5))
+                    color = AppColors.Danger.copy(alpha = 0.12f),
+                    border = BorderStroke(1.dp, AppColors.Danger.copy(alpha = 0.3f))
                 ) {
                     Row(
                         modifier = Modifier.fillMaxSize(),
@@ -266,7 +275,7 @@ fun TransactionDetailModal(
                         Icon(
                             imageVector = Icons.Default.DeleteOutline,
                             contentDescription = "Hapus",
-                            tint = Color(0xFFDC2626),
+                            tint = AppColors.Danger,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -274,7 +283,7 @@ fun TransactionDetailModal(
                             text = "Hapus Transaksi Ini",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFFDC2626)
+                            color = AppColors.Danger
                         )
                     }
                 }
@@ -287,7 +296,7 @@ fun TransactionDetailModal(
                         text = "Yakin ingin menghapus catatan transaksi ini?",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Color(0xFFDC2626),
+                        color = AppColors.Danger,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(10.dp))
@@ -305,14 +314,14 @@ fun TransactionDetailModal(
                                     showDeleteConfirm = false
                                 },
                             shape = RoundedCornerShape(14.dp),
-                            color = Color(0xFFF3F4F6)
+                            color = MaterialTheme.colorScheme.surfaceVariant
                         ) {
                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 Text(
                                     text = "Batal",
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF4B5563)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -328,7 +337,7 @@ fun TransactionDetailModal(
                                     onDismiss()
                                 },
                             shape = RoundedCornerShape(14.dp),
-                            color = Color(0xFFDC2626)
+                            color = AppColors.Danger
                         ) {
                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 Text(
@@ -361,13 +370,13 @@ private fun DetailRow(
             text = label,
             fontSize = 13.sp,
             fontWeight = FontWeight.Medium,
-            color = Color(0xFF6B7280)
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
             text = value,
             fontSize = 13.sp,
             fontWeight = if (isPrimary) FontWeight.Bold else FontWeight.SemiBold,
-            color = Color(0xFF111827)
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }

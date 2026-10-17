@@ -55,6 +55,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
@@ -74,6 +75,7 @@ class BudgetListScreen : Screen {
         val viewModel = koinScreenModel<BudgetListViewModel>()
         val state by viewModel.uiState.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
+        val rootNavigator = navigator.parent ?: navigator
         val haptic = LocalHapticFeedback.current
 
         Box(modifier = Modifier.fillMaxSize().background(AppColors.Background)) {
@@ -85,7 +87,7 @@ class BudgetListScreen : Screen {
                     CardsHeader(
                         onAdd = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            navigator.parent?.push(AddWalletScreen())
+                            rootNavigator.push(AddWalletScreen())
                         }
                     )
                 }
@@ -96,7 +98,7 @@ class BudgetListScreen : Screen {
                         viewModel = viewModel,
                         onClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            navigator.parent?.push(AddWalletScreen())
+                            rootNavigator.push(AddWalletScreen())
                         }
                     )
                 }
@@ -105,15 +107,15 @@ class BudgetListScreen : Screen {
                     CardControls(
                         onAddCard = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            navigator.parent?.push(AddWalletScreen())
+                            rootNavigator.push(AddWalletScreen())
                         },
                         onFreeze = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            navigator.parent?.push(SettingsScreen())
+                            rootNavigator.push(SettingsScreen())
                         },
                         onSecurity = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            navigator.parent?.push(SettingsScreen())
+                            rootNavigator.push(SettingsScreen())
                         }
                     )
                 }
@@ -125,7 +127,7 @@ class BudgetListScreen : Screen {
                         action = "+ Tambah",
                         onClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            navigator.parent?.push(AddBudgetScreen())
+                            rootNavigator.push(AddBudgetScreen())
                         }
                     )
                 }
@@ -135,7 +137,7 @@ class BudgetListScreen : Screen {
                         EmptyBudgetCard(
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                navigator.parent?.push(AddBudgetScreen())
+                                rootNavigator.push(AddBudgetScreen())
                             }
                         )
                     }
@@ -159,7 +161,7 @@ class BudgetListScreen : Screen {
                         action = "+ Target Baru",
                         onClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            navigator.parent?.push(AddBudgetScreen())
+                            rootNavigator.push(AddBudgetScreen())
                         }
                     )
                 }
@@ -218,7 +220,7 @@ class BudgetListScreen : Screen {
                             .clip(RoundedCornerShape(20.dp))
                             .clickable {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                navigator.parent?.push(FamilyScreen())
+                                rootNavigator.push(FamilyScreen())
                             },
                         shape = RoundedCornerShape(20.dp),
                         color = Color(0xFF111827)
@@ -305,18 +307,26 @@ class BudgetListScreen : Screen {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
+            Column(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .padding(end = 10.dp)
+            ) {
                 Text(
                     text = "Portofolio & Anggaran",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.ExtraBold,
                     color = AppColors.TextMain,
-                    letterSpacing = (-0.5).sp
+                    letterSpacing = (-0.5).sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = "Alokasi batas pos belanja & pemantauan likuiditas",
                     style = MaterialTheme.typography.bodySmall,
-                    color = AppColors.TextMuted
+                    color = AppColors.TextMuted,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
             Surface(

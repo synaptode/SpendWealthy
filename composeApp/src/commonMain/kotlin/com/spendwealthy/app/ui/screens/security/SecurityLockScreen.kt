@@ -10,8 +10,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material.icons.filled.Fingerprint
@@ -143,11 +145,12 @@ fun SecurityLockScreen(
                 .fillMaxSize()
                 .statusBarsPadding()
                 .navigationBarsPadding()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             // Header Section
             Column(
@@ -156,7 +159,7 @@ fun SecurityLockScreen(
             ) {
                 Box(
                     modifier = Modifier
-                        .size(80.dp)
+                        .size(68.dp)
                         .clip(CircleShape)
                         .background(AppColors.CanaryYellow.copy(alpha = 0.2f))
                         .border(2.dp, AppColors.CanaryYellow, CircleShape),
@@ -166,11 +169,11 @@ fun SecurityLockScreen(
                         imageVector = Icons.Default.Lock,
                         contentDescription = "Security Lock",
                         tint = AppColors.CharcoalBlack,
-                        modifier = Modifier.size(38.dp)
+                        modifier = Modifier.size(32.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
                 Text(
                     text = "SpendWealthy Aman",
@@ -295,7 +298,7 @@ fun SecurityLockScreen(
                     // Biometric button (if available or fallback)
                     Box(
                         modifier = Modifier
-                            .size(72.dp)
+                            .size(64.dp)
                             .clip(CircleShape)
                             .clickable(
                                 enabled = isBiometricAvailable,
@@ -311,7 +314,7 @@ fun SecurityLockScreen(
                                 imageVector = Icons.Default.Fingerprint,
                                 contentDescription = "Biometrik",
                                 tint = AppColors.CharcoalBlack,
-                                modifier = Modifier.size(32.dp)
+                                modifier = Modifier.size(28.dp)
                             )
                         }
                     }
@@ -321,7 +324,7 @@ fun SecurityLockScreen(
                     // Backspace
                     Box(
                         modifier = Modifier
-                            .size(72.dp)
+                            .size(64.dp)
                             .clip(CircleShape)
                             .clickable(
                                 enabled = enteredPin.isNotEmpty(),
@@ -425,7 +428,7 @@ private fun PinKeypadButton(
 ) {
     Surface(
         modifier = Modifier
-            .size(72.dp)
+            .size(64.dp)
             .clip(CircleShape)
             .clickable(onClick = onClick),
         shape = CircleShape,
@@ -438,7 +441,7 @@ private fun PinKeypadButton(
         ) {
             Text(
                 text = digit,
-                fontSize = 26.sp,
+                fontSize = 23.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = AppColors.TextMain
             )

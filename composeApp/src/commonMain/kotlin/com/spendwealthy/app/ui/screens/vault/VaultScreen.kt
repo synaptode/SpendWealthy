@@ -72,6 +72,7 @@ class VaultScreen : Screen {
         val viewModel = koinScreenModel<VaultViewModel>()
         val state by viewModel.uiState.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
+        val rootNavigator = navigator.parent ?: navigator
         val haptic = LocalHapticFeedback.current
 
         Box(
@@ -89,11 +90,11 @@ class VaultScreen : Screen {
                     VaultHeader(
                         onSettings = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            navigator.parent?.push(SettingsScreen())
+                            rootNavigator.push(SettingsScreen())
                         },
                         onAddDocument = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            navigator.parent?.push(AddDocumentScreen())
+                            rootNavigator.push(AddDocumentScreen())
                         }
                     )
                 }
@@ -105,7 +106,7 @@ class VaultScreen : Screen {
                         securityScore = state.securityScore,
                         onUpgrade = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            navigator.parent?.push(PaywallScreen())
+                            rootNavigator.push(PaywallScreen())
                         }
                     )
                 }
@@ -135,7 +136,7 @@ class VaultScreen : Screen {
                         action = "+ Tambah",
                         onClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            navigator.parent?.push(AddDocumentScreen())
+                            rootNavigator.push(AddDocumentScreen())
                         }
                     )
                 }

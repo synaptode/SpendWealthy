@@ -78,7 +78,8 @@ run_ios() {
         fi
 
         echo -e "${CYAN}🚀 Mem-boot simulator (UUID: $BOOTED_DEVICE_ID)...${NC}"
-        xcrun simctl boot "$BOOTED_DEVICE_ID"
+        xcrun simctl boot "$BOOTED_DEVICE_ID" || true
+        xcrun simctl bootstatus "$BOOTED_DEVICE_ID" -b
     else
         echo -e "${GREEN}✓ Simulator aktif ditemukan (UUID: $BOOTED_DEVICE_ID).${NC}"
     fi

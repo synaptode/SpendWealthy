@@ -80,6 +80,7 @@ sealed class HomeEvent : UiEvent {
     data class DiscoverIntent(val query: String) : HomeEvent()
     object DismissSimulation : HomeEvent()
     object SimulateMonthlyWrapup : HomeEvent()
+    data class VoteConsensus(val requestId: String, val isApproved: Boolean) : HomeEvent()
 }
 
 sealed class HomeEffect : UiEffect {
@@ -499,6 +500,10 @@ class HomeViewModel(
             is HomeEvent.ContributeToGoal -> contributeToGoal(event)
             is HomeEvent.ExecuteOptimization -> executeOptimization(event)
             HomeEvent.SimulateMonthlyWrapup -> simulateMonthlyWrapup()
+            is HomeEvent.VoteConsensus -> {
+                consensusService.castVote(event.requestId, event.isApproved)
+                recomputeState()
+            }
         }
     }
 
