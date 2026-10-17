@@ -216,20 +216,26 @@ fun ReceiptScannerModal(
                             }
                         }
 
-                        Box(
+                        Surface(
                             modifier = Modifier
-                                .size(32.dp)
+                                .size(36.dp)
                                 .clip(CircleShape)
-                                .background(if (isDark) Color(0xFF1E293B) else Color(0xFFF3F4F6))
-                                .clickable { onDismiss() },
-                            contentAlignment = Alignment.Center
+                                .clickable {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    onDismiss()
+                                },
+                            shape = CircleShape,
+                            color = AppColors.SurfaceRaised,
+                            border = BorderStroke(1.dp, AppColors.Outline)
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Tutup",
-                                tint = if (isDark) Color(0xFF94A3B8) else Color(0xFF6B7280),
-                                modifier = Modifier.size(16.dp)
-                            )
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Tutup",
+                                    tint = AppColors.TextMain,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
                         }
                     }
 

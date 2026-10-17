@@ -104,18 +104,22 @@ fun TransactionDetailModal(
 
                 Surface(
                     shape = CircleShape,
-                    color = Color(0xFFF3F4F6),
+                    color = AppColors.SurfaceRaised,
+                    border = BorderStroke(1.dp, AppColors.Outline),
                     modifier = Modifier
-                        .size(32.dp)
+                        .size(36.dp)
                         .clip(CircleShape)
-                        .clickable { onDismiss() }
+                        .clickable {
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            onDismiss()
+                        }
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Tutup",
-                            tint = Color(0xFF6B7280),
-                            modifier = Modifier.size(16.dp)
+                            tint = AppColors.TextMain,
+                            modifier = Modifier.size(18.dp)
                         )
                     }
                 }

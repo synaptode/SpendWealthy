@@ -23,6 +23,8 @@ import com.spendwealthy.app.ui.theme.AppColors
 @Composable
 fun FamilyGovernanceCard(
     requests: List<ConsensusRequest>,
+    onApprove: (String) -> Unit = {},
+    onReject: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -47,7 +49,11 @@ fun FamilyGovernanceCard(
             
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 requests.forEach { request ->
-                    ConsensusItem(request)
+                    ConsensusItem(
+                        request = request,
+                        onApprove = onApprove,
+                        onReject = onReject
+                    )
                 }
             }
         }
@@ -55,7 +61,11 @@ fun FamilyGovernanceCard(
 }
 
 @Composable
-private fun ConsensusItem(request: ConsensusRequest) {
+private fun ConsensusItem(
+    request: ConsensusRequest,
+    onApprove: (String) -> Unit,
+    onReject: (String) -> Unit
+) {
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = Color.White.copy(alpha = 0.5f),
@@ -81,7 +91,7 @@ private fun ConsensusItem(request: ConsensusRequest) {
             
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(
-                    onClick = { },
+                    onClick = { onApprove(request.id) },
                     modifier = Modifier.weight(1f).height(36.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AppColors.Accent),
                     shape = RoundedCornerShape(8.dp),
@@ -93,7 +103,7 @@ private fun ConsensusItem(request: ConsensusRequest) {
                 }
                 
                 OutlinedButton(
-                    onClick = { },
+                    onClick = { onReject(request.id) },
                     modifier = Modifier.weight(1f).height(36.dp),
                     shape = RoundedCornerShape(8.dp),
                     contentPadding = PaddingValues(0.dp),

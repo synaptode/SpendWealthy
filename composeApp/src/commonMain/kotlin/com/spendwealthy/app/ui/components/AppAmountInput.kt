@@ -149,7 +149,7 @@ fun AppAmountInput(
                     if (value.isNotEmpty()) {
                         Box(
                             modifier = Modifier
-                                .size(22.dp)
+                                .size(26.dp)
                                 .clip(CircleShape)
                                 .background(if (isDark) Color(0xFF1E293B) else Color(0xFFE5E7EB))
                                 .clickable {

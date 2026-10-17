@@ -120,7 +120,7 @@ class AddTransactionScreen(
         LaunchedEffect(viewModel) {
             viewModel.effect.collect { effect ->
                 when (effect) {
-                    AddTransactionEffect.NavigateBack -> navigator.pop()
+                    AddTransactionEffect.NavigateBack -> if (navigator.canPop) navigator.pop()
                     is AddTransactionEffect.ShowError -> snackbarHostState.showSnackbar(effect.message)
                 }
             }
@@ -143,7 +143,7 @@ class AddTransactionScreen(
                         .imePadding(),
                     contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 260.dp)
                 ) {
-                    item { AddTransactionHeader(onClose = { navigator.pop() }) }
+                    item { AddTransactionHeader(onClose = { if (navigator.canPop) navigator.pop() }) }
                     item { TypeSelector(state.type) { viewModel.onEvent(AddTransactionEvent.TypeChanged(it)) } }
                     if (state.type == TransactionType.EXPENSE) {
                         item {

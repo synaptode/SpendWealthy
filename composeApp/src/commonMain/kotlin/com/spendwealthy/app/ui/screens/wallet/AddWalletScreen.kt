@@ -71,7 +71,7 @@ class AddWalletScreen : Screen {
         LaunchedEffect(viewModel) {
             viewModel.effect.collect { effect ->
                 when (effect) {
-                    AddWalletEffect.NavigateBack -> navigator.pop()
+                    AddWalletEffect.NavigateBack -> if (navigator.canPop) navigator.pop()
                     is AddWalletEffect.ShowError -> snackbarHostState.showSnackbar(effect.message)
                 }
             }
@@ -96,7 +96,7 @@ class AddWalletScreen : Screen {
                         subtitle = "Catat sumber saldo baru",
                         onClose = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            navigator.pop()
+                            if (navigator.canPop) navigator.pop()
                         }
                     )
                 }

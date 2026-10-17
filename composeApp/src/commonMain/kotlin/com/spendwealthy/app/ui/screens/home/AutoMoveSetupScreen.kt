@@ -56,7 +56,7 @@ class AutoMoveSetupScreen : Screen {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Box(
-                        Modifier.size(44.dp).clip(CircleShape).background(AppColors.SurfaceRaised).clickable { navigator.pop() },
+                        Modifier.size(44.dp).clip(CircleShape).background(AppColors.SurfaceRaised).clickable { if (navigator.canPop) navigator.pop() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = AppColors.TextMain)
@@ -132,7 +132,7 @@ class AutoMoveSetupScreen : Screen {
                     Spacer(Modifier.height(12.dp))
                     AppButton(
                         text = "Aktifkan Otomatisasi Alokasi",
-                        onClick = { navigator.pop() },
+                        onClick = { if (navigator.canPop) navigator.pop() },
                         modifier = Modifier.fillMaxWidth(),
                         enabled = amount.isNotBlank() && selectedSource != null && selectedTargetGoal != null
                     )

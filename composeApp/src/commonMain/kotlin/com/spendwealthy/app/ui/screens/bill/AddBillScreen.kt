@@ -106,7 +106,7 @@ class AddBillScreen : Screen {
         LaunchedEffect(viewModel) {
             viewModel.effect.collect { effect ->
                 when (effect) {
-                    AddBillEffect.NavigateBack -> navigator.pop()
+                    AddBillEffect.NavigateBack -> if (navigator.canPop) navigator.pop()
                     is AddBillEffect.ShowError -> snackbarHostState.showSnackbar(effect.message)
                 }
             }
@@ -137,7 +137,7 @@ class AddBillScreen : Screen {
                         subtitle = "Pengingat otomatis jadwal recurring & kewajiban",
                         onClose = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            navigator.pop()
+                            if (navigator.canPop) navigator.pop()
                         }
                     )
                 }

@@ -133,7 +133,7 @@ class SettingsScreen : Screen {
                             .clip(CircleShape)
                             .clickable {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                navigator.pop()
+                                if (navigator.canPop) navigator.pop()
                             },
                         shape = CircleShape,
                         color = AppColors.Surface,

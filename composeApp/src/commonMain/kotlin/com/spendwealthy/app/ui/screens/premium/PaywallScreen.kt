@@ -82,7 +82,7 @@ class PaywallScreen : Screen {
                 contentPadding = PaddingValues(bottom = 32.dp)
             ) {
                 item {
-                    PaywallHeader(onClose = { navigator.pop() })
+                    PaywallHeader(onClose = { if (navigator.canPop) navigator.pop() })
                 }
 
                 item {
@@ -106,7 +106,7 @@ class PaywallScreen : Screen {
                             text = "Mulai Akses Penuh (${if (selectedPlan == SubscriptionPlan.PREMIUM_PERSONAL) "Personal" else "Keluarga"})",
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                navigator.pop()
+                                if (navigator.canPop) navigator.pop()
                             },
                             modifier = Modifier.fillMaxWidth()
                         )

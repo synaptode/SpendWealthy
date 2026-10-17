@@ -56,7 +56,7 @@ class FamilyScreen : Screen {
                 FamilyTopBar(
                     onBackClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        navigator.pop()
+                        if (navigator.canPop) navigator.pop()
                     },
                     onAddGoalClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -1060,18 +1060,19 @@ class FamilyScreen : Screen {
                         )
                         Surface(
                             modifier = Modifier
-                                .size(32.dp)
+                                .size(36.dp)
                                 .clip(CircleShape)
                                 .clickable(onClick = onDismiss),
                             shape = CircleShape,
-                            color = Color(0xFFF3F4F6)
+                            color = AppColors.SurfaceRaised,
+                            border = BorderStroke(1.dp, AppColors.Outline)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
                                     contentDescription = "Tutup",
                                     tint = AppColors.TextMain,
-                                    modifier = Modifier.size(16.dp)
+                                    modifier = Modifier.size(18.dp)
                                 )
                             }
                         }
@@ -1209,28 +1210,43 @@ class FamilyScreen : Screen {
                         }
                     }
 
-                    // Confirm Button
+                    // Action Buttons (Batal & Konfirmasi)
                     val amountLong = amountText.toLongOrNull() ?: 0L
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(14.dp))
-                            .clickable(enabled = amountLong > 0 && selectedGoalId.isNotBlank()) {
-                                onConfirm(selectedGoalId, selectedMemberName, amountLong)
-                            },
-                        shape = RoundedCornerShape(14.dp),
-                        color = if (amountLong > 0 && selectedGoalId.isNotBlank()) Color(0xFFFFDE43) else Color(0xFFE5E7EB)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(
-                            modifier = Modifier.padding(vertical = 14.dp),
-                            contentAlignment = Alignment.Center
+                        OutlinedButton(
+                            onClick = onDismiss,
+                            modifier = Modifier.weight(1f).height(48.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            border = BorderStroke(1.dp, AppColors.Outline)
                         ) {
-                            Text(
-                                text = "Konfirmasi Setor",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (amountLong > 0 && selectedGoalId.isNotBlank()) Color(0xFF111827) else Color(0xFF9CA3AF)
-                            )
+                            Text("Batal", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = AppColors.TextMuted)
+                        }
+
+                        Surface(
+                            modifier = Modifier
+                                .weight(1.5f)
+                                .height(48.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .clickable(enabled = amountLong > 0 && selectedGoalId.isNotBlank()) {
+                                    onConfirm(selectedGoalId, selectedMemberName, amountLong)
+                                },
+                            shape = RoundedCornerShape(14.dp),
+                            color = if (amountLong > 0 && selectedGoalId.isNotBlank()) Color(0xFFFFDE43) else Color(0xFFE5E7EB)
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Konfirmasi Setor",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (amountLong > 0 && selectedGoalId.isNotBlank()) Color(0xFF111827) else Color(0xFF9CA3AF)
+                                )
+                            }
                         }
                     }
                 }
@@ -1273,18 +1289,19 @@ class FamilyScreen : Screen {
                         )
                         Surface(
                             modifier = Modifier
-                                .size(32.dp)
+                                .size(36.dp)
                                 .clip(CircleShape)
                                 .clickable(onClick = onDismiss),
                             shape = CircleShape,
-                            color = Color(0xFFF3F4F6)
+                            color = AppColors.SurfaceRaised,
+                            border = BorderStroke(1.dp, AppColors.Outline)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
                                     contentDescription = "Tutup",
                                     tint = AppColors.TextMain,
-                                    modifier = Modifier.size(16.dp)
+                                    modifier = Modifier.size(18.dp)
                                 )
                             }
                         }
@@ -1366,28 +1383,43 @@ class FamilyScreen : Screen {
                         )
                     }
 
-                    // Submit Button
+                    // Action Buttons (Batal & Simpan)
                     val targetLong = targetAmountText.toLongOrNull() ?: 0L
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(14.dp))
-                            .clickable(enabled = title.isNotBlank() && targetLong > 0) {
-                                onConfirm(title, targetLong, targetDate, selectedCategory)
-                            },
-                        shape = RoundedCornerShape(14.dp),
-                        color = if (title.isNotBlank() && targetLong > 0) Color(0xFFFFDE43) else Color(0xFFE5E7EB)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(
-                            modifier = Modifier.padding(vertical = 14.dp),
-                            contentAlignment = Alignment.Center
+                        OutlinedButton(
+                            onClick = onDismiss,
+                            modifier = Modifier.weight(1f).height(48.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            border = BorderStroke(1.dp, AppColors.Outline)
                         ) {
-                            Text(
-                                text = "Simpan Target Bersama",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (title.isNotBlank() && targetLong > 0) Color(0xFF111827) else Color(0xFF9CA3AF)
-                            )
+                            Text("Batal", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = AppColors.TextMuted)
+                        }
+
+                        Surface(
+                            modifier = Modifier
+                                .weight(1.5f)
+                                .height(48.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .clickable(enabled = title.isNotBlank() && targetLong > 0) {
+                                    onConfirm(title, targetLong, targetDate, selectedCategory)
+                                },
+                            shape = RoundedCornerShape(14.dp),
+                            color = if (title.isNotBlank() && targetLong > 0) Color(0xFFFFDE43) else Color(0xFFE5E7EB)
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Simpan Target",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (title.isNotBlank() && targetLong > 0) Color(0xFF111827) else Color(0xFF9CA3AF)
+                                )
+                            }
                         }
                     }
                 }
@@ -1429,18 +1461,19 @@ class FamilyScreen : Screen {
                         )
                         Surface(
                             modifier = Modifier
-                                .size(32.dp)
+                                .size(36.dp)
                                 .clip(CircleShape)
                                 .clickable(onClick = onDismiss),
                             shape = CircleShape,
-                            color = Color(0xFFF3F4F6)
+                            color = AppColors.SurfaceRaised,
+                            border = BorderStroke(1.dp, AppColors.Outline)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
                                     contentDescription = "Tutup",
                                     tint = AppColors.TextMain,
-                                    modifier = Modifier.size(16.dp)
+                                    modifier = Modifier.size(18.dp)
                                 )
                             }
                         }
@@ -1606,18 +1639,19 @@ class FamilyScreen : Screen {
                         )
                         Surface(
                             modifier = Modifier
-                                .size(32.dp)
+                                .size(36.dp)
                                 .clip(CircleShape)
                                 .clickable(onClick = onDismiss),
                             shape = CircleShape,
-                            color = Color(0xFFF3F4F6)
+                            color = AppColors.SurfaceRaised,
+                            border = BorderStroke(1.dp, AppColors.Outline)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
                                     contentDescription = "Tutup",
                                     tint = AppColors.TextMain,
-                                    modifier = Modifier.size(16.dp)
+                                    modifier = Modifier.size(18.dp)
                                 )
                             }
                         }

@@ -42,7 +42,16 @@ fun GoalContributionDialog(
             Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text("Nabung ke Impian", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
-                    Icon(Icons.Default.Close, null, modifier = Modifier.clickable(onClick = onDismiss))
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(AppColors.SurfaceRaised)
+                            .clickable(onClick = onDismiss),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.Close, "Tutup", tint = AppColors.TextMuted, modifier = Modifier.size(18.dp))
+                    }
                 }
                 
                 Text(
@@ -70,15 +79,37 @@ fun GoalContributionDialog(
                     }
                 }
                 
-                AppButton(
-                    text = "Simpan Tabungan",
-                    onClick = { 
-                        val amt = amount.toLongOrNull() ?: 0L
-                        selectedWallet?.let { onContribute(it, amt) }
-                    },
-                    enabled = amount.isNotBlank() && selectedWallet != null,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(52.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Outline),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = AppColors.TextMuted
+                        )
+                    ) {
+                        Text("Batal", fontWeight = FontWeight.SemiBold)
+                    }
+
+                    AppButton(
+                        text = "Simpan",
+                        onClick = { 
+                            val amt = amount.toLongOrNull() ?: 0L
+                            selectedWallet?.let { onContribute(it, amt) }
+                        },
+                        enabled = amount.isNotBlank() && selectedWallet != null,
+                        modifier = Modifier
+                            .weight(1.6f)
+                            .height(52.dp)
+                    )
+                }
             }
         }
     }

@@ -69,7 +69,7 @@ class AddBudgetScreen : Screen {
         LaunchedEffect(viewModel) {
             viewModel.effect.collect { effect ->
                 when (effect) {
-                    AddBudgetEffect.NavigateBack -> navigator.pop()
+                    AddBudgetEffect.NavigateBack -> if (navigator.canPop) navigator.pop()
                     is AddBudgetEffect.ShowError -> snackbarHostState.showSnackbar(effect.message)
                 }
             }
@@ -94,7 +94,7 @@ class AddBudgetScreen : Screen {
                         subtitle = "Batas pengeluaran per kategori",
                         onClose = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            navigator.pop()
+                            if (navigator.canPop) navigator.pop()
                         }
                     )
                 }

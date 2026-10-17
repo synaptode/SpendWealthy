@@ -44,7 +44,7 @@ class OptimizationHistoryScreen : Screen {
                 CenterAlignedTopAppBar(
                     title = { Text("Riwayat Optimalisasi", fontWeight = FontWeight.Black, color = AppColors.TextMain) },
                     navigationIcon = {
-                        IconButton(onClick = { navigator.pop() }) {
+                        IconButton(onClick = { if (navigator.canPop) navigator.pop() }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali", tint = AppColors.TextMain)
                         }
                     },

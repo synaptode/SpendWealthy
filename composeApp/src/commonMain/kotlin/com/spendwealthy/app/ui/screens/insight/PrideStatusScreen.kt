@@ -61,7 +61,7 @@ class PrideStatusScreen : Screen {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(
-                        onClick = { navigator.pop() },
+                        onClick = { if (navigator.canPop) navigator.pop() },
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)

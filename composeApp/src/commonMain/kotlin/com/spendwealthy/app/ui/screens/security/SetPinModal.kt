@@ -152,7 +152,10 @@ fun SetPinModal(
                         )
                     }
 
-                    IconButton(onClick = onDismiss) {
+                    IconButton(onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        onDismiss()
+                    }) {
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Tutup",

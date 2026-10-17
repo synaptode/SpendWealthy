@@ -75,7 +75,7 @@ class AddDocumentScreen : Screen {
         LaunchedEffect(viewModel) {
             viewModel.effect.collect { effect ->
                 when (effect) {
-                    AddDocumentEffect.NavigateBack -> navigator.pop()
+                    AddDocumentEffect.NavigateBack -> if (navigator.canPop) navigator.pop()
                     is AddDocumentEffect.ShowError -> snackbarHostState.showSnackbar(effect.message)
                 }
             }
@@ -106,7 +106,7 @@ class AddDocumentScreen : Screen {
                         subtitle = "Arsip terenkripsi aman di perangkat",
                         onClose = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            navigator.pop()
+                            if (navigator.canPop) navigator.pop()
                         }
                     )
                 }

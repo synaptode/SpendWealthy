@@ -87,7 +87,7 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                         title = state.wallet?.name ?: "Detail Dompet",
                         onBack = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            navigator.pop()
+                            if (navigator.canPop) navigator.pop()
                         }
                     )
                 }

@@ -80,7 +80,7 @@ class WalletListScreen : Screen {
                     WalletHeader(
                         onBack = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            navigator.pop()
+                            if (navigator.canPop) navigator.pop()
                         },
                         onAdd = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
