@@ -102,7 +102,10 @@ import com.spendwealthy.app.ui.theme.AppColors
  */
 class AddTransactionScreen(
     private val initialType: TransactionType = TransactionType.EXPENSE,
-    private val initialWalletId: String? = null
+    private val initialWalletId: String? = null,
+    private val initialAmount: String? = null,
+    private val initialNote: String? = null,
+    private val initialCategoryName: String? = null
 ) : Screen {
 
     @Composable
@@ -113,17 +116,26 @@ class AddTransactionScreen(
         val snackbarHostState = remember { SnackbarHostState() }
         val scope = rememberCoroutineScope()
         val haptic = LocalHapticFeedback.current
-        var showAmountPad by remember { mutableStateOf(true) }
+        var showAmountPad by remember { mutableStateOf(initialAmount == null) }
         var showReceiptScanner by remember { mutableStateOf(false) }
         var showAddCategoryModal by remember { mutableStateOf(false) }
 
         LaunchedEffect(initialType) {
             viewModel.onEvent(AddTransactionEvent.TypeChanged(initialType))
+            initialAmount?.let { viewModel.onEvent(AddTransactionEvent.AmountChanged(it)) }
+            initialNote?.let { viewModel.onEvent(AddTransactionEvent.NoteChanged(it)) }
         }
 
         LaunchedEffect(state.wallets, initialWalletId) {
             if (initialWalletId != null && state.wallets.isNotEmpty()) {
                 viewModel.onEvent(AddTransactionEvent.SelectWalletById(initialWalletId))
+            }
+        }
+
+        LaunchedEffect(state.categories, initialCategoryName) {
+            if (initialCategoryName != null && state.selectedCategory == null && state.categories.isNotEmpty()) {
+                val matched = state.categories.find { it.name.contains(initialCategoryName, ignoreCase = true) }
+                matched?.let { viewModel.onEvent(AddTransactionEvent.CategorySelected(it)) }
             }
         }
 

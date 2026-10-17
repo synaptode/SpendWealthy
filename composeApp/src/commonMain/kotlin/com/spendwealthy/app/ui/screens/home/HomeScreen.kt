@@ -107,6 +107,8 @@ import com.spendwealthy.app.ui.screens.splitter.PaycheckSplitterViewModel
 import com.spendwealthy.app.ui.screens.health.WealthScoreCard
 import com.spendwealthy.app.ui.screens.health.WealthScoreDetailBottomSheet
 import com.spendwealthy.app.ui.screens.health.WealthScoreViewModel
+import com.spendwealthy.app.ui.components.ReceiptScannerModal
+import com.spendwealthy.app.ui.screens.home.components.FinancialGuardianCard
 import com.spendwealthy.app.ui.theme.AppColors
 import com.spendwealthy.app.ui.theme.AppTypography
 
@@ -135,6 +137,7 @@ class HomeScreen : Screen {
         var showPurchaseSimulator by remember { mutableStateOf(false) }
         var showPaycheckSplitter by remember { mutableStateOf(false) }
         var showWealthScoreDetail by remember { mutableStateOf(false) }
+        var showReceiptScanner by remember { mutableStateOf(false) }
         val wealthViewModel = koinScreenModel<WealthScoreViewModel>()
         val wealthState by wealthViewModel.uiState.collectAsState()
         val selectedMonth = state.selectedMonth
@@ -205,6 +208,25 @@ class HomeScreen : Screen {
             )
         }
 
+        if (showReceiptScanner) {
+            ReceiptScannerModal(
+                wallets = state.wallets,
+                onReceiptScanned = { receipt ->
+                    showReceiptScanner = false
+                    rootNavigator.push(
+                        AddTransactionScreen(
+                            initialType = TransactionType.EXPENSE,
+                            initialWalletId = receipt.matchedWalletId,
+                            initialAmount = receipt.amount.toString(),
+                            initialNote = receipt.note,
+                            initialCategoryName = receipt.suggestedCategoryName
+                        )
+                    )
+                },
+                onDismiss = { showReceiptScanner = false }
+            )
+        }
+
         val listState = rememberLazyListState()
         val scrollOffset by remember {
             derivedStateOf {
@@ -256,11 +278,12 @@ class HomeScreen : Screen {
                     )
                 }
 
-                // 2.1 Quick Actions Row (Send, Receive, Swap, Bagi Gaji, Simulasi)
+                // 2.1 Quick Actions Row (Send, Receive, Scan Struk, Bagi Gaji, Simulasi, Swap)
                 item {
                     QuickActionsRow(
                         onSend = { rootNavigator.push(AddTransactionScreen(TransactionType.EXPENSE)) },
                         onReceive = { rootNavigator.push(AddTransactionScreen(TransactionType.INCOME)) },
+                        onScan = { showReceiptScanner = true },
                         onSwap = { rootNavigator.push(AddTransactionScreen(TransactionType.TRANSFER)) },
                         onSplitSalary = { showPaycheckSplitter = true },
                         onSimulate = { showPurchaseSimulator = true },
@@ -287,6 +310,16 @@ class HomeScreen : Screen {
                         onClick = { showWealthScoreDetail = true },
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
                     )
+                }
+
+                // 3.2. Proactive Financial Guardian Anomaly Alerts
+                if (state.detectedAnomalies.isNotEmpty()) {
+                    item {
+                        FinancialGuardianCard(
+                            anomalies = state.detectedAnomalies,
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
+                        )
+                    }
                 }
 
                 // 3.5. Proactive Budget Health Alert Card
@@ -637,13 +670,14 @@ class HomeScreen : Screen {
     }
 
     /**
-     * 4 Circular Quick Action Buttons matching Reference 2:
-     * Send (Dark), Receive (Light), Swap (Light), Deposit (Yellow).
+     * Circular Quick Action Buttons matching modern luxury fintech design:
+     * Send (Dark), Receive (Light), Scan Struk (Emerald), Bagi Gaji (Yellow), Simulasi (Light), Swap (Light).
      */
     @Composable
     private fun QuickActionsRow(
         onSend: () -> Unit,
         onReceive: () -> Unit,
+        onScan: () -> Unit,
         onSwap: () -> Unit,
         onSplitSalary: () -> Unit,
         onSimulate: () -> Unit,
@@ -651,70 +685,94 @@ class HomeScreen : Screen {
     ) {
         val haptic = LocalHapticFeedback.current
 
-        Row(
+        LazyRow(
             modifier = modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 1. Send Action (Expense)
-            QuickActionItem(
-                label = "Send",
-                icon = Icons.Default.ArrowUpward,
-                backgroundColor = Color(0xFF111827),
-                iconColor = Color.White,
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onSend()
-                }
-            )
+            item {
+                QuickActionItem(
+                    label = "Send",
+                    icon = Icons.Default.ArrowUpward,
+                    backgroundColor = Color(0xFF111827),
+                    iconColor = Color.White,
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onSend()
+                    }
+                )
+            }
 
             // 2. Receive Action (Income)
-            QuickActionItem(
-                label = "Receive",
-                icon = Icons.Default.ArrowDownward,
-                backgroundColor = Color(0xFFF3F4F6),
-                iconColor = Color(0xFF111827),
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onReceive()
-                }
-            )
+            item {
+                QuickActionItem(
+                    label = "Receive",
+                    icon = Icons.Default.ArrowDownward,
+                    backgroundColor = Color(0xFFF3F4F6),
+                    iconColor = Color(0xFF111827),
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onReceive()
+                    }
+                )
+            }
 
-            // 3. Swap Action (Transfer)
-            QuickActionItem(
-                label = "Swap",
-                icon = Icons.Default.SwapHoriz,
-                backgroundColor = Color(0xFFF3F4F6),
-                iconColor = Color(0xFF111827),
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onSwap()
-                }
-            )
+            // 3. Scan Struk (Smart OCR & SMS Parser)
+            item {
+                QuickActionItem(
+                    label = "Scan",
+                    icon = Icons.AutoMirrored.Filled.ReceiptLong,
+                    backgroundColor = Color(0xFF10B981).copy(alpha = 0.15f),
+                    iconColor = Color(0xFF059669),
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onScan()
+                    }
+                )
+            }
 
             // 4. Paycheck Splitter Action ("Bagi Gaji")
-            QuickActionItem(
-                label = "Bagi Gaji",
-                icon = Icons.AutoMirrored.Filled.CallSplit,
-                backgroundColor = Color(0xFFFFDE43),
-                iconColor = Color(0xFF111827),
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onSplitSalary()
-                }
-            )
+            item {
+                QuickActionItem(
+                    label = "Bagi Gaji",
+                    icon = Icons.AutoMirrored.Filled.CallSplit,
+                    backgroundColor = Color(0xFFFFDE43),
+                    iconColor = Color(0xFF111827),
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onSplitSalary()
+                    }
+                )
+            }
 
             // 5. Purchase Simulator Action ("Boleh Beli?")
-            QuickActionItem(
-                label = "Simulasi",
-                icon = Icons.Default.ShoppingBag,
-                backgroundColor = Color(0xFFF3F4F6),
-                iconColor = Color(0xFF111827),
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onSimulate()
-                }
-            )
+            item {
+                QuickActionItem(
+                    label = "Simulasi",
+                    icon = Icons.Default.ShoppingBag,
+                    backgroundColor = Color(0xFFF3F4F6),
+                    iconColor = Color(0xFF111827),
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onSimulate()
+                    }
+                )
+            }
+
+            // 6. Swap Action (Transfer)
+            item {
+                QuickActionItem(
+                    label = "Swap",
+                    icon = Icons.Default.SwapHoriz,
+                    backgroundColor = Color(0xFFF3F4F6),
+                    iconColor = Color(0xFF111827),
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onSwap()
+                    }
+                )
+            }
         }
     }
 
