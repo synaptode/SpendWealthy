@@ -37,10 +37,16 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import com.spendwealthy.app.domain.model.Wallet
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -80,6 +86,7 @@ class BillListScreen : Screen {
         val haptic = LocalHapticFeedback.current
 
         var successMessage by remember { mutableStateOf<String?>(null) }
+        var billToPay by remember { mutableStateOf<BillReminder?>(null) }
 
         val unpaidBills = state.bills.filter { viewModel.statusOf(it) != BillStatus.PAID }
         val totalUnpaidAmount = unpaidBills.sumOf { it.amount.amount }
@@ -134,8 +141,13 @@ class BillListScreen : Screen {
                             status = status,
                             onPaid = {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                viewModel.markPaid(bill.id)
-                                successMessage = "${bill.name} berhasil ditandai lunas"
+                                if (state.wallets.size > 1) {
+                                    billToPay = bill
+                                } else {
+                                    val target = state.wallets.firstOrNull()
+                                    viewModel.markPaid(bill.id, target?.id)
+                                    successMessage = "${bill.name} berhasil ditandai lunas"
+                                }
                             }
                         )
                     }
@@ -183,6 +195,20 @@ class BillListScreen : Screen {
                         successMessage = null
                     }
                 }
+            }
+
+            val currentBillToPay = billToPay
+            if (currentBillToPay != null) {
+                PaymentWalletPickerModal(
+                    bill = currentBillToPay,
+                    wallets = state.wallets,
+                    onWalletSelected = { wallet ->
+                        viewModel.markPaid(currentBillToPay.id, wallet.id)
+                        successMessage = "${currentBillToPay.name} berhasil dibayar dengan ${wallet.name}"
+                        billToPay = null
+                    },
+                    onDismiss = { billToPay = null }
+                )
             }
         }
     }
@@ -496,6 +522,153 @@ class BillListScreen : Screen {
                                     color = AppColors.OnPrimary,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun PaymentWalletPickerModal(
+        bill: BillReminder,
+        wallets: List<Wallet>,
+        onWalletSelected: (Wallet) -> Unit,
+        onDismiss: () -> Unit
+    ) {
+        val haptic = LocalHapticFeedback.current
+
+        ModalBottomSheet(
+            onDismissRequest = onDismiss,
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+            containerColor = Color.White,
+            dragHandle = {
+                Box(
+                    modifier = Modifier
+                        .padding(vertical = 12.dp)
+                        .width(36.dp)
+                        .height(4.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFE5E7EB))
+                )
+            }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 540.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 36.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "Pilih Dompet Sumber",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF111827)
+                        )
+                        Text(
+                            text = "Bayar ${bill.name} • ${bill.amount.format()}",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFFB45309)
+                        )
+                    }
+
+                    Surface(
+                        shape = CircleShape,
+                        color = AppColors.SurfaceRaised,
+                        border = BorderStroke(1.dp, AppColors.Outline),
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .clickable {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                onDismiss()
+                            }
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Tutup",
+                                tint = AppColors.TextMain,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    wallets.forEach { wallet ->
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(16.dp))
+                                .clickable {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    onWalletSelected(wallet)
+                                },
+                            shape = RoundedCornerShape(16.dp),
+                            color = Color(0xFFF9FAFB),
+                            border = BorderStroke(1.dp, Color(0xFFE5E7EB))
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(42.dp)
+                                            .clip(CircleShape)
+                                            .background(AppColors.Primary.copy(alpha = 0.2f)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.AccountBalanceWallet,
+                                            contentDescription = null,
+                                            tint = Color(0xFF111827),
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+
+                                    Column {
+                                        Text(
+                                            text = wallet.name,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 15.sp,
+                                            color = Color(0xFF111827)
+                                        )
+                                        Text(
+                                            text = "Saldo: ${wallet.balance.format()}",
+                                            fontSize = 12.sp,
+                                            color = AppColors.TextMuted
+                                        )
+                                    }
+                                }
+
+                                Icon(
+                                    imageVector = Icons.Default.ChevronRight,
+                                    contentDescription = null,
+                                    tint = AppColors.TextMuted,
+                                    modifier = Modifier.size(20.dp)
                                 )
                             }
                         }

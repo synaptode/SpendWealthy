@@ -58,6 +58,9 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.BillReminder
 import com.spendwealthy.app.domain.model.Goal
@@ -103,10 +106,11 @@ class HomeScreen : Screen {
         val isBalanceHidden = state.isPrivacyMode
         var selectedGoalForContribution by remember { mutableStateOf<Goal?>(null) }
         var achievedGoalForCelebration by remember { mutableStateOf<Goal?>(null) }
-        var selectedYear by remember { mutableStateOf(2026) }
-        var selectedMonth by remember { mutableStateOf(8) }
+        val now = remember { kotlinx.datetime.Clock.System.now().toLocalDateTime(kotlinx.datetime.TimeZone.currentSystemDefault()) }
+        var selectedYear by remember { mutableStateOf(now.year) }
+        var selectedMonth by remember { mutableStateOf(now.monthNumber) }
         var showMonthPicker by remember { mutableStateOf(false) }
-        val selectedMonthName = MONTH_NAMES.getOrNull(selectedMonth - 1) ?: "August"
+        val selectedMonthName = MONTH_NAMES.getOrNull(selectedMonth - 1) ?: "Oktober"
         var selectedTransaction by remember { mutableStateOf<Transaction?>(null) }
 
         LaunchedEffect(viewModel) {

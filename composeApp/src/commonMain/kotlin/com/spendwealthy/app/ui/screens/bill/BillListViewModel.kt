@@ -57,15 +57,15 @@ class BillListViewModel(
         }
     }
 
-    fun markPaid(billId: String) {
-        val wallet = _uiState.value.wallets.firstOrNull()
-        if (wallet == null) {
+    fun markPaid(billId: String, walletId: String? = null) {
+        val targetWalletId = walletId ?: _uiState.value.wallets.firstOrNull()?.id
+        if (targetWalletId == null) {
             _uiState.value = _uiState.value.copy(errorMessage = "Tambahkan dompet terlebih dahulu untuk membayar tagihan.")
             return
         }
         screenModelScope.launch {
             try {
-                markBillPaidUseCase(billId, wallet.id)
+                markBillPaidUseCase(billId, targetWalletId)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(errorMessage = e.message ?: "Gagal menandai tagihan.")
             }
