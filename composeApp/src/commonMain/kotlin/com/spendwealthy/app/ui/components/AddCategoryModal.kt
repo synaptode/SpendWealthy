@@ -6,12 +6,11 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -104,7 +103,7 @@ fun AddCategoryModal(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        containerColor = Color.White,
+        containerColor = AppColors.Surface,
         dragHandle = {
             Box(
                 modifier = Modifier
@@ -121,6 +120,9 @@ fun AddCategoryModal(
                 .fillMaxWidth()
                 .widthIn(max = 540.dp)
                 .align(Alignment.CenterHorizontally)
+                .imePadding()
+                .navigationBarsPadding()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp)
                 .padding(bottom = 36.dp)
         ) {
@@ -135,7 +137,7 @@ fun AddCategoryModal(
                         text = "Tambah Kategori Baru",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF111827)
+                        color = AppColors.TextMain
                     )
                     Text(
                         text = "Kustomisasi ikon dan warna sesuai kebutuhan",
@@ -173,8 +175,8 @@ fun AddCategoryModal(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                color = Color(0xFFF9FAFB),
-                border = BorderStroke(1.dp, Color(0xFFE5E7EB))
+                color = AppColors.SurfaceRaised,
+                border = BorderStroke(1.dp, AppColors.Outline)
             ) {
                 Row(
                     modifier = Modifier
@@ -203,14 +205,14 @@ fun AddCategoryModal(
                             Icon(
                                 imageVector = activeIcon,
                                 contentDescription = null,
-                                tint = if (selectedColorHex == "#FFDE43") Color(0xFF111827) else activeColor,
+                                tint = if (selectedColorHex == "#FFDE43") AppColors.TextMain else activeColor,
                                 modifier = Modifier.size(16.dp)
                             )
                             Text(
                                 text = if (categoryName.isBlank()) "Nama Kategori" else categoryName.trim(),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = if (selectedColorHex == "#FFDE43") Color(0xFF111827) else activeColor
+                                color = if (selectedColorHex == "#FFDE43") AppColors.TextMain else activeColor
                             )
                         }
                     }
@@ -234,7 +236,11 @@ fun AddCategoryModal(
                 shape = RoundedCornerShape(14.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = AppColors.Primary,
-                    unfocusedBorderColor = Color(0xFFE5E7EB)
+                    unfocusedBorderColor = AppColors.Outline,
+                    focusedTextColor = AppColors.TextMain,
+                    unfocusedTextColor = AppColors.TextMain,
+                    focusedContainerColor = AppColors.SurfaceRaised,
+                    unfocusedContainerColor = AppColors.SurfaceRaised
                 )
             )
 
@@ -245,7 +251,7 @@ fun AddCategoryModal(
                 text = "Pilih Aksen Warna",
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF111827)
+                color = AppColors.TextMain
             )
             Spacer(modifier = Modifier.height(8.dp))
             LazyRow(
@@ -263,7 +269,7 @@ fun AddCategoryModal(
                             .background(color)
                             .border(
                                 width = if (isSelected) 3.dp else 1.dp,
-                                color = if (isSelected) Color(0xFF111827) else Color.Transparent,
+                                color = if (isSelected) AppColors.TextMain else Color.Transparent,
                                 shape = CircleShape
                             )
                             .clickable {
@@ -286,57 +292,62 @@ fun AddCategoryModal(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Icon Grid Selector
+            // Icon Selector Grid via Chunked Rows (100% native smooth scroll)
             Text(
                 text = "Pilih Ikon Representatif",
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF111827)
+                color = AppColors.TextMain
             )
             Spacer(modifier = Modifier.height(8.dp))
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(4),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 160.dp)
+                modifier = Modifier.fillMaxWidth()
             ) {
-                items(CATEGORY_ICON_OPTIONS) { opt ->
-                    val isSelected = selectedIconName == opt.name
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = if (isSelected) Color(0xFF111827) else Color(0xFFF9FAFB),
-                        border = BorderStroke(
-                            1.dp,
-                            if (isSelected) Color(0xFF111827) else Color(0xFFE5E7EB)
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable {
-                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                selectedIconName = opt.name
-                            }
+                val iconChunks = remember { CATEGORY_ICON_OPTIONS.chunked(4) }
+                iconChunks.forEach { rowIcons ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Column(
-                            modifier = Modifier.padding(vertical = 10.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = opt.icon,
-                                contentDescription = opt.label,
-                                tint = if (isSelected) Color.White else Color(0xFF374151),
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(Modifier.height(4.dp))
-                            Text(
-                                text = opt.label,
-                                fontSize = 10.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                color = if (isSelected) Color.White else Color(0xFF6B7280)
-                            )
+                        rowIcons.forEach { opt ->
+                            val isSelected = selectedIconName == opt.name
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = if (isSelected) AppColors.CharcoalBlack else AppColors.SurfaceRaised,
+                                border = BorderStroke(
+                                    1.dp,
+                                    if (isSelected) AppColors.CharcoalBlack else AppColors.Outline
+                                ),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable {
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        selectedIconName = opt.name
+                                    }
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(vertical = 10.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Icon(
+                                        imageVector = opt.icon,
+                                        contentDescription = opt.label,
+                                        tint = if (isSelected) Color.White else AppColors.TextMuted,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(
+                                        text = opt.label,
+                                        fontSize = 10.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isSelected) Color.White else AppColors.TextMuted,
+                                        maxLines = 1
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -368,7 +379,7 @@ fun AddCategoryModal(
                     .height(50.dp),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF111827),
+                    containerColor = AppColors.CharcoalBlack,
                     contentColor = Color.White
                 )
             ) {
