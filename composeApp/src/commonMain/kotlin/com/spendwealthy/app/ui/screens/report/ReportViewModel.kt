@@ -11,6 +11,8 @@ import com.spendwealthy.app.domain.model.Transaction
 import com.spendwealthy.app.domain.model.TransactionType
 import com.spendwealthy.app.domain.repository.CategoryRepository
 import com.spendwealthy.app.domain.repository.TransactionRepository
+import com.spendwealthy.app.domain.service.CategoryExportItem
+import com.spendwealthy.app.domain.usecase.ExportFinancialSummaryUseCase
 import com.spendwealthy.app.domain.usecase.ExportMonthlyTransactionsCsvUseCase
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
@@ -42,6 +44,7 @@ data class ReportState(
     val totalTransactionsCount: Int = 0,
     val insight: String = "Belum ada transaksi bulan ini.",
     val exportInProgress: Boolean = false,
+    val showExportModal: Boolean = false,
     val isLoading: Boolean = false,
     val selectedYear: Int = 2026,
     val selectedMonth: Int = 10,
@@ -86,7 +89,8 @@ class ReportViewModel(
     private val transactionRepository: TransactionRepository,
     private val categoryRepository: CategoryRepository,
     private val walletRepository: WalletRepository,
-    private val exportMonthlyTransactionsCsvUseCase: ExportMonthlyTransactionsCsvUseCase
+    private val exportMonthlyTransactionsCsvUseCase: ExportMonthlyTransactionsCsvUseCase,
+    private val exportFinancialSummaryUseCase: ExportFinancialSummaryUseCase
 ) : ScreenModel {
 
     private val _uiState = MutableStateFlow(ReportState())
@@ -249,6 +253,7 @@ class ReportViewModel(
                     totalTransactionsCount = transactions.size,
                     insight = insight,
                     exportInProgress = _uiState.value.exportInProgress,
+                    showExportModal = _uiState.value.showExportModal,
                     isLoading = false,
                     selectedYear = selectedYear,
                     selectedMonth = selectedMonth,
@@ -262,6 +267,54 @@ class ReportViewModel(
         }
     }
 
+    fun onOpenExportModal() {
+        _uiState.update { it.copy(showExportModal = true) }
+    }
+
+    fun onDismissExportModal() {
+        _uiState.update { it.copy(showExportModal = false) }
+    }
+
+    fun getShareableSummaryText(): String {
+        val state = _uiState.value
+        val periodLabel = "${state.selectedMonthName} ${state.selectedYear} (${state.selectedPeriodPreset.label})"
+        val expenseItems = state.categorySummaries.map {
+            CategoryExportItem(it.categoryName, it.amount, it.percentage)
+        }
+        val incomeItems = state.incomeCategorySummaries.map {
+            CategoryExportItem(it.categoryName, it.amount, it.percentage)
+        }
+        return exportFinancialSummaryUseCase.financialSummaryExporter.generateExecutiveSummary(
+            periodLabel = periodLabel,
+            walletName = state.selectedWalletName,
+            totalIncome = state.totalIncome,
+            totalExpense = state.totalExpense,
+            savingRate = state.savingRate,
+            averageDailyExpense = state.averageDailyExpense,
+            topExpenseCategory = state.topExpenseCategoryName,
+            expenseBreakdowns = expenseItems,
+            incomeBreakdowns = incomeItems,
+            insight = state.insight
+        )
+    }
+
+    fun exportSummaryDoc() {
+        val label = "ringkasan-${selectedPeriod.name.lowercase()}-$selectedYear"
+        val summaryText = getShareableSummaryText()
+
+        screenModelScope.launch {
+            _uiState.update { it.copy(exportInProgress = true) }
+            when (val result = exportFinancialSummaryUseCase.exportSummary(summaryText, label)) {
+                is GatewayResult.Failure -> _effect.send(ReportEffect.ShowMessage(result.message))
+                is GatewayResult.Success -> {
+                    _effect.send(ReportEffect.ShowMessage("Dokumen ringkasan finansial siap dibagikan."))
+                    _uiState.update { it.copy(showExportModal = false) }
+                }
+            }
+            _uiState.update { it.copy(exportInProgress = false) }
+        }
+    }
+
     fun exportCsv() {
         val range = when (selectedPeriod) {
             PeriodPreset.THIS_MONTH -> monthRange(selectedYear, selectedMonth)
@@ -272,7 +325,7 @@ class ReportViewModel(
         val label = "laporan-${selectedPeriod.name.lowercase()}-$selectedYear"
 
         screenModelScope.launch {
-            _uiState.value = _uiState.value.copy(exportInProgress = true)
+            _uiState.update { it.copy(exportInProgress = true) }
             when (val result = exportMonthlyTransactionsCsvUseCase.exportRange(
                 startDate = range.start,
                 endDate = range.endInclusive,
@@ -280,15 +333,18 @@ class ReportViewModel(
                 walletId = selectedWalletId
             )) {
                 is GatewayResult.Failure -> _effect.send(ReportEffect.ShowMessage(result.message))
-                is GatewayResult.Success -> _effect.send(ReportEffect.ShowMessage("Laporan CSV siap dibagikan."))
+                is GatewayResult.Success -> {
+                    _effect.send(ReportEffect.ShowMessage("Laporan CSV siap dibagikan."))
+                    _uiState.update { it.copy(showExportModal = false) }
+                }
             }
-            _uiState.value = _uiState.value.copy(exportInProgress = false)
+            _uiState.update { it.copy(exportInProgress = false) }
         }
     }
 
     fun exportJson() {
         screenModelScope.launch {
-            _effect.send(ReportEffect.ShowMessage("JSON export is not available in MVP yet. CSV export is ready."))
+            _effect.send(ReportEffect.ShowMessage("JSON export is not available in MVP yet. CSV & Ringkasan Dokumen ready."))
         }
     }
 }

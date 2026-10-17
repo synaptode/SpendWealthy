@@ -42,7 +42,12 @@ import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -55,6 +60,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import com.spendwealthy.app.ui.components.bouncyClickable
 import com.spendwealthy.app.ui.components.tactilePress
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
+import com.spendwealthy.app.core.util.format
+import com.spendwealthy.app.domain.model.Money
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -133,6 +146,25 @@ class ReportScreen(
             )
         }
 
+        if (state.showExportModal) {
+            ExportReportModal(
+                state = state,
+                onDismiss = { viewModel.onDismissExportModal() },
+                onExportCsv = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    viewModel.exportCsv()
+                },
+                onExportSummaryDoc = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    viewModel.exportSummaryDoc()
+                },
+                getSummaryText = {
+                    viewModel.getShareableSummaryText()
+                },
+                exportInProgress = state.exportInProgress
+            )
+        }
+
         Scaffold(
             containerColor = AppColors.Background,
             snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -165,7 +197,7 @@ class ReportScreen(
                         onSelectWallet = { showWalletPicker = true },
                         onExport = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            viewModel.exportCsv()
+                            viewModel.onOpenExportModal()
                         },
                         loading = state.exportInProgress
                     )
@@ -1147,6 +1179,385 @@ class ReportScreen(
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun ExportReportModal(
+        state: ReportState,
+        onDismiss: () -> Unit,
+        onExportCsv: () -> Unit,
+        onExportSummaryDoc: () -> Unit,
+        getSummaryText: () -> String,
+        exportInProgress: Boolean
+    ) {
+        val haptic = LocalHapticFeedback.current
+        val clipboardManager = LocalClipboardManager.current
+        var copiedToClipboard by remember { mutableStateOf(false) }
+
+        ModalBottomSheet(
+            onDismissRequest = onDismiss,
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+            containerColor = AppColors.Surface,
+            dragHandle = {
+                Box(
+                    modifier = Modifier
+                        .padding(vertical = 12.dp)
+                        .width(36.dp)
+                        .height(4.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFE5E7EB))
+                )
+            }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 540.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .navigationBarsPadding()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 36.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Header Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            text = "Ekspor & Bagikan Laporan",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.TextMain
+                        )
+                        Text(
+                            text = "${state.selectedMonthName} ${state.selectedYear} • ${state.selectedWalletName}",
+                            style = AppTypography.labelNumeric(
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = AppColors.TextMuted
+                            )
+                        )
+                    }
+
+                    Surface(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .clickable(onClick = onDismiss),
+                        shape = CircleShape,
+                        color = AppColors.SurfaceRaised,
+                        border = BorderStroke(1.dp, AppColors.Outline)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Tutup",
+                                tint = AppColors.TextMain,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                }
+
+                // Visual Snapshot Preview Card
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    color = Color(0xFF0F172A),
+                    border = BorderStroke(1.dp, Color(0xFF334155))
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFFFFDE43)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.AutoAwesome,
+                                        contentDescription = null,
+                                        tint = Color(0xFF111827),
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                }
+                                Text(
+                                    text = "RINGKASAN EKSEKUTIF",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = 1.sp,
+                                    color = Color(0xFFFFDE43)
+                                )
+                            }
+
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = Color.White.copy(alpha = 0.12f)
+                            ) {
+                                Text(
+                                    text = state.selectedPeriodPreset.label,
+                                    style = AppTypography.labelNumeric(
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    ),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                )
+                            }
+                        }
+
+                        // Cashflow Metrics
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(
+                                    text = "Pemasukan",
+                                    fontSize = 11.sp,
+                                    color = Color.White.copy(alpha = 0.6f)
+                                )
+                                Text(
+                                    text = state.totalIncome.formatWithSymbol(),
+                                    style = AppTypography.bodyNumeric(
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF10B981)
+                                    )
+                                )
+                            }
+
+                            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(
+                                    text = "Pengeluaran",
+                                    fontSize = 11.sp,
+                                    color = Color.White.copy(alpha = 0.6f)
+                                )
+                                Text(
+                                    text = state.totalExpense.formatWithSymbol(),
+                                    style = AppTypography.bodyNumeric(
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFFEF4444)
+                                    )
+                                )
+                            }
+                        }
+
+                        HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
+
+                        // Net and Saving Rate
+                        val netSavingsAmount = state.totalIncome.amount - state.totalExpense.amount
+                        val isSurplus = netSavingsAmount >= 0
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(
+                                    text = if (isSurplus) "Surplus Bersih" else "Defisit",
+                                    fontSize = 11.sp,
+                                    color = Color.White.copy(alpha = 0.6f)
+                                )
+                                Text(
+                                    text = (if (isSurplus) "+" else "") + Money(netSavingsAmount, "IDR").formatWithSymbol(),
+                                    style = AppTypography.bodyNumeric(
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = if (isSurplus) Color(0xFF38BDF8) else Color(0xFFF87171)
+                                    )
+                                )
+                            }
+
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = if (isSurplus) Color(0xFF10B981).copy(alpha = 0.2f) else Color(0xFFEF4444).copy(alpha = 0.2f)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = if (isSurplus) Icons.AutoMirrored.Filled.TrendingUp else Icons.AutoMirrored.Filled.TrendingDown,
+                                        contentDescription = null,
+                                        tint = if (isSurplus) Color(0xFF10B981) else Color(0xFFEF4444),
+                                        modifier = Modifier.size(13.dp)
+                                    )
+                                    Text(
+                                        text = "Saving Rate: ${state.savingRate.format(1)}%",
+                                        style = AppTypography.labelNumeric(
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (isSurplus) Color(0xFF34D399) else Color(0xFFFCA5A5)
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Text(
+                    text = "PILIH METODE BERBAGI",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.8.sp,
+                    color = AppColors.TextMuted
+                )
+
+                // Option 1: File CSV
+                ExportOptionTile(
+                    icon = Icons.Default.TableChart,
+                    iconTint = Color(0xFF059669),
+                    iconBg = Color(0xFF059669).copy(alpha = 0.12f),
+                    title = "Ekspor Spreadsheet CSV",
+                    description = "Unduh tabel mutasi transaksi lengkap untuk Excel & Google Sheets",
+                    badge = "${state.totalTransactionsCount} Mutasi",
+                    loading = exportInProgress,
+                    onClick = onExportCsv
+                )
+
+                // Option 2: File Dokumen Ringkasan (.txt)
+                ExportOptionTile(
+                    icon = Icons.Default.Description,
+                    iconTint = Color(0xFF2563EB),
+                    iconBg = Color(0xFF2563EB).copy(alpha = 0.12f),
+                    title = "Bagikan Dokumen Ringkasan (.txt)",
+                    description = "Format laporan resmi siap kirim ke WhatsApp, Email, atau Simpan File",
+                    badge = "Executive",
+                    loading = exportInProgress,
+                    onClick = onExportSummaryDoc
+                )
+
+                // Option 3: Salin Teks ke Clipboard
+                ExportOptionTile(
+                    icon = if (copiedToClipboard) Icons.Default.Check else Icons.Default.ContentCopy,
+                    iconTint = if (copiedToClipboard) Color(0xFF10B981) else Color(0xFF7C3AED),
+                    iconBg = if (copiedToClipboard) Color(0xFF10B981).copy(alpha = 0.12f) else Color(0xFF7C3AED).copy(alpha = 0.12f),
+                    title = if (copiedToClipboard) "Ringkasan Tersalin ke Clipboard!" else "Salin Snapshot ke Clipboard",
+                    description = "Salin ringkasan finansial siap kirim untuk obrolan atau catatan",
+                    badge = if (copiedToClipboard) "Tersalin ✓" else "1-Klik",
+                    loading = false,
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        val summaryText = getSummaryText()
+                        clipboardManager.setText(AnnotatedString(summaryText))
+                        copiedToClipboard = true
+                    }
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun ExportOptionTile(
+        icon: androidx.compose.ui.graphics.vector.ImageVector,
+        iconTint: Color,
+        iconBg: Color,
+        title: String,
+        description: String,
+        badge: String,
+        loading: Boolean,
+        onClick: () -> Unit
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .clickable(enabled = !loading, onClick = onClick),
+            shape = RoundedCornerShape(16.dp),
+            color = AppColors.SurfaceRaised,
+            border = BorderStroke(1.dp, AppColors.Outline)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(iconBg),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (loading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            color = iconTint,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = iconTint,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = title,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.TextMain
+                        )
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = iconBg
+                        ) {
+                            Text(
+                                text = badge,
+                                style = AppTypography.labelNumeric(
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = iconTint
+                                ),
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+
+                    Text(
+                        text = description,
+                        fontSize = 11.sp,
+                        color = AppColors.TextMuted,
+                        lineHeight = 15.sp
+                    )
                 }
             }
         }

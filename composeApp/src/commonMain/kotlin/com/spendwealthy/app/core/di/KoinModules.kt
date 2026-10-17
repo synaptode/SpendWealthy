@@ -51,6 +51,7 @@ val commonModule = module {
     single { BalanceCalculator() }
     single { BudgetEngine() }
     single { CsvReportExporter() }
+    single { FinancialSummaryExporter() }
     single { DataService() }
     single { CatInsightService() }
     single { SafeToSpendEngine() }
@@ -90,6 +91,7 @@ val commonModule = module {
     factory { MarkBillPaidUseCase(get(), get(), get()) }
     factory { RescheduleBillRemindersUseCase(get(), get()) }
     factory { ExportMonthlyTransactionsCsvUseCase(get(), get(), get(), get()) }
+    factory { ExportFinancialSummaryUseCase(get(), get()) }
 
     // App-level State / Screen Models
     single { AppViewModel(get(), get(), get()) }
@@ -146,7 +148,7 @@ val commonModule = module {
     factory { AddBudgetViewModel(get(), get(), get(), get()) }
     factory { BillListViewModel(get(), get(), get()) }
     factory { AddBillViewModel(get(), get(), get(), get()) }
-    factory { ReportViewModel(get(), get(), get(), get()) }
+    factory { ReportViewModel(get(), get(), get(), get(), get()) }
     factory { SettingsViewModel(get(), get(), get(), get(), get()) }
     factory { VaultViewModel(get(), get()) }
     factory { AddDocumentViewModel(get()) }
