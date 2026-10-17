@@ -73,6 +73,8 @@ import com.spendwealthy.app.domain.model.BillReminder
 import com.spendwealthy.app.domain.model.BillStatus
 import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.domain.model.RecurrenceType
+import com.spendwealthy.app.ui.components.BrandLogo
+import com.spendwealthy.app.ui.components.KnownBrand
 import com.spendwealthy.app.ui.components.EmptyState
 import com.spendwealthy.app.ui.theme.AppColors
 
@@ -398,6 +400,7 @@ class BillListScreen : Screen {
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.weight(1f).padding(end = 8.dp)
                     ) {
+                        val brand = KnownBrand.from(bill.name)
                         Box(
                             modifier = Modifier
                                 .size(46.dp)
@@ -405,12 +408,20 @@ class BillListScreen : Screen {
                                 .background(statusColor.copy(alpha = 0.12f)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = statusIcon,
-                                contentDescription = null,
-                                tint = statusColor,
-                                modifier = Modifier.size(22.dp)
-                            )
+                            if (brand != null) {
+                                BrandLogo(
+                                    brand = brand,
+                                    modifier = Modifier.size(24.dp),
+                                    tint = if (brand.isMonochrome) AppColors.TextMain else null
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = statusIcon,
+                                    contentDescription = null,
+                                    tint = statusColor,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
                         }
                         Spacer(Modifier.width(14.dp))
                         Column(

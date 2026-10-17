@@ -47,6 +47,10 @@ fun TransactionDetailModal(
     val isIncome = transaction.type == TransactionType.INCOME
     val isTransfer = transaction.type == TransactionType.TRANSFER
 
+    val brand = if (!isIncome && !isTransfer) {
+        KnownBrand.from(transaction.merchant) ?: KnownBrand.from(transaction.note)
+    } else null
+
     val vectorIcon: ImageVector = when {
         isTransfer -> Icons.Default.SwapHoriz
         isIncome -> Icons.Default.Paid
@@ -146,21 +150,30 @@ fun TransactionDetailModal(
                                 when {
                                     isIncome -> AppColors.EmeraldGreen.copy(alpha = 0.15f)
                                     isTransfer -> Color(0xFF3B82F6).copy(alpha = 0.15f)
+                                    brand != null -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
                                     else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
                                 }
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = vectorIcon,
-                            contentDescription = null,
-                            tint = when {
-                                isIncome -> AppColors.EmeraldGreen
-                                isTransfer -> Color(0xFF3B82F6)
-                                else -> MaterialTheme.colorScheme.onSurface
-                            },
-                            modifier = Modifier.size(26.dp)
-                        )
+                        if (brand != null) {
+                            BrandLogo(
+                                brand = brand,
+                                modifier = Modifier.size(28.dp),
+                                tint = if (brand.isMonochrome) MaterialTheme.colorScheme.onSurface else null
+                            )
+                        } else {
+                            Icon(
+                                imageVector = vectorIcon,
+                                contentDescription = null,
+                                tint = when {
+                                    isIncome -> AppColors.EmeraldGreen
+                                    isTransfer -> Color(0xFF3B82F6)
+                                    else -> MaterialTheme.colorScheme.onSurface
+                                },
+                                modifier = Modifier.size(26.dp)
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))

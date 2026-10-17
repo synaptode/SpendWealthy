@@ -68,6 +68,8 @@ import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.domain.model.Transaction
 import com.spendwealthy.app.domain.model.TransactionType
 import com.spendwealthy.app.domain.model.Wallet
+import com.spendwealthy.app.ui.components.BrandLogo
+import com.spendwealthy.app.ui.components.KnownBrand
 import com.spendwealthy.app.ui.components.GoalCelebrationOverlay
 import com.spendwealthy.app.ui.components.MONTH_NAMES
 import com.spendwealthy.app.ui.components.MonthPickerModal
@@ -1361,18 +1363,28 @@ class HomeScreen : Screen {
             ) {
                 Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
                     bills.take(3).forEachIndexed { index, bill ->
+                        val brand = KnownBrand.from(bill.name)
                         val (vectorIcon, iconBg, iconTint) = when {
+                            brand == KnownBrand.NETFLIX -> Triple(Icons.Default.Movie, Color(0xFFFEE2E2), Color(0xFFE50914))
+                            brand == KnownBrand.SPOTIFY -> Triple(Icons.Default.MusicNote, Color(0xFFECFDF5), Color(0xFF1ED760))
+                            brand == KnownBrand.APPLE -> Triple(Icons.Default.Cloud, Color(0xFFF3F4F6), Color(0xFF111827))
+                            brand == KnownBrand.GOOGLE -> Triple(Icons.Default.Subscriptions, Color(0xFFEFF6FF), Color(0xFF4285F4))
+                            brand == KnownBrand.YOUTUBE -> Triple(Icons.Default.PlayArrow, Color(0xFFFEE2E2), Color(0xFFFF0000))
+                            brand == KnownBrand.AMAZON -> Triple(Icons.Default.ShoppingCart, Color(0xFFFFF7ED), Color(0xFFFF9900))
+                            brand == KnownBrand.CHATGPT -> Triple(Icons.Default.SmartToy, Color(0xFFECFDF5), Color(0xFF10A37F))
+                            brand == KnownBrand.DISNEY_PLUS -> Triple(Icons.Default.Movie, Color(0xFFEFF6FF), Color(0xFF0063E5))
+                            brand == KnownBrand.PAYPAL -> Triple(Icons.Default.Payment, Color(0xFFEFF6FF), Color(0xFF003087))
+                            brand == KnownBrand.GITHUB -> Triple(Icons.Default.Code, Color(0xFFF3F4F6), Color(0xFF111827))
+                            brand == KnownBrand.MICROSOFT -> Triple(Icons.Default.Window, Color(0xFFEFF6FF), Color(0xFF00A4EF))
                             bill.name.contains("listrik", ignoreCase = true) || bill.name.contains("pln", ignoreCase = true) -> Triple(Icons.Default.Bolt, Color(0xFFFEF3C7), Color(0xFFD97706))
                             bill.name.contains("wifi", ignoreCase = true) || bill.name.contains("indihome", ignoreCase = true) || bill.name.contains("biznet", ignoreCase = true) || bill.name.contains("internet", ignoreCase = true) -> Triple(Icons.Default.Wifi, Color(0xFFEFF6FF), Color(0xFF2563EB))
-                            bill.name.contains("netflix", ignoreCase = true) || bill.name.contains("movie", ignoreCase = true) || bill.name.contains("disney", ignoreCase = true) -> Triple(Icons.Default.Movie, Color(0xFFFEE2E2), Color(0xFFDC2626))
-                            bill.name.contains("spotify", ignoreCase = true) || bill.name.contains("music", ignoreCase = true) -> Triple(Icons.Default.MusicNote, Color(0xFFECFDF5), Color(0xFF059669))
-                            bill.name.contains("cloud", ignoreCase = true) || bill.name.contains("apple", ignoreCase = true) -> Triple(Icons.Default.Cloud, Color(0xFFF3E8FF), Color(0xFF9333EA))
                             bill.name.contains("bpjs", ignoreCase = true) || bill.name.contains("sehat", ignoreCase = true) -> Triple(Icons.Default.LocalHospital, Color(0xFFECFDF5), Color(0xFF059669))
                             bill.name.contains("sewa", ignoreCase = true) || bill.name.contains("kos", ignoreCase = true) || bill.name.contains("rumah", ignoreCase = true) -> Triple(Icons.Default.Home, Color(0xFFFFF7ED), Color(0xFFEA580C))
                             else -> Triple(Icons.AutoMirrored.Filled.ReceiptLong, Color(0xFFF3F4F6), Color(0xFF4B5563))
                         }
 
                         UpcomingBillRow(
+                            brand = brand,
                             icon = vectorIcon,
                             iconBg = iconBg,
                             iconTint = iconTint,
@@ -1397,6 +1409,7 @@ class HomeScreen : Screen {
 
     @Composable
     private fun UpcomingBillRow(
+        brand: KnownBrand? = null,
         icon: ImageVector,
         iconBg: Color,
         iconTint: Color,
@@ -1425,12 +1438,20 @@ class HomeScreen : Screen {
                         .background(iconBg),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = iconTint,
-                        modifier = Modifier.size(19.dp)
-                    )
+                    if (brand != null) {
+                        BrandLogo(
+                            brand = brand,
+                            modifier = Modifier.size(20.dp),
+                            tint = if (brand.isMonochrome) iconTint else null
+                        )
+                    } else {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = iconTint,
+                            modifier = Modifier.size(19.dp)
+                        )
+                    }
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
