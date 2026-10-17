@@ -84,6 +84,7 @@ import kotlinx.datetime.toLocalDateTime
 import com.spendwealthy.app.ui.components.TransactionDetailModal
 import com.spendwealthy.app.ui.screens.transaction.AddTransactionScreen
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 private val INDO_MONTHS = listOf(
     "Januari", "Februari", "Maret", "April", "Mei", "Juni",
@@ -536,9 +537,11 @@ class TransactionListScreen : Screen {
                         }
                         Text(
                             text = income,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = AppColors.Success,
+                            style = AppTypography.bodyNumeric(
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.Success
+                            ),
                             modifier = Modifier.padding(top = 2.dp),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -563,9 +566,11 @@ class TransactionListScreen : Screen {
                         }
                         Text(
                             text = expense,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = AppColors.TextMain,
+                            style = AppTypography.bodyNumeric(
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.TextMain
+                            ),
                             modifier = Modifier.padding(top = 2.dp),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -731,22 +736,26 @@ class TransactionListScreen : Screen {
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = (if (isIncome) "+ " else if (isTransfer) "" else "- ") + transaction.amount.formatWithSymbol(),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = when {
-                            isIncome -> AppColors.Success
-                            isTransfer -> AppColors.TextMain
-                            else -> AppColors.TextMain
-                        },
+                        style = AppTypography.bodyNumeric(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = when {
+                                isIncome -> AppColors.Success
+                                isTransfer -> AppColors.TextMain
+                                else -> AppColors.TextMain
+                            }
+                        ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     if (transaction.amount.currency != "IDR") {
                         Text(
                             text = CurrencyConverter.formatEstimatedIdr(transaction.amount),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = AppColors.TextMuted,
+                            style = AppTypography.labelNumeric(
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = AppColors.TextMuted
+                            ),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )

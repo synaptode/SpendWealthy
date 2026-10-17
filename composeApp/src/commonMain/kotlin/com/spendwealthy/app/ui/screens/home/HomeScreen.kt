@@ -102,6 +102,7 @@ import com.spendwealthy.app.ui.screens.budget.BudgetListScreen
 import com.spendwealthy.app.ui.screens.wallet.AddWalletScreen
 import com.spendwealthy.app.ui.screens.wallet.WalletListScreen
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 
 /**
  * Modern, minimalist, and contemporary Home Screen.
@@ -524,15 +525,16 @@ class HomeScreen : Screen {
                                 if (hidden) {
                                     Text(
                                         text = "••••••••••",
-                                        fontSize = 28.sp,
-                                        fontWeight = FontWeight.Black,
-                                        color = Color(0xFF111827),
+                                        style = AppTypography.displayNumeric(
+                                            fontSize = 28.sp,
+                                            fontWeight = FontWeight.Black,
+                                            color = Color(0xFF111827)
+                                        ),
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )
                                 } else {
-                                    val displayMain = if (totalBalance.amount > 0) totalBalance.format() else "$248,420"
-                                    val displayFraction = if (totalBalance.amount > 0) "" else ".80"
+                                    val displayMain = totalBalance.formatWithSymbol()
                                     val balanceFontSize = when {
                                         displayMain.length > 15 -> 22.sp
                                         displayMain.length > 12 -> 25.sp
@@ -542,23 +544,14 @@ class HomeScreen : Screen {
                                     
                                     Text(
                                         text = displayMain,
-                                        fontSize = balanceFontSize,
-                                        fontWeight = FontWeight.Black,
-                                        color = Color(0xFF111827),
-                                        letterSpacing = (-0.5).sp,
+                                        style = AppTypography.displayNumeric(
+                                            fontSize = balanceFontSize,
+                                            fontWeight = FontWeight.Black,
+                                            color = Color(0xFF111827)
+                                        ),
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )
-                                    if (displayFraction.isNotBlank()) {
-                                        Text(
-                                            text = displayFraction,
-                                            fontSize = (balanceFontSize.value * 0.7f).sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = Color(0xFF9CA3AF),
-                                            modifier = Modifier.padding(bottom = 2.dp),
-                                            maxLines = 1
-                                        )
-                                    }
                                 }
                             }
                         }
@@ -826,16 +819,23 @@ class HomeScreen : Screen {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Aggregate Cashflow
-                val aggregateText = if (isBalanceHidden) "••••••••" else (if (totalIncome.amount > 0) (totalIncome - totalExpense).format() else "$91,600.00")
+                val aggregateText = if (isBalanceHidden) "••••••••" else (totalIncome - totalExpense).formatWithSymbol()
                 Text(
                     text = aggregateText,
-                    fontSize = 26.sp,
-                    fontWeight = FontWeight.Black,
-                    color = Color(0xFF111827),
-                    letterSpacing = (-0.5).sp
+                    style = AppTypography.headlineNumeric(
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.Black,
+                        color = Color(0xFF111827)
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
+
+                val totalFlow = totalIncome.amount + totalExpense.amount
+                val inRatio = if (totalFlow > 0L) (totalIncome.amount.toFloat() / totalFlow) else 0.5f
+                val outRatio = if (totalFlow > 0L) (totalExpense.amount.toFloat() / totalFlow) else 0.5f
+                val inPercentage = (inRatio * 100).toInt()
+                val outPercentage = (outRatio * 100).toInt()
 
                 // Two Columns (In & Out)
                 Row(
@@ -849,10 +849,12 @@ class HomeScreen : Screen {
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                text = if (totalIncome.amount > 0) totalIncome.format() else "$184.200",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF111827),
+                                text = if (isBalanceHidden) "••••" else totalIncome.formatWithSymbol(),
+                                style = AppTypography.bodyNumeric(
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF111827)
+                                ),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.weight(1f, fill = false)
@@ -884,14 +886,16 @@ class HomeScreen : Screen {
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "66%",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF6B7280)
+                            text = "$inPercentage%",
+                            style = AppTypography.labelNumeric(
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF6B7280)
+                            )
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         TickProgressBar(
-                            progress = 0.66f,
+                            progress = inRatio,
                             activeColor = Color(0xFFFFDE43),
                             inactiveColor = Color(0xFFF3F4F6)
                         )
@@ -904,10 +908,12 @@ class HomeScreen : Screen {
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                text = if (totalExpense.amount > 0) totalExpense.format() else "$92.600",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF111827),
+                                text = if (isBalanceHidden) "••••" else totalExpense.formatWithSymbol(),
+                                style = AppTypography.bodyNumeric(
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF111827)
+                                ),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.weight(1f, fill = false)
@@ -939,14 +945,16 @@ class HomeScreen : Screen {
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "33%",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF6B7280)
+                            text = "$outPercentage%",
+                            style = AppTypography.labelNumeric(
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF6B7280)
+                            )
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         TickProgressBar(
-                            progress = 0.33f,
+                            progress = outRatio,
                             activeColor = Color(0xFFD1D5DB),
                             inactiveColor = Color(0xFFF3F4F6)
                         )
@@ -1044,7 +1052,7 @@ class HomeScreen : Screen {
                 items(wallets) { wallet ->
                     val brand = KnownBrand.from(wallet.name)
                     val isForeign = wallet.balance.currency != "IDR"
-                    val displayBalance = if (isForeign) wallet.balance.formatWithSymbol() else wallet.balance.format()
+                    val displayBalance = wallet.balance.formatWithSymbol()
                     val subtitle = if (isForeign) CurrencyConverter.formatEstimatedIdr(wallet.balance) else null
 
                     FintechAccountCard(
@@ -1053,39 +1061,24 @@ class HomeScreen : Screen {
                         iconBg = if (brand != null) Color(0xFFF9FAFB) else Color(0xFFF3F4F6),
                         iconTint = Color(0xFF111827),
                         title = wallet.name,
-                        maskedNumber = if (isForeign) "${wallet.balance.currency} • Kurs Live" else "Account • Active",
+                        maskedNumber = if (isForeign) "${wallet.balance.currency} • Multi-valuta" else "Dompet Aktif",
                         balance = displayBalance,
                         secondaryBalance = subtitle,
                         isBalanceHidden = isBalanceHidden
                     )
                 }
 
-                // 2. Global Multi-Currency Discovery Cards (If user has not yet created foreign accounts)
-                if (wallets.none { it.balance.currency == "EUR" }) {
+                // 2. Global Multi-Currency Discovery Cards (Only shown as demo when user has zero wallets yet)
+                if (wallets.isEmpty()) {
                     item {
                         FintechAccountCard(
                             icon = Icons.Default.Public,
                             iconBg = Color(0xFFEFF6FF),
                             iconTint = Color(0xFF2563EB),
-                            title = "Euro Account",
-                            maskedNumber = "EUR • Kurs Live",
-                            balance = "€3.450",
-                            secondaryBalance = "≈ Rp60.375.000",
-                            isBalanceHidden = isBalanceHidden
-                        )
-                    }
-                }
-
-                if (wallets.none { it.balance.currency == "USD" }) {
-                    item {
-                        FintechAccountCard(
-                            icon = Icons.Default.CreditCard,
-                            iconBg = Color(0xFFECFDF5),
-                            iconTint = Color(0xFF059669),
-                            title = "US Dollar",
-                            maskedNumber = "USD • Kurs Live",
-                            balance = "$2,500",
-                            secondaryBalance = "≈ Rp40.625.000",
+                            title = "Contoh: Akun Valuta",
+                            maskedNumber = "USD/EUR • Multi-valuta",
+                            balance = "$0",
+                            secondaryBalance = "≈ Rp0",
                             isBalanceHidden = isBalanceHidden
                         )
                     }
@@ -1209,16 +1202,20 @@ class HomeScreen : Screen {
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = if (isBalanceHidden) "••••••" else balance,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF111827)
+                        style = AppTypography.bodyNumeric(
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF111827)
+                        )
                     )
                     if (!isBalanceHidden && secondaryBalance != null) {
                         Text(
                             text = secondaryBalance,
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = Color(0xFF10B981)
+                            style = AppTypography.labelNumeric(
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color(0xFF10B981)
+                            )
                         )
                     }
                 }
@@ -1437,7 +1434,7 @@ class HomeScreen : Screen {
                                 iconTint = iconTint,
                                 title = tx.note.ifBlank { "Transaction" },
                                 timestamp = "${tx.date}",
-                                amount = if (isBalanceHidden) "•••••" else (if (isIncome) "+ " else "- ") + tx.amount.format(),
+                                amount = if (isBalanceHidden) "•••••" else (if (isIncome) "+ " else "- ") + tx.amount.formatWithSymbol(),
                                 category = tx.type.name.lowercase().replaceFirstChar { it.uppercase() },
                                 isPositive = isIncome,
                                 onClick = { onTransactionClick(tx) }
@@ -1452,50 +1449,41 @@ class HomeScreen : Screen {
                             }
                         }
                     } else {
-                        // Pristine Seed Transactions with Pure Vector Icons (Lucide-style)
-                        RecentTxRow(
-                            icon = Icons.Default.Business,
-                            iconBg = Color(0xFFEFF6FF),
-                            iconTint = Color(0xFF2563EB),
-                            title = "Google Workspace",
-                            timestamp = "Aug 16 • 11:32 AM",
-                            amount = "$240.00",
-                            category = "Software",
-                            isPositive = false
-                        )
-                        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFF3F4F6)))
-                        RecentTxRow(
-                            icon = Icons.Default.Cloud,
-                            iconBg = Color(0xFFFFF7ED),
-                            iconTint = Color(0xFFD97706),
-                            title = "AWS",
-                            timestamp = "Aug 16 • 05:22 PM",
-                            amount = "$1,240.00",
-                            category = "Infrastructure",
-                            isPositive = false
-                        )
-                        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFF3F4F6)))
-                        RecentTxRow(
-                            icon = Icons.Default.DirectionsCar,
-                            iconBg = Color(0xFFF3F4F6),
-                            iconTint = Color(0xFF111827),
-                            title = "Uber for Business",
-                            timestamp = "Aug 15 • 09:12 AM",
-                            amount = "$248.40",
-                            category = "Travel",
-                            isPositive = false
-                        )
-                        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFF3F4F6)))
-                        RecentTxRow(
-                            icon = Icons.Default.MusicNote,
-                            iconBg = Color(0xFFECFDF5),
-                            iconTint = Color(0xFF10B981),
-                            title = "Spotify Premium",
-                            timestamp = "Aug 14 • 08:30 AM",
-                            amount = "-$15.99",
-                            category = "Entertainment",
-                            isPositive = false
-                        )
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 32.dp, horizontal = 16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Surface(
+                                shape = CircleShape,
+                                color = Color(0xFFF9FAFB),
+                                modifier = Modifier.size(48.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
+                                        contentDescription = null,
+                                        tint = Color(0xFF9CA3AF),
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Text(
+                                text = "Belum ada transaksi di periode ini",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFF374151)
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Gunakan tombol Setor / Tarik untuk mencatat",
+                                fontSize = 12.sp,
+                                color = Color(0xFF9CA3AF)
+                            )
+                        }
                     }
                 }
             }
@@ -1576,9 +1564,11 @@ class HomeScreen : Screen {
             Column(horizontalAlignment = Alignment.End) {
                 Text(
                     text = amount,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isPositive) Color(0xFF10B981) else Color(0xFF111827)
+                    style = AppTypography.bodyNumeric(
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isPositive) Color(0xFF10B981) else Color(0xFF111827)
+                    )
                 )
                 Text(
                     text = category,
@@ -1658,43 +1648,60 @@ class HomeScreen : Screen {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
-                    bills.take(3).forEachIndexed { index, bill ->
-                        val brand = KnownBrand.from(bill.name)
-                        val (vectorIcon, iconBg, iconTint) = when {
-                            brand == KnownBrand.NETFLIX -> Triple(Icons.Default.Movie, Color(0xFFFEE2E2), Color(0xFFE50914))
-                            brand == KnownBrand.SPOTIFY -> Triple(Icons.Default.MusicNote, Color(0xFFECFDF5), Color(0xFF1ED760))
-                            brand == KnownBrand.APPLE -> Triple(Icons.Default.Cloud, Color(0xFFF3F4F6), Color(0xFF111827))
-                            brand == KnownBrand.GOOGLE -> Triple(Icons.Default.Subscriptions, Color(0xFFEFF6FF), Color(0xFF4285F4))
-                            brand == KnownBrand.YOUTUBE -> Triple(Icons.Default.PlayArrow, Color(0xFFFEE2E2), Color(0xFFFF0000))
-                            brand == KnownBrand.AMAZON -> Triple(Icons.Default.ShoppingCart, Color(0xFFFFF7ED), Color(0xFFFF9900))
-                            brand == KnownBrand.CHATGPT -> Triple(Icons.Default.SmartToy, Color(0xFFECFDF5), Color(0xFF10A37F))
-                            brand == KnownBrand.DISNEY_PLUS -> Triple(Icons.Default.Movie, Color(0xFFEFF6FF), Color(0xFF0063E5))
-                            brand == KnownBrand.PAYPAL -> Triple(Icons.Default.Payment, Color(0xFFEFF6FF), Color(0xFF003087))
-                            brand == KnownBrand.GITHUB -> Triple(Icons.Default.Code, Color(0xFFF3F4F6), Color(0xFF111827))
-                            brand == KnownBrand.MICROSOFT -> Triple(Icons.Default.Window, Color(0xFFEFF6FF), Color(0xFF00A4EF))
-                            bill.name.contains("listrik", ignoreCase = true) || bill.name.contains("pln", ignoreCase = true) -> Triple(Icons.Default.Bolt, Color(0xFFFEF3C7), Color(0xFFD97706))
-                            bill.name.contains("wifi", ignoreCase = true) || bill.name.contains("indihome", ignoreCase = true) || bill.name.contains("biznet", ignoreCase = true) || bill.name.contains("internet", ignoreCase = true) -> Triple(Icons.Default.Wifi, Color(0xFFEFF6FF), Color(0xFF2563EB))
-                            bill.name.contains("bpjs", ignoreCase = true) || bill.name.contains("sehat", ignoreCase = true) -> Triple(Icons.Default.LocalHospital, Color(0xFFECFDF5), Color(0xFF059669))
-                            bill.name.contains("sewa", ignoreCase = true) || bill.name.contains("kos", ignoreCase = true) || bill.name.contains("rumah", ignoreCase = true) -> Triple(Icons.Default.Home, Color(0xFFFFF7ED), Color(0xFFEA580C))
-                            else -> Triple(Icons.AutoMirrored.Filled.ReceiptLong, Color(0xFFF3F4F6), Color(0xFF4B5563))
-                        }
+                    if (bills.isNotEmpty()) {
+                        bills.take(3).forEachIndexed { index, bill ->
+                            val brand = KnownBrand.from(bill.name)
+                            val (vectorIcon, iconBg, iconTint) = when {
+                                brand == KnownBrand.NETFLIX -> Triple(Icons.Default.Movie, Color(0xFFFEE2E2), Color(0xFFE50914))
+                                brand == KnownBrand.SPOTIFY -> Triple(Icons.Default.MusicNote, Color(0xFFECFDF5), Color(0xFF1ED760))
+                                brand == KnownBrand.APPLE -> Triple(Icons.Default.Cloud, Color(0xFFF3F4F6), Color(0xFF111827))
+                                brand == KnownBrand.GOOGLE -> Triple(Icons.Default.Subscriptions, Color(0xFFEFF6FF), Color(0xFF4285F4))
+                                brand == KnownBrand.YOUTUBE -> Triple(Icons.Default.PlayArrow, Color(0xFFFEE2E2), Color(0xFFFF0000))
+                                brand == KnownBrand.AMAZON -> Triple(Icons.Default.ShoppingCart, Color(0xFFFFF7ED), Color(0xFFFF9900))
+                                brand == KnownBrand.CHATGPT -> Triple(Icons.Default.SmartToy, Color(0xFFECFDF5), Color(0xFF10A37F))
+                                brand == KnownBrand.DISNEY_PLUS -> Triple(Icons.Default.Movie, Color(0xFFEFF6FF), Color(0xFF0063E5))
+                                brand == KnownBrand.PAYPAL -> Triple(Icons.Default.Payment, Color(0xFFEFF6FF), Color(0xFF003087))
+                                brand == KnownBrand.GITHUB -> Triple(Icons.Default.Code, Color(0xFFF3F4F6), Color(0xFF111827))
+                                brand == KnownBrand.MICROSOFT -> Triple(Icons.Default.Window, Color(0xFFEFF6FF), Color(0xFF00A4EF))
+                                bill.name.contains("listrik", ignoreCase = true) || bill.name.contains("pln", ignoreCase = true) -> Triple(Icons.Default.Bolt, Color(0xFFFEF3C7), Color(0xFFD97706))
+                                bill.name.contains("wifi", ignoreCase = true) || bill.name.contains("indihome", ignoreCase = true) || bill.name.contains("biznet", ignoreCase = true) || bill.name.contains("internet", ignoreCase = true) -> Triple(Icons.Default.Wifi, Color(0xFFEFF6FF), Color(0xFF2563EB))
+                                bill.name.contains("bpjs", ignoreCase = true) || bill.name.contains("sehat", ignoreCase = true) -> Triple(Icons.Default.LocalHospital, Color(0xFFECFDF5), Color(0xFF059669))
+                                bill.name.contains("sewa", ignoreCase = true) || bill.name.contains("kos", ignoreCase = true) || bill.name.contains("rumah", ignoreCase = true) -> Triple(Icons.Default.Home, Color(0xFFFFF7ED), Color(0xFFEA580C))
+                                else -> Triple(Icons.AutoMirrored.Filled.ReceiptLong, Color(0xFFF3F4F6), Color(0xFF4B5563))
+                            }
 
-                        UpcomingBillRow(
-                            brand = brand,
-                            icon = vectorIcon,
-                            iconBg = iconBg,
-                            iconTint = iconTint,
-                            title = bill.name,
-                            dueDateText = "Due on ${bill.dueDate}",
-                            amount = if (isBalanceHidden) "•••••" else bill.amount.format(),
-                            onClick = onViewAll
-                        )
-                        if (index < bills.take(3).size - 1) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(1.dp)
-                                    .background(Color(0xFFF3F4F6))
+                            UpcomingBillRow(
+                                brand = brand,
+                                icon = vectorIcon,
+                                iconBg = iconBg,
+                                iconTint = iconTint,
+                                title = bill.name,
+                                dueDateText = "Jatuh tempo ${bill.dueDate}",
+                                amount = if (isBalanceHidden) "•••••" else bill.amount.formatWithSymbol(),
+                                onClick = onViewAll
+                            )
+                            if (index < bills.take(3).size - 1) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(1.dp)
+                                        .background(Color(0xFFF3F4F6))
+                                )
+                            }
+                        }
+                    } else {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 24.dp, horizontal = 16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "Tidak ada tagihan mendatang",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFF6B7280)
                             )
                         }
                     }
@@ -1771,9 +1778,11 @@ class HomeScreen : Screen {
 
             Text(
                 text = amount,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = Color(0xFF111827)
+                style = AppTypography.bodyNumeric(
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color(0xFF111827)
+                )
             )
         }
     }

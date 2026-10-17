@@ -66,6 +66,7 @@ import com.spendwealthy.app.ui.components.TransactionDetailModal
 import com.spendwealthy.app.ui.components.bouncyClickable
 import com.spendwealthy.app.ui.components.tactilePress
 import com.spendwealthy.app.ui.theme.AppColors
+import com.spendwealthy.app.ui.theme.AppTypography
 import org.koin.core.parameter.parametersOf
 
 data class WalletDetailScreen(val walletId: String) : Screen {
@@ -347,9 +348,11 @@ data class WalletDetailScreen(val walletId: String) : Screen {
 
                     Text(
                         text = balanceStr,
-                        fontSize = balanceFontSize,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = if (isDebt && wallet.balance.amount < 0) AppColors.Danger else Color.White,
+                        style = AppTypography.displayNumeric(
+                            fontSize = balanceFontSize,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = if (isDebt && wallet.balance.amount < 0) AppColors.Danger else Color.White
+                        ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -357,9 +360,11 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                     if (wallet.balance.currency != "IDR") {
                         Text(
                             text = CurrencyConverter.formatEstimatedIdr(wallet.balance),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = Color.White.copy(alpha = 0.75f),
+                            style = AppTypography.bodyNumeric(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color.White.copy(alpha = 0.75f)
+                            ),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -620,18 +625,22 @@ data class WalletDetailScreen(val walletId: String) : Screen {
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = "${if (isIncome) "+" else "-"}${transaction.amount.formatWithSymbol()}",
-                        fontWeight = FontWeight.ExtraBold,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = if (isIncome) AppColors.Success else AppColors.TextMain,
+                        style = AppTypography.bodyNumeric(
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = if (isIncome) AppColors.Success else AppColors.TextMain
+                        ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     if (transaction.amount.currency != "IDR") {
                         Text(
                             text = CurrencyConverter.formatEstimatedIdr(transaction.amount),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Medium,
-                            color = AppColors.TextMuted,
+                            style = AppTypography.labelNumeric(
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = AppColors.TextMuted
+                            ),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
