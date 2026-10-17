@@ -62,7 +62,8 @@ data class FamilyActivity(
     val type: ActivityType,
     val memberName: String,
     val timestamp: kotlinx.datetime.Instant,
-    val details: String
+    val details: String,
+    val amount: Long? = null
 )
 
 enum class ActivityType {
@@ -149,14 +150,16 @@ class FamilyViewModel(
                     type = ActivityType.CONTRIBUTION_ADDED,
                     memberName = "Sarah Pratama",
                     timestamp = Clock.System.now(),
-                    details = "Menyetor Rp 2.000.000 ke 'Liburan Keluarga Akhir Tahun'"
+                    details = "Menyetor ke 'Liburan Keluarga Akhir Tahun'",
+                    amount = 2_000_000L
                 ),
                 FamilyActivity(
                     id = "act_2",
                     type = ActivityType.CONTRIBUTION_ADDED,
                     memberName = "Alex Pratama",
                     timestamp = Clock.System.now(),
-                    details = "Menyetor Rp 5.000.000 ke 'Dana Pendidikan Anak'"
+                    details = "Menyetor ke 'Dana Pendidikan Anak'",
+                    amount = 5_000_000L
                 ),
                 FamilyActivity(
                     id = "act_3",
@@ -267,7 +270,8 @@ class FamilyViewModel(
                     type = ActivityType.CONTRIBUTION_ADDED,
                     memberName = memberName,
                     timestamp = Clock.System.now(),
-                    details = "Menyetor ${Money(amount, "IDR").formatWithSymbol()} ke '$goalTitle'"
+                    details = "Menyetor ke '$goalTitle'",
+                    amount = amount
                 )
 
                 val newTotalSavings = updatedGoals.sumOf { it.currentAmount }

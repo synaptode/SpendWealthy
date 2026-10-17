@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -202,6 +203,7 @@ class FamilyScreen : Screen {
                         items(state.family?.members ?: emptyList(), key = { it.id }) { member ->
                             FamilyMemberCard(
                                 member = member,
+                                sharedGoals = state.sharedGoals,
                                 onClick = {
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     selectedMemberForAction = member
@@ -267,6 +269,7 @@ class FamilyScreen : Screen {
             selectedMemberForAction?.let { member ->
                 MemberActionDialog(
                     member = member,
+                    sharedGoals = state.sharedGoals,
                     onDismiss = { selectedMemberForAction = null },
                     onRoleChange = { role ->
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -961,13 +964,22 @@ class FamilyScreen : Screen {
     @Composable
     private fun FamilyMemberCard(
         member: FamilyMember,
+        sharedGoals: List<FamilySavingsGoal>,
         onClick: () -> Unit
     ) {
         val roleLabel = when (member.role) {
-            FamilyRole.ADMIN -> "Kepala Keluarga / Pengelola (Admin)"
+            FamilyRole.ADMIN -> "Kepala Keluarga / Admin"
             FamilyRole.MEMBER -> "Anggota Tabungan"
             FamilyRole.VIEWER -> "Pemantau (Viewer)"
         }
+
+        val totalContributed = sharedGoals.sumOf { goal ->
+            goal.contributions.filter { it.memberName.equals(member.name, ignoreCase = true) }.sumOf { it.amount }
+        }
+        val activeGoalsCount = sharedGoals.count { goal ->
+            goal.contributions.any { it.memberName.equals(member.name, ignoreCase = true) && it.amount > 0 }
+        }
+        val formattedTotal = Money(totalContributed, "IDR").formatWithSymbol()
 
         Surface(
             modifier = Modifier
@@ -984,6 +996,7 @@ class FamilyScreen : Screen {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(
+                    modifier = Modifier.weight(1f).padding(end = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -1029,12 +1042,34 @@ class FamilyScreen : Screen {
                     }
                 }
 
-                Icon(
-                    imageVector = Icons.Default.ChevronRight,
-                    contentDescription = null,
-                    tint = AppColors.TextMuted,
-                    modifier = Modifier.size(20.dp)
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            text = formattedTotal,
+                            style = AppTypography.bodyNumeric(
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.TextMain
+                            )
+                        )
+                        Text(
+                            text = if (activeGoalsCount > 0) "$activeGoalsCount Target" else "Belum setor",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = AppColors.TextMuted
+                        )
+                    }
+
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = null,
+                        tint = AppColors.TextMuted,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
         }
     }
@@ -1094,13 +1129,33 @@ class FamilyScreen : Screen {
                         )
                     }
 
-                    Text(
-                        text = activity.details,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = AppColors.TextMuted,
-                        lineHeight = 16.sp
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = activity.details,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = AppColors.TextMuted,
+                            lineHeight = 16.sp,
+                            modifier = Modifier.weight(1f, fill = false)
+                        )
+
+                        if (activity.amount != null) {
+                            val formattedAmount = Money(activity.amount, "IDR").formatWithSymbol()
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = "+$formattedAmount",
+                                style = AppTypography.bodyNumeric(
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF10B981)
+                                )
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -1740,9 +1795,19 @@ class FamilyScreen : Screen {
     @Composable
     private fun MemberActionDialog(
         member: FamilyMember,
+        sharedGoals: List<FamilySavingsGoal>,
         onDismiss: () -> Unit,
         onRoleChange: (FamilyRole) -> Unit
     ) {
+        val memberContributions = sharedGoals.mapNotNull { goal ->
+            val userContribution = goal.contributions.find { it.memberName.equals(member.name, ignoreCase = true) }
+            if (userContribution != null && userContribution.amount > 0) {
+                Pair(goal, userContribution)
+            } else null
+        }
+        val totalContributed = memberContributions.sumOf { it.second.amount }
+        val formattedTotal = Money(totalContributed, "IDR").formatWithSymbol()
+
         ModalBottomSheet(
             onDismissRequest = onDismiss,
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
@@ -1833,6 +1898,74 @@ class FamilyScreen : Screen {
                             fontSize = 11.sp,
                             color = AppColors.TextMuted
                         )
+                    }
+                }
+
+                // Contribution Overview Card
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    color = AppColors.SurfaceRaised,
+                    border = BorderStroke(1.dp, AppColors.Outline)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Total Kontribusi",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = AppColors.TextMuted
+                            )
+                            Text(
+                                text = formattedTotal,
+                                style = AppTypography.titleNumeric(
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = AppColors.TextMain
+                                )
+                            )
+                        }
+
+                        if (memberContributions.isNotEmpty()) {
+                            HorizontalDivider(color = AppColors.Outline.copy(alpha = 0.5f))
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                memberContributions.forEach { (goal, c) ->
+                                    val percent = if (goal.currentAmount > 0) {
+                                        ((c.amount.toFloat() / goal.currentAmount.toFloat()) * 100).toInt()
+                                    } else 0
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = goal.title,
+                                            fontSize = 11.sp,
+                                            color = AppColors.TextMain,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier.weight(1f, fill = false)
+                                        )
+                                        Spacer(Modifier.width(8.dp))
+                                        Text(
+                                            text = "${Money(c.amount, "IDR").formatWithSymbol()} ($percent%)",
+                                            style = AppTypography.labelNumeric(
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = AppColors.TextMuted
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -1952,6 +2085,15 @@ class FamilyScreen : Screen {
         val percentage = (progress * 100).toInt()
         val isCompleted = goal.currentAmount >= goal.targetAmount
         val remainingAmount = if (goal.targetAmount > goal.currentAmount) goal.targetAmount - goal.currentAmount else 0L
+
+        val distinctMembers = remember(goal.transactions) {
+            goal.transactions.map { it.memberName }.distinct()
+        }
+        var selectedFilterMember by remember { mutableStateOf<String?>(null) }
+        val displayedTransactions = remember(selectedFilterMember, goal.transactions) {
+            if (selectedFilterMember == null) goal.transactions
+            else goal.transactions.filter { it.memberName == selectedFilterMember }
+        }
 
         val categoryIcon = when (goal.category) {
             "Holiday" -> Icons.Default.FlightTakeoff
@@ -2286,14 +2428,59 @@ class FamilyScreen : Screen {
                             color = AppColors.TextMain
                         )
                         Text(
-                            text = "${goal.transactions.size} Transaksi",
+                            text = "${displayedTransactions.size} Transaksi",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Medium,
                             color = AppColors.TextMuted
                         )
                     }
 
-                    if (goal.transactions.isEmpty()) {
+                    if (distinctMembers.size > 1) {
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            item {
+                                val isAllSelected = selectedFilterMember == null
+                                Surface(
+                                    shape = RoundedCornerShape(10.dp),
+                                    color = if (isAllSelected) Color(0xFFFFDE43) else AppColors.SurfaceRaised,
+                                    border = BorderStroke(1.dp, if (isAllSelected) Color(0xFFE5C82A) else AppColors.Outline),
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .clickable { selectedFilterMember = null }
+                                ) {
+                                    Text(
+                                        text = "Semua (${goal.transactions.size})",
+                                        fontSize = 11.sp,
+                                        fontWeight = if (isAllSelected) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isAllSelected) Color(0xFF111827) else AppColors.TextMuted,
+                                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp)
+                                    )
+                                }
+                            }
+
+                            items(distinctMembers) { memberName ->
+                                val isSelected = selectedFilterMember == memberName
+                                val count = goal.transactions.count { it.memberName == memberName }
+                                Surface(
+                                    shape = RoundedCornerShape(10.dp),
+                                    color = if (isSelected) Color(0xFFFFDE43) else AppColors.SurfaceRaised,
+                                    border = BorderStroke(1.dp, if (isSelected) Color(0xFFE5C82A) else AppColors.Outline),
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .clickable { selectedFilterMember = if (isSelected) null else memberName }
+                                ) {
+                                    Text(
+                                        text = "$memberName ($count)",
+                                        fontSize = 11.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isSelected) Color(0xFF111827) else AppColors.TextMuted,
+                                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    if (displayedTransactions.isEmpty()) {
                         Surface(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp),
@@ -2314,13 +2501,13 @@ class FamilyScreen : Screen {
                                     modifier = Modifier.size(28.dp)
                                 )
                                 Text(
-                                    text = "Belum Ada Riwayat Transaksi",
+                                    text = if (selectedFilterMember != null) "Belum Ada Setoran dari $selectedFilterMember" else "Belum Ada Riwayat Transaksi",
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = AppColors.TextMain
                                 )
                                 Text(
-                                    text = "Setoran dana yang dilakukan anggota keluarga akan tercatat di sini secara otomatis.",
+                                    text = if (selectedFilterMember != null) "Anggota ini belum melakukan setoran pada target ini." else "Setoran dana yang dilakukan anggota keluarga akan tercatat di sini secara otomatis.",
                                     fontSize = 11.sp,
                                     color = AppColors.TextMuted,
                                     lineHeight = 15.sp,
@@ -2339,7 +2526,7 @@ class FamilyScreen : Screen {
                                 modifier = Modifier.padding(14.dp),
                                 verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
-                                goal.transactions.forEachIndexed { index, tx ->
+                                displayedTransactions.forEachIndexed { index, tx ->
                                     val formattedAmount = Money(tx.amount, "IDR").formatWithSymbol()
 
                                     Row(
@@ -2420,7 +2607,7 @@ class FamilyScreen : Screen {
                                         )
                                     }
 
-                                    if (index < goal.transactions.lastIndex) {
+                                    if (index < displayedTransactions.lastIndex) {
                                         HorizontalDivider(color = AppColors.Outline.copy(alpha = 0.6f))
                                     }
                                 }
