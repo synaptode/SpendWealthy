@@ -169,7 +169,8 @@ class AddTransactionScreen(
                                 ) {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                        modifier = Modifier.weight(1f).padding(end = 8.dp)
                                     ) {
                                         Box(
                                             modifier = Modifier
@@ -185,7 +186,7 @@ class AddTransactionScreen(
                                                 modifier = Modifier.size(18.dp)
                                             )
                                         }
-                                        Column {
+                                        Column(modifier = Modifier.weight(1f, fill = false)) {
                                             Row(
                                                 verticalAlignment = Alignment.CenterVertically,
                                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -194,12 +195,14 @@ class AddTransactionScreen(
                                                     text = "Pindai Struk dengan AI",
                                                     fontWeight = FontWeight.Bold,
                                                     fontSize = 13.sp,
-                                                    color = Color(0xFF111827)
+                                                    color = Color(0xFF111827),
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
                                                 )
                                                 Surface(
                                                     shape = RoundedCornerShape(6.dp),
                                                     color = Color(0xFF10B981).copy(alpha = 0.15f)
-                                                ) {
+                                                 ) {
                                                     Text(
                                                         text = "OCR",
                                                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
@@ -212,7 +215,9 @@ class AddTransactionScreen(
                                             Text(
                                                 text = "Isi nominal & kategori otomatis dari foto struk",
                                                 fontSize = 11.sp,
-                                                color = AppColors.TextMuted
+                                                color = AppColors.TextMuted,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
                                             )
                                         }
                                     }
@@ -531,6 +536,12 @@ class AddTransactionScreen(
                             modifier = Modifier.padding(end = 12.dp)
                         )
 
+                        val amountFontSize = when {
+                            amount.length > 10 -> 22.sp
+                            amount.length > 7 -> 26.sp
+                            else -> 32.sp
+                        }
+
                         BasicTextField(
                             value = amount,
                             onValueChange = { input -> onAmountChange(input.filter { it.isDigit() }) },
@@ -539,14 +550,14 @@ class AddTransactionScreen(
                             singleLine = true,
                             textStyle = TextStyle(
                                 color = if (amount.isBlank()) AppColors.TextMuted else AppColors.TextMain,
-                                fontSize = 32.sp,
+                                fontSize = amountFontSize,
                                 fontWeight = FontWeight.Black
                             ),
                             cursorBrush = SolidColor(AppColors.Primary),
                             modifier = Modifier.weight(1f),
                             decorationBox = { innerTextField ->
                                 if (amount.isBlank()) {
-                                    Text("0", fontSize = 32.sp, fontWeight = FontWeight.Black, color = AppColors.TextMuted.copy(alpha = 0.4f))
+                                    Text("0", fontSize = amountFontSize, fontWeight = FontWeight.Black, color = AppColors.TextMuted.copy(alpha = 0.4f))
                                 }
                                 innerTextField()
                             }

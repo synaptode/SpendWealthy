@@ -73,14 +73,14 @@ fun QuickEntryKeypad(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp)
+            .padding(horizontal = 16.dp)
             .padding(bottom = 20.dp, top = 4.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // Quick Increment Pills
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             quickPills.forEach { (label, amount) ->
                 val pillBg = if (isDark) Color(0xFF131A29) else Color(0xFFF3F4F6)
@@ -104,9 +104,11 @@ fun QuickEntryKeypad(
                 ) {
                     Text(
                         text = label,
-                        fontSize = 12.sp,
+                        fontSize = 11.5.sp,
                         fontWeight = FontWeight.Bold,
-                        color = pillText
+                        color = pillText,
+                        maxLines = 1,
+                        softWrap = false
                     )
                 }
             }

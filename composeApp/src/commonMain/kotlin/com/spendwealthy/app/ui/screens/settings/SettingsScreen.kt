@@ -396,7 +396,10 @@ class SettingsScreen : Screen {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp)
+                    ) {
                         Box(
                             modifier = Modifier
                                 .size(52.dp)
@@ -412,12 +415,17 @@ class SettingsScreen : Screen {
                             )
                         }
                         Spacer(Modifier.width(14.dp))
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Column(
+                            modifier = Modifier.weight(1f, fill = false),
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
                             Text(
                                 text = userName,
                                 fontWeight = FontWeight.ExtraBold,
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = AppColors.TextMain
+                                color = Color.White,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                             Surface(
                                 shape = RoundedCornerShape(8.dp),
@@ -432,7 +440,9 @@ class SettingsScreen : Screen {
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = if (plan == SubscriptionPlan.FREE) AppColors.TextMuted else AppColors.Primary,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
@@ -505,17 +515,21 @@ class SettingsScreen : Screen {
                 )
             }
             Spacer(Modifier.width(14.dp))
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                 Text(
                     text = title,
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = AppColors.TextMain
+                    color = AppColors.TextMain,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.labelSmall,
-                    color = AppColors.TextMuted
+                    color = AppColors.TextMuted,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
             Icon(
@@ -542,7 +556,7 @@ class SettingsScreen : Screen {
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f).padding(end = 12.dp)
             ) {
                 Box(
                     modifier = Modifier
@@ -559,17 +573,21 @@ class SettingsScreen : Screen {
                     )
                 }
                 Spacer(Modifier.width(14.dp))
-                Column {
+                Column(modifier = Modifier.weight(1f, fill = false)) {
                     Text(
                         text = title,
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = AppColors.TextMain
+                        color = AppColors.TextMain,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.labelSmall,
-                        color = AppColors.TextMuted
+                        color = AppColors.TextMuted,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
