@@ -21,6 +21,7 @@ import kotlinx.datetime.toLocalDateTime
 
 data class ReportState(
     val categorySummaries: List<CategorySummary> = emptyList(),
+    val incomeCategorySummaries: List<CategorySummary> = emptyList(),
     val totalIncome: Money = Money.zero(),
     val totalExpense: Money = Money.zero(),
     val savingRate: Double = 0.0,
@@ -102,6 +103,18 @@ class ReportViewModel(
                     )
                 }.sortedByDescending { it.amount.amount }
 
+                val incomeSummaries = incomes.groupBy { it.categoryId }.entries.mapIndexed { index, (catId, trans) ->
+                    val sum = trans.sumOf { it.amount.amount }
+                    val category = categoryMap[catId]
+                    CategorySummary(
+                        categoryId = catId,
+                        categoryName = category?.name ?: "Pemasukan",
+                        amount = Money(sum, "IDR"),
+                        percentage = if (totalIncome > 0) sum.toDouble() / totalIncome.toDouble() else 0.0,
+                        color = chartColors[index % chartColors.size]
+                    )
+                }.sortedByDescending { it.amount.amount }
+
                 val insight = when {
                     transactions.isEmpty() -> "Belum ada transaksi bulan ini. Mulai dari catatan kecil dulu."
                     totalIncome <= 0L -> "Pengeluaran tercatat ${Money(totalExpense, "IDR").format()} bulan ini. Tambahkan income agar saving rate bisa dihitung."
@@ -112,6 +125,7 @@ class ReportViewModel(
                 
                 ReportState(
                     categorySummaries = summaries,
+                    incomeCategorySummaries = incomeSummaries,
                     totalIncome = Money(totalIncome, "IDR"),
                     totalExpense = Money(totalExpense, "IDR"),
                     savingRate = savingRate,

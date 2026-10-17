@@ -33,6 +33,7 @@ data class PieChartData(
 @Composable
 fun CategoryPieChart(
     data: List<PieChartData>,
+    centerTitle: String = "Total Expense",
     modifier: Modifier = Modifier
 ) {
     val total = data.sumOf { it.value.toDouble() }.toFloat()
@@ -110,7 +111,7 @@ fun CategoryPieChart(
                 scaleY = scale
             }
         ) {
-            val label = if (selectedIndex != -1) data[selectedIndex].label else "Total Expense"
+            val label = if (selectedIndex != -1) data[selectedIndex].label else centerTitle
             val displayValue = if (selectedIndex != -1) data[selectedIndex].value else total
             val percentage = if (total > 0 && selectedIndex != -1) {
                 ((data[selectedIndex].value / total) * 100).toInt()

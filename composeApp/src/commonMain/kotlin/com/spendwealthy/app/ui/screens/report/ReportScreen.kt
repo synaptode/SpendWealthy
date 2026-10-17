@@ -120,7 +120,11 @@ class ReportScreen : Screen {
                     )
                 }
 
-                // 3. Segmented Donut Chart Card (Matching Reference 4: Total Expense + Donut + % remaining)
+                val isIncomeSelected = selectedTab == 0
+                val activeSummaries = if (isIncomeSelected) state.incomeCategorySummaries else state.categorySummaries
+                val centerTitle = if (isIncomeSelected) "Total Income" else "Total Expense"
+
+                // 3. Segmented Donut Chart Card (Matching Reference 4: Total Expense/Income + Donut)
                 item {
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
@@ -135,11 +139,12 @@ class ReportScreen : Screen {
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            if (state.categorySummaries.isNotEmpty()) {
+                            if (activeSummaries.isNotEmpty()) {
                                 CategoryPieChart(
-                                    data = state.categorySummaries.map {
+                                    data = activeSummaries.map {
                                         PieChartData(it.amount.amount.toFloat(), it.color, it.categoryName)
-                                    }
+                                    },
+                                    centerTitle = centerTitle
                                 )
                             } else {
                                 EmptyReportState()
@@ -155,11 +160,11 @@ class ReportScreen : Screen {
                 item { FinancialInsightBanner(state.insight) }
 
                 // 6. Category Breakdown List
-                if (state.categorySummaries.isNotEmpty()) {
+                if (activeSummaries.isNotEmpty()) {
                     item {
-                        SectionTitle("Rincian per Kategori")
+                        SectionTitle(if (isIncomeSelected) "Sumber Pemasukan" else "Rincian per Kategori")
                     }
-                    items(state.categorySummaries, key = { it.categoryId ?: it.categoryName }) { summary ->
+                    items(activeSummaries, key = { it.categoryId ?: it.categoryName }) { summary ->
                         CategorySpendingRow(summary)
                     }
                 }

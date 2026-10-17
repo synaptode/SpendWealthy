@@ -61,10 +61,12 @@ import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.Money
 import com.spendwealthy.app.domain.model.Transaction
 import com.spendwealthy.app.domain.model.TransactionType
+import com.spendwealthy.app.ui.screens.transaction.AddTransactionScreen
 import com.spendwealthy.app.ui.theme.AppColors
 
 /**
@@ -121,6 +123,7 @@ class TransactionListScreen : Screen {
                 // 3. Quick Action Buttons (Matching Reference 2: Send, Receive, Swap, Deposit)
                 item {
                     QuickActionsRow(
+                        navigator = navigator,
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)
                     )
                 }
@@ -432,48 +435,64 @@ class TransactionListScreen : Screen {
      * Send (Dark), Receive (Light), Swap (Light), Deposit (Yellow).
      */
     @Composable
-    private fun QuickActionsRow(modifier: Modifier = Modifier) {
+    private fun QuickActionsRow(
+        navigator: Navigator,
+        modifier: Modifier = Modifier
+    ) {
         val haptic = LocalHapticFeedback.current
+        val targetNavigator = navigator.parent ?: navigator
 
         Row(
             modifier = modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 1. Send Action
+            // 1. Send Action (Expense)
             QuickActionItem(
                 label = "Send",
                 icon = Icons.Default.ArrowUpward,
                 backgroundColor = Color(0xFF111827),
                 iconColor = Color.White,
-                onClick = { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) }
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    targetNavigator.push(AddTransactionScreen(TransactionType.EXPENSE))
+                }
             )
 
-            // 2. Receive Action
+            // 2. Receive Action (Income)
             QuickActionItem(
                 label = "Receive",
                 icon = Icons.Default.ArrowDownward,
                 backgroundColor = Color(0xFFF3F4F6),
                 iconColor = Color(0xFF111827),
-                onClick = { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) }
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    targetNavigator.push(AddTransactionScreen(TransactionType.INCOME))
+                }
             )
 
-            // 3. Swap Action
+            // 3. Swap Action (Transfer)
             QuickActionItem(
                 label = "Swap",
                 icon = Icons.Default.SwapHoriz,
                 backgroundColor = Color(0xFFF3F4F6),
                 iconColor = Color(0xFF111827),
-                onClick = { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) }
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    targetNavigator.push(AddTransactionScreen(TransactionType.TRANSFER))
+                }
             )
 
-            // 4. Deposit Action
+            // 4. Deposit Action (Income)
             QuickActionItem(
                 label = "Deposit",
                 icon = Icons.Default.Add,
                 backgroundColor = Color(0xFFFFDE43),
                 iconColor = Color(0xFF111827),
-                onClick = { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) }
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    targetNavigator.push(AddTransactionScreen(TransactionType.INCOME))
+                }
             )
         }
     }
