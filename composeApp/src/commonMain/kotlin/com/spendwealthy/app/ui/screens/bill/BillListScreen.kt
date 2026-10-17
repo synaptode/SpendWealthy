@@ -80,6 +80,10 @@ import com.spendwealthy.app.ui.components.EmptyState
 import com.spendwealthy.app.ui.theme.AppColors
 import com.spendwealthy.app.ui.theme.AppTypography
 
+enum class BillFilterTab {
+    UNPAID, ALL, PAID
+}
+
 class BillListScreen : Screen {
 
     @Composable
@@ -91,9 +95,17 @@ class BillListScreen : Screen {
 
         var successMessage by remember { mutableStateOf<String?>(null) }
         var billToPay by remember { mutableStateOf<BillReminder?>(null) }
+        var selectedFilter by remember { mutableStateOf(BillFilterTab.UNPAID) }
 
         val unpaidBills = state.bills.filter { viewModel.statusOf(it) != BillStatus.PAID }
+        val paidBills = state.bills.filter { viewModel.statusOf(it) == BillStatus.PAID }
         val totalUnpaidAmount = unpaidBills.sumOf { CurrencyConverter.toIdr(it.amount) }
+
+        val displayedBills = when (selectedFilter) {
+            BillFilterTab.UNPAID -> unpaidBills
+            BillFilterTab.ALL -> state.bills
+            BillFilterTab.PAID -> paidBills
+        }
 
         Box(
             modifier = Modifier.fillMaxSize().background(AppColors.Background),
@@ -129,6 +141,47 @@ class BillListScreen : Screen {
                     }
                 }
 
+                // Filter Segmented Tabs
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        listOf(
+                            BillFilterTab.UNPAID to "Belum Bayar (${unpaidBills.size})",
+                            BillFilterTab.ALL to "Semua (${state.bills.size})",
+                            BillFilterTab.PAID to "Lunas (${paidBills.size})"
+                        ).forEach { (tab, label) ->
+                            val isSelected = selectedFilter == tab
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = if (isSelected) AppColors.Primary else AppColors.SurfaceRaised,
+                                border = BorderStroke(1.dp, if (isSelected) AppColors.Primary else AppColors.Outline),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable {
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        selectedFilter = tab
+                                    }
+                            ) {
+                                Box(
+                                    modifier = Modifier.padding(vertical = 10.dp, horizontal = 4.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = label,
+                                        fontSize = 12.sp,
+                                        fontWeight = if (isSelected) FontWeight.Black else FontWeight.SemiBold,
+                                        color = if (isSelected) AppColors.OnPrimary else AppColors.TextMuted,
+                                        maxLines = 1
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
                 if (state.bills.isEmpty()) {
                     item {
                         EmptyState(
@@ -137,8 +190,24 @@ class BillListScreen : Screen {
                             icon = Icons.AutoMirrored.Filled.ReceiptLong
                         )
                     }
+                } else if (displayedBills.isEmpty()) {
+                    item {
+                        EmptyState(
+                            title = when (selectedFilter) {
+                                BillFilterTab.UNPAID -> "Semua Tagihan Lunas! 🎉"
+                                BillFilterTab.PAID -> "Belum Ada Tagihan yang Lunas"
+                                else -> "Tidak Ada Tagihan"
+                            },
+                            message = when (selectedFilter) {
+                                BillFilterTab.UNPAID -> "Luar biasa! Tidak ada tagihan tertunggak atau jatuh tempo saat ini."
+                                BillFilterTab.PAID -> "Tagihan yang sudah dibayar bulan ini akan muncul di sini sebagai riwayat."
+                                else -> "Daftarkan tagihan Anda agar arus kas selalu terpantau."
+                            },
+                            icon = if (selectedFilter == BillFilterTab.UNPAID) Icons.Default.CheckCircle else Icons.AutoMirrored.Filled.ReceiptLong
+                        )
+                    }
                 } else {
-                    items(state.bills, key = { it.id }) { bill ->
+                    items(displayedBills, key = { it.id }) { bill ->
                         val status = viewModel.statusOf(bill)
                         BillCardItem(
                             bill = bill,
@@ -571,11 +640,12 @@ class BillListScreen : Screen {
         onDismiss: () -> Unit
     ) {
         val haptic = LocalHapticFeedback.current
+        val billIdr = CurrencyConverter.toIdr(bill.amount)
 
         ModalBottomSheet(
             onDismissRequest = onDismiss,
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-            containerColor = Color.White,
+            containerColor = AppColors.Surface,
             dragHandle = {
                 Box(
                     modifier = Modifier
@@ -593,29 +663,21 @@ class BillListScreen : Screen {
                     .widthIn(max = 540.dp)
                     .align(Alignment.CenterHorizontally)
                     .padding(horizontal = 24.dp)
-                    .padding(bottom = 36.dp)
+                    .padding(bottom = 36.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // Modal Header
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
-                        Text(
-                            text = "Pilih Dompet Sumber",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF111827)
-                        )
-                        Text(
-                            text = "Bayar ${bill.name} • ${bill.amount.formatWithSymbol()}",
-                            style = AppTypography.labelNumeric(
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color(0xFFB45309)
-                            )
-                        )
-                    }
+                    Text(
+                        text = "Konfirmasi Pelunasan",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black,
+                        color = AppColors.TextMain
+                    )
 
                     Surface(
                         shape = CircleShape,
@@ -640,77 +702,167 @@ class BillListScreen : Screen {
                     }
                 }
 
-                Spacer(modifier = Modifier.height(18.dp))
+                // Bill Snapshot Card
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    color = AppColors.SurfaceRaised,
+                    border = BorderStroke(1.dp, AppColors.Outline)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = bill.name,
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = AppColors.TextMain
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = Color(0xFFF59E0B).copy(alpha = 0.15f)
+                            ) {
+                                Text(
+                                    text = "Jatuh Tempo: ${bill.dueDate}",
+                                    style = AppTypography.labelNumeric(
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFFD97706)
+                                    ),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                )
+                            }
+                        }
 
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.Bottom
+                        ) {
+                            Text(
+                                text = "Total Tagihan",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = AppColors.TextMuted
+                            )
+                            Text(
+                                text = bill.amount.formatWithSymbol(),
+                                style = AppTypography.headlineNumeric(
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = AppColors.TextMain
+                                )
+                            )
+                        }
+                    }
+                }
+
+                Text(
+                    text = "Pilih Dompet Sumber Pembayaran",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = AppColors.TextMuted
+                )
+
+                // Wallets List
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     wallets.forEach { wallet ->
+                        val walletIdr = CurrencyConverter.toIdr(wallet.balance)
+                        val isSufficient = walletIdr >= billIdr
+                        val remainingAfter = walletIdr - billIdr
+
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(16.dp))
-                                .clickable {
+                                .clickable(enabled = isSufficient) {
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     onWalletSelected(wallet)
                                 },
                             shape = RoundedCornerShape(16.dp),
-                            color = Color(0xFFF9FAFB),
-                            border = BorderStroke(1.dp, Color(0xFFE5E7EB))
+                            color = if (isSufficient) AppColors.SurfaceRaised else AppColors.SurfaceRaised.copy(alpha = 0.5f),
+                            border = BorderStroke(
+                                1.dp,
+                                if (isSufficient) AppColors.Outline else AppColors.Danger.copy(alpha = 0.3f)
+                            )
                         ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp),
+                                    .padding(14.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    modifier = Modifier.weight(1f, fill = false)
                                 ) {
                                     Box(
                                         modifier = Modifier
                                             .size(42.dp)
                                             .clip(CircleShape)
-                                            .background(AppColors.Primary.copy(alpha = 0.2f)),
+                                            .background(
+                                                if (isSufficient) AppColors.Primary.copy(alpha = 0.15f)
+                                                else AppColors.Danger.copy(alpha = 0.15f)
+                                            ),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.AccountBalanceWallet,
                                             contentDescription = null,
-                                            tint = Color(0xFF111827),
+                                            tint = if (isSufficient) AppColors.Primary else AppColors.Danger,
                                             modifier = Modifier.size(20.dp)
                                         )
                                     }
 
-                                    Column {
+                                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                         Text(
                                             text = wallet.name,
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 15.sp,
-                                            color = Color(0xFF111827)
+                                            color = AppColors.TextMain
                                         )
-                                        val walletBalanceStr = if (wallet.balance.currency != "IDR") {
-                                            "Saldo: ${wallet.balance.formatWithSymbol()} (${CurrencyConverter.formatEstimatedIdr(wallet.balance)})"
-                                        } else {
-                                            "Saldo: ${wallet.balance.formatWithSymbol()}"
-                                        }
                                         Text(
-                                            text = walletBalanceStr,
+                                            text = "Saldo: ${wallet.balance.formatWithSymbol()}",
                                             style = AppTypography.labelNumeric(
                                                 fontSize = 12.sp,
                                                 fontWeight = FontWeight.Medium,
                                                 color = AppColors.TextMuted
                                             )
                                         )
+                                        if (isSufficient) {
+                                            Text(
+                                                text = "Sisa setelah bayar: ${Money(remainingAfter, "IDR").formatWithSymbol()}",
+                                                style = AppTypography.labelNumeric(
+                                                    fontSize = 11.sp,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    color = Color(0xFF10B981)
+                                                )
+                                            )
+                                        }
                                     }
                                 }
 
-                                Icon(
-                                    imageVector = Icons.Default.ChevronRight,
-                                    contentDescription = null,
-                                    tint = AppColors.TextMuted,
-                                    modifier = Modifier.size(20.dp)
-                                )
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = if (isSufficient) Color(0xFF10B981).copy(alpha = 0.12f) else AppColors.Danger.copy(alpha = 0.12f)
+                                ) {
+                                    Text(
+                                        text = if (isSufficient) "Bayar ✓" else "Kurang ${Money(billIdr - walletIdr, "IDR").formatWithSymbol()}",
+                                        style = AppTypography.labelNumeric(
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (isSufficient) Color(0xFF10B981) else AppColors.Danger
+                                        ),
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    )
+                                }
                             }
                         }
                     }
