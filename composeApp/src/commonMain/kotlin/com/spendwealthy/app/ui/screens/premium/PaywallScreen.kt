@@ -60,6 +60,7 @@ import com.spendwealthy.app.domain.model.SubscriptionPlan
 import com.spendwealthy.app.ui.components.AppButton
 import com.spendwealthy.app.ui.theme.AppColors
 import com.spendwealthy.app.ui.theme.AppTypography
+import com.spendwealthy.app.core.localization.LocalStrings
 
 /**
  * Modern, high-converting subscription paywall.
@@ -71,6 +72,7 @@ class PaywallScreen : Screen {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val haptic = LocalHapticFeedback.current
+        val strings = LocalStrings.current
         var selectedPlan by remember { mutableStateOf(SubscriptionPlan.PREMIUM_PERSONAL) }
 
         Box(
@@ -132,6 +134,7 @@ class PaywallScreen : Screen {
 
     @Composable
     private fun PaywallHeader(onClose: () -> Unit) {
+        val strings = LocalStrings.current
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -153,7 +156,7 @@ class PaywallScreen : Screen {
                     .align(Alignment.TopStart)
                     .padding(12.dp)
             ) {
-                Icon(Icons.Default.Close, contentDescription = "Tutup", tint = Color.White)
+                Icon(Icons.Default.Close, contentDescription = strings.close, tint = Color.White)
             }
 
             Column(

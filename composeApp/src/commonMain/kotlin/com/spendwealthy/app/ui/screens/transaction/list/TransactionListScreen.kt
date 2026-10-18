@@ -85,6 +85,7 @@ import com.spendwealthy.app.ui.components.TransactionDetailModal
 import com.spendwealthy.app.ui.screens.transaction.AddTransactionScreen
 import com.spendwealthy.app.ui.theme.AppColors
 import com.spendwealthy.app.ui.theme.AppTypography
+import com.spendwealthy.app.core.localization.LocalStrings
 
 private val INDO_MONTHS = listOf(
     "Januari", "Februari", "Maret", "April", "Mei", "Juni",
@@ -103,6 +104,7 @@ class TransactionListScreen : Screen {
         val state by viewModel.uiState.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
         val haptic = LocalHapticFeedback.current
+        val strings = LocalStrings.current
         var selectedTransaction by remember { mutableStateOf<Transaction?>(null) }
         var showMonthPicker by remember { mutableStateOf(false) }
 
@@ -341,6 +343,7 @@ class TransactionListScreen : Screen {
     @Composable
     private fun LedgerHeader(canGoBack: Boolean, onBack: () -> Unit) {
         val haptic = LocalHapticFeedback.current
+        val strings = LocalStrings.current
 
         Row(
             modifier = Modifier
@@ -363,7 +366,7 @@ class TransactionListScreen : Screen {
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Kembali",
+                        contentDescription = strings.back,
                         tint = AppColors.TextMain,
                         modifier = Modifier.size(18.dp)
                     )
@@ -377,7 +380,7 @@ class TransactionListScreen : Screen {
                     .padding(end = 8.dp)
             ) {
                 Text(
-                    text = "Buku Kas & Riwayat",
+                    text = strings.recentTransactions,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = AppColors.TextMain,
@@ -401,6 +404,7 @@ class TransactionListScreen : Screen {
         onQueryChange: (String) -> Unit,
         modifier: Modifier = Modifier
     ) {
+        val strings = LocalStrings.current
         Surface(
             modifier = modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
@@ -425,7 +429,7 @@ class TransactionListScreen : Screen {
                     onValueChange = onQueryChange,
                     placeholder = {
                         Text(
-                            text = "Cari merchant, kategori, atau catatan...",
+                            text = "${strings.search}...",
                             fontSize = 13.sp,
                             color = AppColors.TextMuted
                         )
@@ -463,6 +467,7 @@ class TransactionListScreen : Screen {
         isSurplus: Boolean,
         modifier: Modifier = Modifier
     ) {
+        val strings = LocalStrings.current
         Surface(
             modifier = modifier.fillMaxWidth(),
             shape = RoundedCornerShape(22.dp),
@@ -543,7 +548,7 @@ class TransactionListScreen : Screen {
                                 tint = AppColors.Success,
                                 modifier = Modifier.size(14.dp)
                             )
-                            Text("Pemasukan", fontSize = 12.sp, color = AppColors.TextMuted, maxLines = 1)
+                            Text(strings.transactionIncome, fontSize = 12.sp, color = AppColors.TextMuted, maxLines = 1)
                         }
                         Text(
                             text = income,
@@ -572,7 +577,7 @@ class TransactionListScreen : Screen {
                                 tint = AppColors.Danger,
                                 modifier = Modifier.size(14.dp)
                             )
-                            Text("Pengeluaran", fontSize = 12.sp, color = AppColors.TextMuted, maxLines = 1)
+                            Text(strings.transactionExpense, fontSize = 12.sp, color = AppColors.TextMuted, maxLines = 1)
                         }
                         Text(
                             text = expense,

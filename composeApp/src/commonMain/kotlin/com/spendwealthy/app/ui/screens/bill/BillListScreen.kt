@@ -79,6 +79,7 @@ import com.spendwealthy.app.ui.components.KnownBrand
 import com.spendwealthy.app.ui.components.EmptyState
 import com.spendwealthy.app.ui.theme.AppColors
 import com.spendwealthy.app.ui.theme.AppTypography
+import com.spendwealthy.app.core.localization.LocalStrings
 
 enum class BillFilterTab {
     UNPAID, ALL, PAID
@@ -92,6 +93,7 @@ class BillListScreen : Screen {
         val state by viewModel.uiState.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
         val haptic = LocalHapticFeedback.current
+        val strings = LocalStrings.current
 
         var successMessage by remember { mutableStateOf<String?>(null) }
         var billToPay by remember { mutableStateOf<BillReminder?>(null) }
@@ -288,6 +290,7 @@ class BillListScreen : Screen {
 
     @Composable
     private fun BillsHeader(onBack: () -> Unit, onAdd: () -> Unit) {
+        val strings = LocalStrings.current
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -307,7 +310,7 @@ class BillListScreen : Screen {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Kembali",
+                        contentDescription = strings.back,
                         tint = AppColors.TextMain,
                         modifier = Modifier.size(18.dp)
                     )

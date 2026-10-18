@@ -94,6 +94,7 @@ import com.spendwealthy.app.domain.model.Wallet
 import com.spendwealthy.app.ui.components.AppButton
 import com.spendwealthy.app.ui.components.AppTextField
 import com.spendwealthy.app.ui.components.QuickEntryKeypad
+import com.spendwealthy.app.core.localization.LocalStrings
 import com.spendwealthy.app.ui.theme.AppColors
 
 /**
@@ -113,6 +114,7 @@ class AddTransactionScreen(
         val viewModel = koinScreenModel<AddTransactionViewModel>()
         val state by viewModel.uiState.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
+        val strings = LocalStrings.current
         val snackbarHostState = remember { SnackbarHostState() }
         val scope = rememberCoroutineScope()
         val haptic = LocalHapticFeedback.current
@@ -214,7 +216,7 @@ class AddTransactionScreen(
                                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                                             ) {
                                                 Text(
-                                                    text = "Pindai Struk dengan AI",
+                                                    text = strings.scanReceiptTitle,
                                                     fontWeight = FontWeight.Bold,
                                                     fontSize = 13.sp,
                                                     color = Color(0xFF111827),
@@ -265,7 +267,7 @@ class AddTransactionScreen(
                     if (state.type != TransactionType.TRANSFER) {
                         item {
                             PickerSection(
-                                title = "Kategori",
+                                title = strings.category,
                                 icon = Icons.Default.Category,
                                 values = state.categories,
                                 selected = state.selectedCategory,
@@ -277,7 +279,7 @@ class AddTransactionScreen(
                     }
                     item {
                         PickerSection(
-                            title = if (state.type == TransactionType.TRANSFER) "Dari Dompet" else "Dompet",
+                            title = if (state.type == TransactionType.TRANSFER) "Dari Dompet" else strings.wallet,
                             icon = Icons.Default.AccountBalanceWallet,
                             values = state.wallets,
                             selected = state.selectedWallet,
@@ -536,7 +538,8 @@ class AddTransactionScreen(
             "+500rb" to 500_000L
         )
 
-        FormSection(title = "Nominal", icon = Icons.Default.Payments) {
+        val strings = LocalStrings.current
+        FormSection(title = strings.amount, icon = Icons.Default.Payments) {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Surface(
                     modifier = Modifier
@@ -703,7 +706,8 @@ class AddTransactionScreen(
 
     @Composable
     private fun NoteSection(note: String, onNoteChange: (String) -> Unit) {
-        FormSection(title = "Catatan", icon = Icons.AutoMirrored.Filled.Notes) {
+        val strings = LocalStrings.current
+        FormSection(title = strings.note, icon = Icons.AutoMirrored.Filled.Notes) {
             AppTextField(
                 value = note,
                 onValueChange = onNoteChange,
@@ -721,8 +725,9 @@ class AddTransactionScreen(
             state.selectedWallet != null &&
             (state.type != TransactionType.TRANSFER || state.selectedTargetWallet != null)
 
+        val strings = LocalStrings.current
         AppButton(
-            text = if (state.isLoading) "Menyimpan..." else "Simpan Transaksi",
+            text = if (state.isLoading) strings.loading else strings.save,
             onClick = {
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 onClick()

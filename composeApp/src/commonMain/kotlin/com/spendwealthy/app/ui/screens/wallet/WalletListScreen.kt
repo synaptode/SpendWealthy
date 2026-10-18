@@ -59,6 +59,7 @@ import com.spendwealthy.app.ui.components.EmptyState
 import com.spendwealthy.app.ui.components.KnownBrand
 import com.spendwealthy.app.ui.components.bouncyClickable
 import com.spendwealthy.app.ui.components.tactilePress
+import com.spendwealthy.app.core.localization.LocalStrings
 import com.spendwealthy.app.ui.theme.AppColors
 import com.spendwealthy.app.ui.theme.AppTypography
 
@@ -70,6 +71,7 @@ class WalletListScreen : Screen {
         val state by viewModel.uiState.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
         val haptic = LocalHapticFeedback.current
+        val strings = LocalStrings.current
 
         val totalLiquidity = state.wallets
             .filter { it.type != WalletType.PAYLATER && it.type != WalletType.CREDIT_CARD }
@@ -105,7 +107,7 @@ class WalletListScreen : Screen {
                     }
                     item {
                         Text(
-                            text = "Semua Rekening & Dompet",
+                            text = strings.walletsAccounts,
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             color = AppColors.TextMuted,
@@ -139,6 +141,7 @@ class WalletListScreen : Screen {
 
     @Composable
     private fun WalletHeader(onBack: () -> Unit, onAdd: () -> Unit) {
+        val strings = LocalStrings.current
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -162,7 +165,7 @@ class WalletListScreen : Screen {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Kembali",
+                        contentDescription = strings.back,
                         tint = AppColors.TextMain,
                         modifier = Modifier.size(18.dp)
                     )
@@ -176,7 +179,7 @@ class WalletListScreen : Screen {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Daftar Dompet",
+                    text = strings.walletsAccounts,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.ExtraBold,
                     color = AppColors.TextMain,
@@ -218,6 +221,7 @@ class WalletListScreen : Screen {
 
     @Composable
     private fun LiquiditySummaryCard(totalFormatted: String, walletCount: Int) {
+        val strings = LocalStrings.current
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
@@ -253,7 +257,7 @@ class WalletListScreen : Screen {
                                     .background(Color(0xFFFFDE43))
                             )
                             Text(
-                                text = "TOTAL SALDO LIKUID",
+                                text = strings.totalLiquidBalance.uppercase(),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White.copy(alpha = 0.7f),

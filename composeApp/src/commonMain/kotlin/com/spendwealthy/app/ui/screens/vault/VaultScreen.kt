@@ -63,6 +63,7 @@ import com.spendwealthy.app.domain.model.Document
 import com.spendwealthy.app.domain.model.DocumentType
 import com.spendwealthy.app.ui.screens.premium.PaywallScreen
 import com.spendwealthy.app.ui.screens.settings.SettingsScreen
+import com.spendwealthy.app.core.localization.LocalStrings
 import com.spendwealthy.app.ui.theme.AppColors
 
 class VaultScreen : Screen {
@@ -74,6 +75,7 @@ class VaultScreen : Screen {
         val navigator = LocalNavigator.currentOrThrow
         val rootNavigator = navigator.parent ?: navigator
         val haptic = LocalHapticFeedback.current
+        val strings = LocalStrings.current
 
         Box(
             modifier = Modifier.fillMaxSize().background(AppColors.Background),
@@ -173,6 +175,7 @@ class VaultScreen : Screen {
 
     @Composable
     private fun VaultHeader(onSettings: () -> Unit, onAddDocument: () -> Unit) {
+        val strings = LocalStrings.current
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -192,7 +195,7 @@ class VaultScreen : Screen {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Default.Settings,
-                        contentDescription = "Pengaturan",
+                        contentDescription = strings.settingsTitle,
                         tint = AppColors.TextMain,
                         modifier = Modifier.size(18.dp)
                     )
@@ -206,7 +209,7 @@ class VaultScreen : Screen {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Brankas Finansial",
+                    text = strings.tabVault,
                     fontWeight = FontWeight.ExtraBold,
                     style = MaterialTheme.typography.titleLarge,
                     color = AppColors.TextMain,
