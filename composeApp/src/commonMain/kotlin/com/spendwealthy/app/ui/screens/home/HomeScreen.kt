@@ -307,7 +307,7 @@ class HomeScreen : Screen {
                     )
                 }
 
-                // 2.1 Quick Actions Row (Send, Receive, Scan Struk, Bagi Gaji, Simulasi, Swap)
+                // 2.1 Quick Actions Row (Send, Receive, Scan Struk, Bagi Gaji, Simulasi, Swap, FIRE, Audit Bocor)
                 item {
                     QuickActionsRow(
                         onSend = { rootNavigator.push(AddTransactionScreen(TransactionType.EXPENSE)) },
@@ -317,6 +317,7 @@ class HomeScreen : Screen {
                         onSplitSalary = { showPaycheckSplitter = true },
                         onSimulate = { showPurchaseSimulator = true },
                         onFire = { showFireSimulator = true },
+                        onVampireAudit = { rootNavigator.push(BillListScreen()) },
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
                     )
                 }
@@ -802,6 +803,7 @@ class HomeScreen : Screen {
         onSplitSalary: () -> Unit,
         onSimulate: () -> Unit,
         onFire: () -> Unit,
+        onVampireAudit: () -> Unit,
         modifier: Modifier = Modifier
     ) {
         val haptic = LocalHapticFeedback.current
@@ -906,6 +908,20 @@ class HomeScreen : Screen {
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         onFire()
+                    }
+                )
+            }
+
+            // 8. Vampire Drain Leak Auditor ("Audit Bocor")
+            item {
+                QuickActionItem(
+                    label = "Audit Bocor",
+                    icon = Icons.Default.Warning,
+                    backgroundColor = Color(0xFFEF4444).copy(alpha = 0.15f),
+                    iconColor = Color(0xFFDC2626),
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onVampireAudit()
                     }
                 )
             }
