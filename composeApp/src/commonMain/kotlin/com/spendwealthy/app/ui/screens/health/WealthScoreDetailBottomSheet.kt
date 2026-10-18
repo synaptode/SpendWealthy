@@ -61,6 +61,7 @@ import com.spendwealthy.app.ui.theme.AppColors
 fun WealthScoreDetailBottomSheet(
     viewModel: WealthScoreViewModel,
     onDismiss: () -> Unit,
+    onViewPrideStatus: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -171,7 +172,31 @@ fun WealthScoreDetailBottomSheet(
                 HealthTab.BADGES -> BadgesGridView(badges = state.badges)
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            if (onViewPrideStatus != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = { onViewPrideStatus() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF111827))
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(text = "👑", fontSize = 16.sp)
+                        Text(
+                            text = "Buka Sertifikat & Prestise Finansial",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+            }
 
             OutlinedButton(
                 onClick = onDismiss,

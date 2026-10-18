@@ -166,6 +166,8 @@ val commonModule = module {
     single { FinancialGamificationService() }
     factory { WealthScoreViewModel(get(), get(), get(), get(), get(), get()) }
     single { SmartTransactionParserService() }
+    single { FireCalculatorEngine() }
+    factory { com.spendwealthy.app.ui.screens.simulator.FireSimulatorViewModel(get(), get(), get(), get()) }
 }
 
 fun initKoin(config: (org.koin.dsl.KoinAppDeclaration)? = null) = org.koin.core.context.startKoin {

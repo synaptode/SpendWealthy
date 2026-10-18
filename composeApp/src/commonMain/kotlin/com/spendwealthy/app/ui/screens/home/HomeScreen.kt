@@ -102,6 +102,9 @@ import com.spendwealthy.app.ui.screens.wallet.WalletListScreen
 import com.spendwealthy.app.ui.screens.family.FamilyScreen
 import com.spendwealthy.app.ui.screens.simulator.PurchaseSimulatorBottomSheet
 import com.spendwealthy.app.ui.screens.simulator.PurchaseSimulatorViewModel
+import com.spendwealthy.app.ui.screens.simulator.FireSimulatorBottomSheet
+import com.spendwealthy.app.ui.screens.simulator.FireSimulatorViewModel
+import com.spendwealthy.app.ui.screens.insight.PrideStatusScreen
 import com.spendwealthy.app.ui.screens.splitter.PaycheckSplitterBottomSheet
 import com.spendwealthy.app.ui.screens.splitter.PaycheckSplitterViewModel
 import com.spendwealthy.app.ui.screens.health.WealthScoreCard
@@ -145,6 +148,7 @@ class HomeScreen : Screen {
         var showPaycheckSplitter by remember { mutableStateOf(false) }
         var showWealthScoreDetail by remember { mutableStateOf(false) }
         var showReceiptScanner by remember { mutableStateOf(false) }
+        var showFireSimulator by remember { mutableStateOf(false) }
         val wealthViewModel = koinScreenModel<WealthScoreViewModel>()
         val wealthState by wealthViewModel.uiState.collectAsState()
         val selectedMonth = state.selectedMonth
@@ -212,7 +216,23 @@ class HomeScreen : Screen {
         if (showWealthScoreDetail) {
             WealthScoreDetailBottomSheet(
                 viewModel = wealthViewModel,
-                onDismiss = { showWealthScoreDetail = false }
+                onDismiss = { showWealthScoreDetail = false },
+                onViewPrideStatus = {
+                    showWealthScoreDetail = false
+                    rootNavigator.push(PrideStatusScreen())
+                }
+            )
+        }
+
+        if (showFireSimulator) {
+            val fireViewModel = koinScreenModel<FireSimulatorViewModel>()
+            FireSimulatorBottomSheet(
+                viewModel = fireViewModel,
+                onDismiss = { showFireSimulator = false },
+                onGoalCreated = {
+                    showFireSimulator = false
+                    rootNavigator.push(FamilyScreen())
+                }
             )
         }
 
@@ -295,6 +315,7 @@ class HomeScreen : Screen {
                         onSwap = { rootNavigator.push(AddTransactionScreen(TransactionType.TRANSFER)) },
                         onSplitSalary = { showPaycheckSplitter = true },
                         onSimulate = { showPurchaseSimulator = true },
+                        onFire = { showFireSimulator = true },
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
                     )
                 }
@@ -771,6 +792,7 @@ class HomeScreen : Screen {
         onSwap: () -> Unit,
         onSplitSalary: () -> Unit,
         onSimulate: () -> Unit,
+        onFire: () -> Unit,
         modifier: Modifier = Modifier
     ) {
         val haptic = LocalHapticFeedback.current
@@ -861,6 +883,20 @@ class HomeScreen : Screen {
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         onSwap()
+                    }
+                )
+            }
+
+            // 7. FIRE Freedom Simulator
+            item {
+                QuickActionItem(
+                    label = "Bebas FIRE",
+                    icon = Icons.Default.RocketLaunch,
+                    backgroundColor = Color(0xFF8B5CF6).copy(alpha = 0.15f),
+                    iconColor = Color(0xFF7C3AED),
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onFire()
                     }
                 )
             }
