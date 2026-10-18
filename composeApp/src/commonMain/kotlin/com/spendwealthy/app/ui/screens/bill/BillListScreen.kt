@@ -77,9 +77,10 @@ import com.spendwealthy.app.domain.model.RecurrenceType
 import com.spendwealthy.app.ui.components.BrandLogo
 import com.spendwealthy.app.ui.components.KnownBrand
 import com.spendwealthy.app.ui.components.EmptyState
+import com.spendwealthy.app.core.localization.LocalStrings
+import com.spendwealthy.app.domain.service.VampireDrainEngine
 import com.spendwealthy.app.ui.theme.AppColors
 import com.spendwealthy.app.ui.theme.AppTypography
-import com.spendwealthy.app.core.localization.LocalStrings
 
 enum class BillFilterTab {
     UNPAID, ALL, PAID
@@ -98,6 +99,10 @@ class BillListScreen : Screen {
         var successMessage by remember { mutableStateOf<String?>(null) }
         var billToPay by remember { mutableStateOf<BillReminder?>(null) }
         var selectedFilter by remember { mutableStateOf(BillFilterTab.UNPAID) }
+        var showVampireAuditModal by remember { mutableStateOf(false) }
+
+        val vampireEngine = remember { VampireDrainEngine() }
+        val vampireReport = remember(state.bills) { vampireEngine.auditSubscriptions(state.bills) }
 
         val unpaidBills = state.bills.filter { viewModel.statusOf(it) != BillStatus.PAID }
         val paidBills = state.bills.filter { viewModel.statusOf(it) == BillStatus.PAID }
@@ -132,6 +137,97 @@ class BillListScreen : Screen {
                             navigator.push(AddBillScreen())
                         }
                     )
+                }
+
+                // Vampire Drain Auditor Banner
+                if (vampireReport.vampireSubscriptionsCount > 0) {
+                    item {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(18.dp))
+                                .clickable {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    showVampireAuditModal = true
+                                },
+                            shape = RoundedCornerShape(18.dp),
+                            color = Color(0xFF1E1B4B),
+                            border = BorderStroke(1.dp, Color(0xFFEF4444).copy(alpha = 0.4f))
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        Brush.linearGradient(
+                                            listOf(
+                                                Color(0xFF450A0A),
+                                                Color(0xFF18181B)
+                                            )
+                                        )
+                                    )
+                                    .padding(16.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(38.dp)
+                                                .clip(CircleShape)
+                                                .background(Color(0xFFEF4444).copy(alpha = 0.2f)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(text = "🧛‍♂️", fontSize = 18.sp)
+                                        }
+
+                                        Column {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                            ) {
+                                                Text(
+                                                    text = "Audit Kebocoran Gaib",
+                                                    fontSize = 13.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = Color.White
+                                                )
+                                                Surface(
+                                                    shape = RoundedCornerShape(4.dp),
+                                                    color = Color(0xFFEF4444).copy(alpha = 0.25f)
+                                                ) {
+                                                    Text(
+                                                        text = "${vampireReport.vampireSubscriptionsCount} Langganan",
+                                                        fontSize = 9.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = Color(0xFFFCA5A5),
+                                                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                                    )
+                                                }
+                                            }
+                                            Text(
+                                                text = "Total ${Money(vampireReport.totalAnnualDrain, "IDR").formatWithSymbol()}/thn • Pelajari potensi kebocoran >",
+                                                fontSize = 11.sp,
+                                                color = Color.White.copy(alpha = 0.7f)
+                                            )
+                                        }
+                                    }
+
+                                    Icon(
+                                        imageVector = Icons.Default.ChevronRight,
+                                        contentDescription = "Buka Audit",
+                                        tint = Color.White.copy(alpha = 0.8f),
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
 
                 if (unpaidBills.isNotEmpty()) {
@@ -283,6 +379,13 @@ class BillListScreen : Screen {
                         billToPay = null
                     },
                     onDismiss = { billToPay = null }
+                )
+            }
+
+            if (showVampireAuditModal) {
+                VampireDrainAuditBottomSheet(
+                    report = vampireReport,
+                    onDismiss = { showVampireAuditModal = false }
                 )
             }
         }
