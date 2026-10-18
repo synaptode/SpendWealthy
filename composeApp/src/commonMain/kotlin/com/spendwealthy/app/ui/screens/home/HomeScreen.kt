@@ -116,6 +116,8 @@ import com.spendwealthy.app.ui.screens.home.components.FinancialGuardianCard
 import com.spendwealthy.app.ui.screens.home.components.SpendingInsightsCard
 import com.spendwealthy.app.ui.screens.home.components.WealthOptimizerCard
 import com.spendwealthy.app.ui.screens.home.components.OptimizationDetailBottomSheet
+import com.spendwealthy.app.ui.screens.home.components.ResilienceRunwayCard
+import com.spendwealthy.app.ui.screens.home.components.FinancialResilienceBottomSheet
 import com.spendwealthy.app.ui.screens.home.OptimizationHistoryScreen
 import com.spendwealthy.app.domain.model.OptimizerRecommendation
 import com.spendwealthy.app.core.localization.LocalStrings
@@ -150,6 +152,7 @@ class HomeScreen : Screen {
         var showWealthScoreDetail by remember { mutableStateOf(false) }
         var showReceiptScanner by remember { mutableStateOf(false) }
         var showFireSimulator by remember { mutableStateOf(false) }
+        var showResilienceDetail by remember { mutableStateOf(false) }
         val wealthViewModel = koinScreenModel<WealthScoreViewModel>()
         val wealthState by wealthViewModel.uiState.collectAsState()
         val selectedMonth = state.selectedMonth
@@ -235,6 +238,23 @@ class HomeScreen : Screen {
                     rootNavigator.push(FamilyScreen())
                 }
             )
+        }
+
+        if (showResilienceDetail) {
+            val resilience = state.resilienceReport
+            if (resilience != null) {
+                FinancialResilienceBottomSheet(
+                    report = resilience,
+                    stressTest = state.stressTestResult,
+                    shieldStatus = state.wealthShield,
+                    totalLiquidBalance = state.totalBalance,
+                    onDismiss = { showResilienceDetail = false },
+                    onBoostEmergencyFund = {
+                        showResilienceDetail = false
+                        rootNavigator.push(FamilyScreen())
+                    }
+                )
+            }
         }
 
         if (showReceiptScanner) {
@@ -341,6 +361,22 @@ class HomeScreen : Screen {
                         onClick = { showWealthScoreDetail = true },
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
                     )
+                }
+
+                // 3.12. Financial Resilience & Emergency Runway Card
+                val resilienceReport = state.resilienceReport
+                if (resilienceReport != null) {
+                    item {
+                        ResilienceRunwayCard(
+                            report = resilienceReport,
+                            activeScenario = state.selectedScenario,
+                            onScenarioChange = { scenario ->
+                                viewModel.onEvent(HomeEvent.ChangeResilienceScenario(scenario))
+                            },
+                            onOpenDetails = { showResilienceDetail = true },
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
+                        )
+                    }
                 }
 
                 // 3.15. Financial Freedom & FIRE Projection Banner
