@@ -57,6 +57,7 @@ import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.spendwealthy.app.domain.model.Category
+import com.spendwealthy.app.core.localization.LocalStrings
 import com.spendwealthy.app.ui.components.AddCategoryModal
 import com.spendwealthy.app.ui.components.AppAmountInput
 import com.spendwealthy.app.ui.components.AppButton
@@ -72,6 +73,7 @@ class AddBudgetScreen : Screen {
         val navigator = LocalNavigator.currentOrThrow
         val snackbarHostState = remember { SnackbarHostState() }
         val haptic = LocalHapticFeedback.current
+        val strings = LocalStrings.current
         var showAddCategoryModal by remember { mutableStateOf(false) }
 
         LaunchedEffect(viewModel) {
@@ -98,7 +100,7 @@ class AddBudgetScreen : Screen {
             ) {
                 item {
                     Header(
-                        title = "Atur Anggaran",
+                        title = strings.activeBudgets,
                         subtitle = "Batas pengeluaran per kategori",
                         onClose = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -108,7 +110,7 @@ class AddBudgetScreen : Screen {
                 }
 
                 item {
-                    FormSection(title = "Pilih Kategori", icon = Icons.Default.Category) {
+                    FormSection(title = strings.category, icon = Icons.Default.Category) {
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             items(state.categories) { category ->
                                 CategoryChip(
@@ -254,7 +256,7 @@ class AddBudgetScreen : Screen {
                     }
                     Spacer(Modifier.height(16.dp))
                     AppButton(
-                        text = "Simpan Anggaran",
+                        text = strings.save,
                         onClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             viewModel.onEvent(AddBudgetEvent.SaveClicked)
@@ -280,6 +282,7 @@ class AddBudgetScreen : Screen {
 
     @Composable
     private fun Header(title: String, subtitle: String, onClose: () -> Unit) {
+        val strings = LocalStrings.current
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -299,7 +302,7 @@ class AddBudgetScreen : Screen {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Kembali",
+                        contentDescription = strings.back,
                         tint = AppColors.TextMain,
                         modifier = Modifier.size(18.dp)
                     )
