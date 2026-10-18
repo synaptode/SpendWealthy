@@ -338,6 +338,7 @@ class HomeScreen : Screen {
                         onSimulate = { showPurchaseSimulator = true },
                         onFire = { showFireSimulator = true },
                         onVampireAudit = { rootNavigator.push(BillListScreen()) },
+                        onRunwayShield = { showResilienceDetail = true },
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
                     )
                 }
@@ -840,6 +841,7 @@ class HomeScreen : Screen {
         onSimulate: () -> Unit,
         onFire: () -> Unit,
         onVampireAudit: () -> Unit,
+        onRunwayShield: () -> Unit,
         modifier: Modifier = Modifier
     ) {
         val haptic = LocalHapticFeedback.current
@@ -958,6 +960,20 @@ class HomeScreen : Screen {
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         onVampireAudit()
+                    }
+                )
+            }
+
+            // 9. Financial Resilience & Runway Shield ("Runway")
+            item {
+                QuickActionItem(
+                    label = "Runway",
+                    icon = Icons.Default.Shield,
+                    backgroundColor = Color(0xFF0D9488).copy(alpha = 0.15f),
+                    iconColor = Color(0xFF0D9488),
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onRunwayShield()
                     }
                 )
             }

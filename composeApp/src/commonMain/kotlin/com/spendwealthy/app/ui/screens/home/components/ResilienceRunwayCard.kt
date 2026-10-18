@@ -136,8 +136,10 @@ fun ResilienceRunwayCard(
                         verticalAlignment = Alignment.Bottom,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
+                        val runwayTenths = (report.runwayMonths * 10).toLong()
+                        val runwayDisplay = "${runwayTenths / 10}.${runwayTenths % 10}"
                         Text(
-                            text = "%.1f".format(report.runwayMonths),
+                            text = runwayDisplay,
                             fontSize = 32.sp,
                             fontWeight = FontWeight.Black,
                             color = AppColors.TextMain

@@ -191,8 +191,10 @@ fun FinancialResilienceBottomSheet(
                         verticalAlignment = Alignment.Bottom,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
+                        val runwayTenths = (report.runwayMonths * 10).toLong()
+                        val runwayDisplay = "${runwayTenths / 10}.${runwayTenths % 10}"
                         Text(
-                            text = "%.1f".format(report.runwayMonths),
+                            text = runwayDisplay,
                             fontSize = 38.sp,
                             fontWeight = FontWeight.Black,
                             color = Color.White
@@ -382,7 +384,7 @@ fun FinancialResilienceBottomSheet(
                                 verticalAlignment = Alignment.Top
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Speed,
+                                    imageVector = Icons.Default.Security,
                                     contentDescription = null,
                                     tint = Color(0xFFDC2626),
                                     modifier = Modifier.size(18.dp)
