@@ -111,6 +111,7 @@ import com.spendwealthy.app.ui.screens.health.WealthScoreCard
 import com.spendwealthy.app.ui.screens.health.WealthScoreDetailBottomSheet
 import com.spendwealthy.app.ui.screens.health.WealthScoreViewModel
 import com.spendwealthy.app.ui.components.ReceiptScannerModal
+import com.spendwealthy.app.ui.screens.home.components.FireFreedomBanner
 import com.spendwealthy.app.ui.screens.home.components.FinancialGuardianCard
 import com.spendwealthy.app.ui.screens.home.components.SpendingInsightsCard
 import com.spendwealthy.app.ui.screens.home.components.WealthOptimizerCard
@@ -337,6 +338,14 @@ class HomeScreen : Screen {
                         wealthScore = wealthState.score,
                         streak = wealthState.streak,
                         onClick = { showWealthScoreDetail = true },
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
+                    )
+                }
+
+                // 3.15. Financial Freedom & FIRE Projection Banner
+                item {
+                    FireFreedomBanner(
+                        onClick = { showFireSimulator = true },
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
                     )
                 }
